@@ -1,0 +1,53 @@
+{
+  "name": "@jondotsoy/don",
+  "version": "0.0.4",
+  "description": "DON (Directive Object Notation) - A human-readable data serialization format based on directives and subdirectives for configuration files, infrastructure definitions, and structured data",
+  "keywords": [
+    "don",
+    "directive",
+    "serialization",
+    "parser",
+    "config",
+    "configuration",
+    "data-format",
+    "markup",
+    "notation"
+  ],
+  "author": "@jondotsoy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jondotsoy/don"
+  },
+  "type": "module",
+  "main": "./lib/esm/index.js",
+  "types": "./lib/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/esm/index.d.ts",
+      "import": "./lib/esm/index.js"
+    },
+    "./utils": {
+      "types": "./lib/esm/utils/inspect.d.ts",
+      "import": "./lib/esm/utils/inspect.js"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "prepack": "npm run lint && npm run build",
+    "build": "npm run build:esm",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "clean": "rm -rf lib",
+    "lint": "prettier --check .",
+    "fmt": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "3.7.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
