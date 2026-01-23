@@ -1,0 +1,136 @@
+{
+  "tokens": [
+    {
+      "type": 11,
+      "text": "foo123",
+      "span": {
+        "index": 0,
+        "length": 6,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 6,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "foo",
+          "span": {
+            "index": 0,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 2,
+          "text": "123",
+          "span": {
+            "index": 3,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 6,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 4,
+      "text": "\n",
+      "span": {
+        "index": 6,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 6,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 1,
+          "column": 0,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 4,
+          "text": "\n",
+          "span": {
+            "index": 6,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 6,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 1,
+              "column": 0,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 11,
+      "text": "taz",
+      "span": {
+        "index": 7,
+        "length": 3,
+        "startLocation": {
+          "line": 1,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 1,
+          "column": 3,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "taz",
+          "span": {
+            "index": 7,
+            "length": 3,
+            "startLocation": {
+              "line": 1,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 1,
+              "column": 3,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

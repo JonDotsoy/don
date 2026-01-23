@@ -1,0 +1,208 @@
+{
+  "tokens": [
+    {
+      "type": 11,
+      "text": "fod",
+      "span": {
+        "index": 0,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "fod",
+          "span": {
+            "index": 0,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 12,
+      "text": "\"foo\\\"tar\"",
+      "span": {
+        "index": 4,
+        "length": 10,
+        "startLocation": {
+          "line": 0,
+          "column": 4,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 14,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 8,
+          "text": "\"",
+          "span": {
+            "index": 4,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 4,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 5,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 1,
+          "text": "foo",
+          "span": {
+            "index": 5,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 5,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 8,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "\\",
+          "span": {
+            "index": 8,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 8,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 9,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 8,
+          "text": "\"",
+          "span": {
+            "index": 9,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 9,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 10,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 1,
+          "text": "tar",
+          "span": {
+            "index": 10,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 10,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 13,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 8,
+          "text": "\"",
+          "span": {
+            "index": 13,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 13,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 14,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 11,
+      "text": "biz",
+      "span": {
+        "index": 15,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 15,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 18,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "biz",
+          "span": {
+            "index": 15,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 15,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 18,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

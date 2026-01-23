@@ -1,0 +1,26 @@
+123 123.312 -123 -123.123 123n
+
+------------------------------------------------------------
+
+   0:  31 32 33 20 31 32 33 2E 33 31 32 20 2D 31 32 33  [123 123.312 -123]
+   1:  20 2D 31 32 33 2E 31 32 33 20 31 32 33 6E        [ -123.123 123n]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Numeric "123"
+  Part#76: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Int [31 32 33] "123"
+Token: [Offset 4 Len 7; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Numeric "123.312"
+  Part#78: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Int [31 32 33] "123"
+  Part#79: [Offset 7 Len 1; Ln 1, Col 8 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Dot [2E] "."
+  Part#80: [Offset 8 Len 3; Ln 1, Col 9 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Int [33 31 32] "312"
+Token: [Offset 12 Len 4; Ln 1, Col 13 (Padding 0) -> Ln 1, Col 17 (Padding 0)] Numeric "-123"
+  Part#82: [Offset 12 Len 1; Ln 1, Col 13 (Padding 0) -> Ln 1, Col 14 (Padding 0)] Unknown [2D] "-"
+  Part#83: [Offset 13 Len 3; Ln 1, Col 14 (Padding 0) -> Ln 1, Col 17 (Padding 0)] Int [31 32 33] "123"
+Token: [Offset 17 Len 8; Ln 1, Col 18 (Padding 0) -> Ln 1, Col 26 (Padding 0)] Numeric "-123.123"
+  Part#85: [Offset 17 Len 1; Ln 1, Col 18 (Padding 0) -> Ln 1, Col 19 (Padding 0)] Unknown [2D] "-"
+  Part#86: [Offset 18 Len 3; Ln 1, Col 19 (Padding 0) -> Ln 1, Col 22 (Padding 0)] Int [31 32 33] "123"
+  Part#87: [Offset 21 Len 1; Ln 1, Col 22 (Padding 0) -> Ln 1, Col 23 (Padding 0)] Dot [2E] "."
+  Part#88: [Offset 22 Len 3; Ln 1, Col 23 (Padding 0) -> Ln 1, Col 26 (Padding 0)] Int [31 32 33] "123"
+Token: [Offset 26 Len 4; Ln 1, Col 27 (Padding 0) -> Ln 1, Col 31 (Padding 0)] Numeric "123n"
+  Part#90: [Offset 26 Len 3; Ln 1, Col 27 (Padding 0) -> Ln 1, Col 30 (Padding 0)] Int [31 32 33] "123"
+  Part#91: [Offset 29 Len 1; Ln 1, Col 30 (Padding 0) -> Ln 1, Col 31 (Padding 0)] Alphabet [6E] "n"

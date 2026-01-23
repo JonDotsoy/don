@@ -1,0 +1,80 @@
+{
+  "tokens": [
+    {
+      "type": 17,
+      "text": "  ",
+      "span": {
+        "index": 0,
+        "length": 2,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 2
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 2,
+          "paddingLine": 2
+        }
+      },
+      "parts": [
+        {
+          "type": 3,
+          "text": "  ",
+          "span": {
+            "index": 0,
+            "length": 2,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 2,
+              "paddingLine": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 11,
+      "text": "foo",
+      "span": {
+        "index": 2,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 2,
+          "paddingLine": 2
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 5,
+          "paddingLine": 2
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "foo",
+          "span": {
+            "index": 2,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 5,
+              "paddingLine": 2
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

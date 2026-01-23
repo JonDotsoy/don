@@ -1,0 +1,118 @@
+{
+  "tokens": [
+    {
+      "type": 11,
+      "text": "foo",
+      "span": {
+        "index": 0,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "foo",
+          "span": {
+            "index": 0,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 3,
+      "text": " ",
+      "span": {
+        "index": 3,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 4,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 3,
+          "text": " ",
+          "span": {
+            "index": 3,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 4,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 13,
+      "text": "123",
+      "span": {
+        "index": 4,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 4,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 7,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 2,
+          "text": "123",
+          "span": {
+            "index": 4,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 4,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 7,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

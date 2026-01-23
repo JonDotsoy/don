@@ -1,0 +1,10 @@
+null
+
+------------------------------------------------------------
+
+   0:  6E 75 6C 6C                                      [null]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 4; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Null "null"
+  Part#95: [Offset 0 Len 4; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Alphabet [6E 75 6C 6C] "null"

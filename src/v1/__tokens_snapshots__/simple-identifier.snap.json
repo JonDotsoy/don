@@ -1,0 +1,22 @@
+{
+  "parts": [
+    {
+      "type": 1,
+      "text": "asd",
+      "span": {
+        "index": 0,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        }
+      }
+    }
+  ]
+}

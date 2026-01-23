@@ -1,0 +1,129 @@
+{
+  "children": [
+    {
+      "id": 3,
+      "name": "directive",
+      "args": [
+        "foo"
+      ],
+      "span": {
+        "index": 0,
+        "length": 74,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 4,
+          "column": 16,
+          "paddingLine": 2
+        }
+      },
+      "children": [
+        {
+          "id": 1,
+          "name": "directive2",
+          "args": [
+            "taz",
+            "lip"
+          ],
+          "span": {
+            "index": 18,
+            "length": 53,
+            "startLocation": {
+              "line": 1,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 2,
+              "column": 14,
+              "paddingLine": 4
+            }
+          },
+          "children": [
+            {
+              "id": 0,
+              "name": "directive4",
+              "args": [],
+              "span": {
+                "index": 43,
+                "length": 53,
+                "startLocation": {
+                  "line": 2,
+                  "column": 4,
+                  "paddingLine": 4
+                },
+                "endLocation": {
+                  "line": 2,
+                  "column": 14,
+                  "paddingLine": 4
+                }
+              },
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "directive3",
+          "args": [
+            "bob"
+          ],
+          "span": {
+            "index": 60,
+            "length": 74,
+            "startLocation": {
+              "line": 4,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 4,
+              "column": 16,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "bliz",
+      "args": [
+        "tar"
+      ],
+      "span": {
+        "index": 77,
+        "length": 85,
+        "startLocation": {
+          "line": 6,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 6,
+          "column": 8,
+          "paddingLine": 0
+        }
+      },
+      "children": []
+    }
+  ],
+  "span": {
+    "index": 0,
+    "length": 162,
+    "startLocation": {
+      "line": 0,
+      "column": 0,
+      "paddingLine": 0
+    },
+    "endLocation": {
+      "line": 6,
+      "column": 8,
+      "paddingLine": 0
+    }
+  }
+}

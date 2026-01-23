@@ -1,0 +1,14 @@
+"tar\""
+
+------------------------------------------------------------
+
+   0:  22 74 61 72 5C 22 22                             ["tar\""]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 7; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 8 (Padding 0)] String "\"tar\\\"\""
+  Part#224: [Offset 0 Len 1; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 2 (Padding 0)] DoubleQuote [22] "\""
+  Part#225: [Offset 1 Len 3; Ln 1, Col 2 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Alphabet [74 61 72] "tar"
+  Part#226: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Unknown [5C] "\\"
+  Part#227: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 7 (Padding 0)] DoubleQuote [22] "\""
+  Part#228: [Offset 6 Len 1; Ln 1, Col 7 (Padding 0) -> Ln 1, Col 8 (Padding 0)] DoubleQuote [22] "\""

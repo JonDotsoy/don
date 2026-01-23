@@ -1,0 +1,20 @@
+fod 'foo\'tar' biz
+
+------------------------------------------------------------
+
+   0:  66 6F 64 20 27 66 6F 6F 5C 27 74 61 72 27 20 62  [fod 'foo\'tar' b]
+   1:  69 7A                                            [iz]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "fod"
+  Part#251: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 64] "fod"
+Token: [Offset 4 Len 10; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 15 (Padding 0)] String "'foo\\'tar'"
+  Part#253: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] SingleQuote [27] "'"
+  Part#254: [Offset 5 Len 3; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Alphabet [66 6F 6F] "foo"
+  Part#255: [Offset 8 Len 1; Ln 1, Col 9 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Unknown [5C] "\\"
+  Part#256: [Offset 9 Len 1; Ln 1, Col 10 (Padding 0) -> Ln 1, Col 11 (Padding 0)] SingleQuote [27] "'"
+  Part#257: [Offset 10 Len 3; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 14 (Padding 0)] Alphabet [74 61 72] "tar"
+  Part#258: [Offset 13 Len 1; Ln 1, Col 14 (Padding 0) -> Ln 1, Col 15 (Padding 0)] SingleQuote [27] "'"
+Token: [Offset 15 Len 3; Ln 1, Col 16 (Padding 0) -> Ln 1, Col 19 (Padding 0)] Keyword "biz"
+  Part#260: [Offset 15 Len 3; Ln 1, Col 16 (Padding 0) -> Ln 1, Col 19 (Padding 0)] Alphabet [62 69 7A] "biz"

@@ -1,0 +1,334 @@
+import { describe, expect, test } from "bun:test"
+import { SyntaxKind } from "./utils/syntax-kind.js";
+import { PartSetEncode } from "./compiler/part-set-encode.js";
+import { LexemaEncode } from "./compiler/lexema-encode.js";
+import "./__utils__/to-token-snapshot.js";
+import { takeWhile } from "./utils/take-while.js";
+import { partsMatch } from "./utils/parts-match.js";
+import { SyntaxEncode } from "./compiler/syntax-encode.js";
+
+describe("PartSetEncode", () => {
+  const partSetEncode = (snapshotName: string, value: string) => () => {
+    const partSet = new PartSetEncode().encode(value)
+    expect(partSet).toTokenSnapshot(snapshotName);
+  }
+
+  test("should encode simple alphabetic identifier",
+    partSetEncode("simple-identifier", "asd")
+  )
+
+  test("should encode unknown character with unknown syntax kind",
+    partSetEncode("unknown-character", "/")
+  )
+
+  test("should encode multiple identifiers separated by whitespace",
+    partSetEncode("identifiers-with-whitespace", "abc asd")
+  )
+
+  test("should encode identifiers with whitespace and newline",
+    partSetEncode("identifiers-whitespace-newline", "abc asd\n")
+  )
+
+  test("should encode decimal number",
+    partSetEncode("decimal-number", "12.123")
+  );
+
+  test("should encode number inside curly braces",
+    partSetEncode("number-in-curly-braces", "{12.123}")
+  );
+
+  test("should encode identifier and number inside curly braces",
+    partSetEncode("identifier-number-in-curly-braces", "foo {12.123}")
+  );
+
+  test("should encode identifier with trailing whitespace",
+    partSetEncode("identifier-trailing-whitespace", "foo ")
+  );
+
+  test("should encode identifier with leading whitespace",
+    partSetEncode("identifier-leading-whitespace", " foo")
+  );
+});
+
+describe("LexemaEncode", () => {
+  test("should encode alphabetic keyword", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("foo");
+
+    expect(lexema).toTokenSnapshot("simple-alphabetic-keyword");
+  });
+
+  test("should encode alphanumeric keyword", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("foo123");
+
+    expect(lexema).toTokenSnapshot("alphanumeric-keyword");
+  });
+
+  test("should encode keyword and number as separate tokens", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("foo 123");
+
+    expect(lexema).toTokenSnapshot("keyword-whitespace-number");
+  });
+
+  test("should encode special characters and negative numbers", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("$foo -123");
+
+    expect(lexema).toTokenSnapshot("special-chars-and-negative-numbers");
+  });
+
+  test("should encode identifier with nested identifier in curly braces", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("foo { tar }");
+
+    expect(lexema).toTokenSnapshot("foo-curly-braces-tar");
+  });
+
+  test("should encode nested curly braces with route directives", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode(
+      ''
+      + 'example.com {\n'
+      + '  route /profile/* {\n'
+      + '    respond 200 "Ok"\n'
+      + '  }\n'
+      + '}'
+    );
+
+    expect(lexema).toTokenSnapshot("nested-curly-braces-route");
+  });
+
+  test("should encode multiple consecutive newlines", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("\n\n\n\n");
+
+    expect(lexema).toTokenSnapshot("multiple-newlines");
+  });
+
+  test("should encode different number formats", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode(
+      '123 123.312 -123 -123.123 123n'
+    );
+
+    expect(lexema).toTokenSnapshot("number-formats");
+  });
+
+  test("should encode boolean values", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode(
+      'true false'
+    );
+
+    expect(lexema).toTokenSnapshot("boolean-values");
+  });
+
+  test("should encode null value", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('null');
+
+    expect(lexema).toTokenSnapshot("null-value");
+  });
+
+  test("should encode identifiers on separate lines", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('foo\ntaz');
+
+    expect(lexema).toTokenSnapshot("identifiers-with-newline");
+  });
+
+  test("should encode alphanumeric identifiers on separate lines", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('foo123\ntaz');
+
+    expect(lexema).toTokenSnapshot("alphanumeric-identifiers-with-newline");
+  });
+
+  test("should encode identifier followed by open curly brace", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('foo{');
+
+    expect(lexema).toTokenSnapshot("identifier-open-curly-brace");
+  });
+
+  test("should encode alphanumeric identifier followed by close curly brace", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('foo123}');
+
+    expect(lexema).toTokenSnapshot("alphanumeric-identifier-close-curly-brace");
+  });
+
+  test("should encode complex directive with special characters and nested braces", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true, debug: true }).encode(
+      ''
+      + 'directive $blis _lol path/${name} {\n'
+      + '  directive abc\n'
+      + '}'
+    );
+
+    expect(lexema).toTokenSnapshot("complex-directive-with-nested-braces");
+  });
+
+  test("should encode identifier with leading whitespace", () => {
+    const lexema = new LexemaEncode({ debug: true }).encode("  foo");
+
+    expect(lexema).toTokenSnapshot("leading-whitespace-identifier");
+  });
+
+  test("should encode heredoc with HTML content", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode(
+      ''
+      + 'foo <<<HTML\n'
+      + '  <div> foo </div>'
+    );
+
+    expect(lexema).toTokenSnapshot("heredoc-html-simple");
+  });
+
+  test("should encode heredoc followed by another directive", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode(
+      ''
+      + 'foo <<<HTML\n'
+      + '  <div>foo</div>\n'
+      + 'tar\n'
+    );
+
+    expect(lexema).toTokenSnapshot("heredoc-html-with-trailing-identifier");
+  });
+
+  test("should encode heredoc with HTML content inside curly braces", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true, debug: true }).encode(
+      ''
+      + 'biz {\n'
+      + '  foo <<<HTML\n'
+      + '    <div>foo</div>\n'
+      + '  tar\n'
+      + '}\n'
+    );
+
+    expect(lexema).toTokenSnapshot("heredoc-html-in-curly-braces");
+  });
+
+  test("should encode heredoc without closing delimiter inside curly braces", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true, debug: true }).encode(
+      ''
+      + 'biz {\n'
+      + '  foo <<<HTML\n'
+      + '  div foo\n'
+      + '  tar\n'
+      + '}\n'
+    );
+
+    expect(lexema).toTokenSnapshot("heredoc-without-closing-delimiter");
+  });
+
+  test("should encode double-quoted string with space", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('"foo biz"');
+
+    expect(lexema).toTokenSnapshot("double-quoted-string-with-space");
+  });
+
+  test("should encode double-quoted string with escaped quote", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('"tar\\""');
+
+    expect(lexema).toTokenSnapshot("double-quoted-string-with-escaped-quote");
+  });
+
+  test("should encode single-quoted string with space", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode("'foo biz'");
+
+    expect(lexema).toTokenSnapshot("single-quoted-string-with-space");
+  });
+
+  test("should encode single-quoted string with escaped quote", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode("'foo \\'biz'");
+
+    expect(lexema).toTokenSnapshot("single-quoted-string-with-escaped-quote");
+  });
+
+  test("should encode identifier with double-quoted string containing escaped quote and trailing identifier", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('fod "foo\\"tar" biz');
+
+    expect(lexema).toTokenSnapshot("identifier-double-quoted-escaped-identifier");
+  });
+
+  test("should encode identifier with single-quoted string containing escaped quote and trailing identifier", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode("fod 'foo\\'tar' biz");
+
+    expect(lexema).toTokenSnapshot("identifier-single-quoted-escaped-identifier");
+  });
+
+  test("should encode identifier with double-quoted string containing escaped quote with spaces and trailing identifier", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode('fod "foo \\" tar" biz');
+
+    expect(lexema).toTokenSnapshot("identifier-double-quoted-escaped-with-spaces-identifier");
+  });
+
+  test("should encode identifier with single-quoted string containing escaped quote with spaces and trailing identifier", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode("fod 'foo \\' tar' biz");
+
+    expect(lexema).toTokenSnapshot("identifier-single-quoted-escaped-with-spaces-identifier");
+  });
+
+  test("should encode identifier with single-quoted multiline string containing escaped quote and trailing identifier", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode(
+      ''
+      + `fod 'foo\n`
+      + ` \\' \n`
+      + ` tar' biz`
+    );
+
+    expect(lexema).toTokenSnapshot("identifier-single-quoted-multiline-escaped-identifier");
+  });
+
+  test("should encode identifier with single-quoted string containing heredoc syntax and trailing identifier", () => {
+    const lexema = new LexemaEncode({ allowDebugDocument: true }).encode("fod 'foo <<<TAR\n tar' biz");
+
+    expect(lexema).toTokenSnapshot("identifier-single-quoted-with-heredoc-syntax-identifier");
+  });
+});
+
+test("should take elements while predicate is true", () => {
+  expect([...takeWhile([1, 2, 3], v => v !== 3)]).toEqual([1, 2]);
+  expect([...takeWhile([1, 2, 3, 4], v => v !== 3)]).toEqual([1, 2]);
+  expect([...takeWhile([1, 2, 3, 4], v => v !== 3, 1)]).toEqual([2]);
+});
+
+describe("partsMatch", () => {
+  const t = (value: string) => new PartSetEncode().encode(value);
+
+  test("should match negative number pattern", () => {
+    const parts = t('-123')
+    expect(partsMatch(parts, [{ buffer: { eq: [45] } }, { type: { eq: SyntaxKind.integer } }])).toBeTrue();
+  })
+  test("should match positive integer pattern", () => {
+    const parts = t('123')
+    expect(partsMatch(parts, [{ type: { eq: SyntaxKind.integer } }])).toBeTrue();
+  })
+  test("should match decimal number pattern", () => {
+    const parts = t('123.123')
+    expect(partsMatch(parts, [
+      { type: { eq: SyntaxKind.integer } },
+      { type: { eq: SyntaxKind.dot } },
+      { type: { eq: SyntaxKind.integer } },
+    ])).toBeTrue();
+  })
+  test("should match bigint pattern", () => {
+    expect(partsMatch(t('123n'), [
+      { type: { eq: SyntaxKind.integer } },
+      { type: { eq: SyntaxKind.alphabet }, buffer: { eq: [110] } },
+    ])).toBeTrue();
+  })
+  test("should not match invalid bigint with trailing digits", () => {
+    expect(partsMatch(t('123n1'), [
+      { type: { eq: SyntaxKind.integer } },
+      { type: { eq: SyntaxKind.alphabet }, buffer: { eq: [110] } },
+    ])).not.toBeTrue();
+  })
+})
+
+describe("SyntaxEncode", () => {
+  const snapSyntax = (snapshot: string, payload: string) => () => {
+    expect(new LexemaEncode({ allowDebugDocument: true }).encode(payload)).toTokenSnapshot(`${snapshot}-lexema`);
+    expect(new SyntaxEncode().encode(payload)).toTokenSnapshot(`${snapshot}-syntax`);
+  }
+
+  test("should encode nested directives with curly braces", snapSyntax("nested-directives-with-curly-braces",
+    ''
+    + 'directive foo {\n'
+    + '  directive2 taz lip {\n'
+    + '    directive4\n'
+    + '  }\n'
+    + '  directive3 bob\n'
+    + '}\n'
+    + 'bliz tar\n'
+  ));
+});

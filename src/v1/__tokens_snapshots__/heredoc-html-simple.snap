@@ -1,0 +1,29 @@
+foo <<<HTML
+  <div> foo </div>
+
+------------------------------------------------------------
+
+   0:  66 6F 6F 20 3C 3C 3C 48 54 4D 4C 0A 20 20 3C 64  [foo <<<HTML\n  <d]
+   1:  69 76 3E 20 66 6F 6F 20 3C 2F 64 69 76 3E        [iv> foo </div>]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "foo"
+  Part#133: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+Token: [Offset 4 Len 26; Ln 1, Col 5 (Padding 0) -> Ln 2, Col 19 (Padding 0)] Heredoc "<<<HTML\n  <div> foo </div>"
+  Part#135: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Unknown [3C] "<"
+  Part#136: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Unknown [3C] "<"
+  Part#137: [Offset 6 Len 1; Ln 1, Col 7 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Unknown [3C] "<"
+  Part#138: [Offset 7 Len 4; Ln 1, Col 8 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Alphabet [48 54 4D 4C] "HTML"
+  Part#139: [Offset 11 Len 1; Ln 1, Col 12 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+  Part#140: [Offset 12 Len 2; Ln 2, Col 1 (Padding 2) -> Ln 2, Col 3 (Padding 2)] Whitespace [20 20] "  "
+  Part#141: [Offset 14 Len 1; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 4 (Padding 2)] Unknown [3C] "<"
+  Part#142: [Offset 15 Len 3; Ln 2, Col 4 (Padding 2) -> Ln 2, Col 7 (Padding 2)] Alphabet [64 69 76] "div"
+  Part#143: [Offset 18 Len 1; Ln 2, Col 7 (Padding 2) -> Ln 2, Col 8 (Padding 2)] Unknown [3E] ">"
+  Part#144: [Offset 19 Len 1; Ln 2, Col 8 (Padding 2) -> Ln 2, Col 9 (Padding 2)] Whitespace [20] " "
+  Part#145: [Offset 20 Len 3; Ln 2, Col 9 (Padding 2) -> Ln 2, Col 12 (Padding 2)] Alphabet [66 6F 6F] "foo"
+  Part#146: [Offset 23 Len 1; Ln 2, Col 12 (Padding 2) -> Ln 2, Col 13 (Padding 2)] Whitespace [20] " "
+  Part#147: [Offset 24 Len 1; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 14 (Padding 2)] Unknown [3C] "<"
+  Part#148: [Offset 25 Len 1; Ln 2, Col 14 (Padding 2) -> Ln 2, Col 15 (Padding 2)] Unknown [2F] "/"
+  Part#149: [Offset 26 Len 3; Ln 2, Col 15 (Padding 2) -> Ln 2, Col 18 (Padding 2)] Alphabet [64 69 76] "div"
+  Part#150: [Offset 29 Len 1; Ln 2, Col 18 (Padding 2) -> Ln 2, Col 19 (Padding 2)] Unknown [3E] ">"

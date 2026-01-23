@@ -1,0 +1,11 @@
+12.123
+
+------------------------------------------------------------
+
+   0:  31 32 2E 31 32 33                                [12.123]
+
+------------------------------------------------------------
+
+Part#9: [Offset 0 Len 2; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 3 (Padding 0)] Int [31 32] "12"
+Part#10: [Offset 2 Len 1; Ln 1, Col 3 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Dot [2E] "."
+Part#11: [Offset 3 Len 3; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Int [31 32 33] "123"

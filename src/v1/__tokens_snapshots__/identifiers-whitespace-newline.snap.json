@@ -1,0 +1,76 @@
+{
+  "parts": [
+    {
+      "type": 1,
+      "text": "abc",
+      "span": {
+        "index": 0,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        }
+      }
+    },
+    {
+      "type": 3,
+      "text": " ",
+      "span": {
+        "index": 3,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 4,
+          "paddingLine": 0
+        }
+      }
+    },
+    {
+      "type": 1,
+      "text": "asd",
+      "span": {
+        "index": 4,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 4,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 7,
+          "paddingLine": 0
+        }
+      }
+    },
+    {
+      "type": 4,
+      "text": "\n",
+      "span": {
+        "index": 7,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 7,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 1,
+          "column": 0,
+          "paddingLine": 0
+        }
+      }
+    }
+  ]
+}

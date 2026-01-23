@@ -1,0 +1,52 @@
+directive $blis _lol path/${name} {
+  directive abc
+}
+
+------------------------------------------------------------
+
+   0:  64 69 72 65 63 74 69 76 65 20 24 62 6C 69 73 20  [directive $blis ]
+   1:  5F 6C 6F 6C 20 70 61 74 68 2F 24 7B 6E 61 6D 65  [_lol path/${name]
+   2:  7D 20 7B 0A 20 20 64 69 72 65 63 74 69 76 65 20  [} {\n  directive ]
+   3:  61 62 63 0A 7D                                   [abc\n}]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 9; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Keyword "directive"
+  Part#108: [Offset 0 Len 9; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Alphabet [64 69 72 65 63 74 69 76 65] "directive"
+Token: [Offset 9 Len 1; Ln 1, Col 10 (Padding 0) -> Ln 1, Col 11 (Padding 0)] Whitespace " "
+  Part#109: [Offset 9 Len 1; Ln 1, Col 10 (Padding 0) -> Ln 1, Col 11 (Padding 0)] Whitespace [20] " "
+Token: [Offset 10 Len 5; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 16 (Padding 0)] Keyword "$blis"
+  Part#110: [Offset 10 Len 1; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Unknown [24] "$"
+  Part#111: [Offset 11 Len 4; Ln 1, Col 12 (Padding 0) -> Ln 1, Col 16 (Padding 0)] Alphabet [62 6C 69 73] "blis"
+Token: [Offset 15 Len 1; Ln 1, Col 16 (Padding 0) -> Ln 1, Col 17 (Padding 0)] Whitespace " "
+  Part#112: [Offset 15 Len 1; Ln 1, Col 16 (Padding 0) -> Ln 1, Col 17 (Padding 0)] Whitespace [20] " "
+Token: [Offset 16 Len 4; Ln 1, Col 17 (Padding 0) -> Ln 1, Col 21 (Padding 0)] Keyword "_lol"
+  Part#113: [Offset 16 Len 1; Ln 1, Col 17 (Padding 0) -> Ln 1, Col 18 (Padding 0)] underscore [5F] "_"
+  Part#114: [Offset 17 Len 3; Ln 1, Col 18 (Padding 0) -> Ln 1, Col 21 (Padding 0)] Alphabet [6C 6F 6C] "lol"
+Token: [Offset 20 Len 1; Ln 1, Col 21 (Padding 0) -> Ln 1, Col 22 (Padding 0)] Whitespace " "
+  Part#115: [Offset 20 Len 1; Ln 1, Col 21 (Padding 0) -> Ln 1, Col 22 (Padding 0)] Whitespace [20] " "
+Token: [Offset 21 Len 12; Ln 1, Col 22 (Padding 0) -> Ln 1, Col 34 (Padding 0)] Keyword "path/${name}"
+  Part#116: [Offset 21 Len 4; Ln 1, Col 22 (Padding 0) -> Ln 1, Col 26 (Padding 0)] Alphabet [70 61 74 68] "path"
+  Part#117: [Offset 25 Len 1; Ln 1, Col 26 (Padding 0) -> Ln 1, Col 27 (Padding 0)] Unknown [2F] "/"
+  Part#118: [Offset 26 Len 1; Ln 1, Col 27 (Padding 0) -> Ln 1, Col 28 (Padding 0)] Unknown [24] "$"
+  Part#119: [Offset 27 Len 1; Ln 1, Col 28 (Padding 0) -> Ln 1, Col 29 (Padding 0)] OpenCurlyBrace [7B] "{"
+  Part#120: [Offset 28 Len 4; Ln 1, Col 29 (Padding 0) -> Ln 1, Col 33 (Padding 0)] Alphabet [6E 61 6D 65] "name"
+  Part#121: [Offset 32 Len 1; Ln 1, Col 33 (Padding 0) -> Ln 1, Col 34 (Padding 0)] CloseCurlyBrace [7D] "}"
+Token: [Offset 33 Len 1; Ln 1, Col 34 (Padding 0) -> Ln 1, Col 35 (Padding 0)] Whitespace " "
+  Part#122: [Offset 33 Len 1; Ln 1, Col 34 (Padding 0) -> Ln 1, Col 35 (Padding 0)] Whitespace [20] " "
+Token: [Offset 34 Len 1; Ln 1, Col 35 (Padding 0) -> Ln 1, Col 36 (Padding 0)] OpenCurlyBrace "{"
+  Part#123: [Offset 34 Len 1; Ln 1, Col 35 (Padding 0) -> Ln 1, Col 36 (Padding 0)] OpenCurlyBrace [7B] "{"
+Token: [Offset 35 Len 1; Ln 1, Col 36 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline "\n"
+  Part#124: [Offset 35 Len 1; Ln 1, Col 36 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+Token: [Offset 36 Len 2; Ln 2, Col 1 (Padding 2) -> Ln 2, Col 3 (Padding 2)] Indent "  "
+  Part#125: [Offset 36 Len 2; Ln 2, Col 1 (Padding 2) -> Ln 2, Col 3 (Padding 2)] Whitespace [20 20] "  "
+Token: [Offset 38 Len 9; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 12 (Padding 2)] Keyword "directive"
+  Part#126: [Offset 38 Len 9; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 12 (Padding 2)] Alphabet [64 69 72 65 63 74 69 76 65] "directive"
+Token: [Offset 47 Len 1; Ln 2, Col 12 (Padding 2) -> Ln 2, Col 13 (Padding 2)] Whitespace " "
+  Part#127: [Offset 47 Len 1; Ln 2, Col 12 (Padding 2) -> Ln 2, Col 13 (Padding 2)] Whitespace [20] " "
+Token: [Offset 48 Len 3; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 16 (Padding 2)] Keyword "abc"
+  Part#128: [Offset 48 Len 3; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 16 (Padding 2)] Alphabet [61 62 63] "abc"
+Token: [Offset 51 Len 1; Ln 2, Col 16 (Padding 2) -> Ln 3, Col 1 (Padding 2)] Newline "\n"
+  Part#129: [Offset 51 Len 1; Ln 2, Col 16 (Padding 2) -> Ln 3, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 52 Len 1; Ln 3, Col 1 (Padding 0) -> Ln 3, Col 2 (Padding 0)] CloseCurlyBrace "}"
+  Part#130: [Offset 52 Len 1; Ln 3, Col 1 (Padding 0) -> Ln 3, Col 2 (Padding 0)] CloseCurlyBrace [7D] "}"

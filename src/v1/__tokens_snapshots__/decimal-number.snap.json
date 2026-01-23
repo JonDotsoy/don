@@ -1,0 +1,58 @@
+{
+  "parts": [
+    {
+      "type": 2,
+      "text": "12",
+      "span": {
+        "index": 0,
+        "length": 2,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 2,
+          "paddingLine": 0
+        }
+      }
+    },
+    {
+      "type": 5,
+      "text": ".",
+      "span": {
+        "index": 2,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 2,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        }
+      }
+    },
+    {
+      "type": 2,
+      "text": "123",
+      "span": {
+        "index": 3,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 3,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 6,
+          "paddingLine": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+foo <<<HTML
+  <div>foo</div>
+tar
+
+
+------------------------------------------------------------
+
+   0:  66 6F 6F 20 3C 3C 3C 48 54 4D 4C 0A 20 20 3C 64  [foo <<<HTML\n  <d]
+   1:  69 76 3E 66 6F 6F 3C 2F 64 69 76 3E 0A 74 61 72  [iv>foo</div>\ntar]
+   2:  0A                                               [\n]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "foo"
+  Part#151: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+Token: [Offset 4 Len 25; Ln 1, Col 5 (Padding 0) -> Ln 3, Col 1 (Padding 0)] Heredoc "<<<HTML\n  <div>foo</div>\n"
+  Part#153: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Unknown [3C] "<"
+  Part#154: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Unknown [3C] "<"
+  Part#155: [Offset 6 Len 1; Ln 1, Col 7 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Unknown [3C] "<"
+  Part#156: [Offset 7 Len 4; Ln 1, Col 8 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Alphabet [48 54 4D 4C] "HTML"
+  Part#157: [Offset 11 Len 1; Ln 1, Col 12 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+  Part#158: [Offset 12 Len 2; Ln 2, Col 1 (Padding 2) -> Ln 2, Col 3 (Padding 2)] Whitespace [20 20] "  "
+  Part#159: [Offset 14 Len 1; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 4 (Padding 2)] Unknown [3C] "<"
+  Part#160: [Offset 15 Len 3; Ln 2, Col 4 (Padding 2) -> Ln 2, Col 7 (Padding 2)] Alphabet [64 69 76] "div"
+  Part#161: [Offset 18 Len 1; Ln 2, Col 7 (Padding 2) -> Ln 2, Col 8 (Padding 2)] Unknown [3E] ">"
+  Part#162: [Offset 19 Len 3; Ln 2, Col 8 (Padding 2) -> Ln 2, Col 11 (Padding 2)] Alphabet [66 6F 6F] "foo"
+  Part#163: [Offset 22 Len 1; Ln 2, Col 11 (Padding 2) -> Ln 2, Col 12 (Padding 2)] Unknown [3C] "<"
+  Part#164: [Offset 23 Len 1; Ln 2, Col 12 (Padding 2) -> Ln 2, Col 13 (Padding 2)] Unknown [2F] "/"
+  Part#165: [Offset 24 Len 3; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 16 (Padding 2)] Alphabet [64 69 76] "div"
+  Part#166: [Offset 27 Len 1; Ln 2, Col 16 (Padding 2) -> Ln 2, Col 17 (Padding 2)] Unknown [3E] ">"
+  Part#167: [Offset 28 Len 1; Ln 2, Col 17 (Padding 2) -> Ln 3, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 29 Len 3; Ln 3, Col 1 (Padding 0) -> Ln 3, Col 4 (Padding 0)] Keyword "tar"
+  Part#168: [Offset 29 Len 3; Ln 3, Col 1 (Padding 0) -> Ln 3, Col 4 (Padding 0)] Alphabet [74 61 72] "tar"
+Token: [Offset 32 Len 1; Ln 3, Col 4 (Padding 0) -> Ln 4, Col 1 (Padding 0)] Newline "\n"
+  Part#169: [Offset 32 Len 1; Ln 3, Col 4 (Padding 0) -> Ln 4, Col 1 (Padding 0)] Newline [0A] "\n"

@@ -1,0 +1,42 @@
+{
+  "tokens": [
+    {
+      "type": 4,
+      "text": "\n\n\n\n",
+      "span": {
+        "index": 0,
+        "length": 4,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 4,
+          "column": 0,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 4,
+          "text": "\n\n\n\n",
+          "span": {
+            "index": 0,
+            "length": 4,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 4,
+              "column": 0,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

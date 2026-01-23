@@ -1,0 +1,54 @@
+biz {
+  foo <<<HTML
+  div foo
+  tar
+}
+
+
+------------------------------------------------------------
+
+   0:  62 69 7A 20 7B 0A 20 20 66 6F 6F 20 3C 3C 3C 48  [biz {\n  foo <<<H]
+   1:  54 4D 4C 0A 20 20 64 69 76 20 66 6F 6F 0A 20 20  [TML\n  div foo\n  ]
+   2:  74 61 72 0A 7D 0A                                [tar\n}\n]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "biz"
+  Part#197: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [62 69 7A] "biz"
+Token: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace " "
+  Part#198: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
+Token: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] OpenCurlyBrace "{"
+  Part#199: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] OpenCurlyBrace [7B] "{"
+Token: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline "\n"
+  Part#200: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+Token: [Offset 6 Len 2; Ln 2, Col 1 (Padding 2) -> Ln 2, Col 3 (Padding 2)] Indent "  "
+  Part#201: [Offset 6 Len 2; Ln 2, Col 1 (Padding 2) -> Ln 2, Col 3 (Padding 2)] Whitespace [20 20] "  "
+Token: [Offset 8 Len 3; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 6 (Padding 2)] Keyword "foo"
+  Part#202: [Offset 8 Len 3; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 6 (Padding 2)] Alphabet [66 6F 6F] "foo"
+Token: [Offset 11 Len 1; Ln 2, Col 6 (Padding 2) -> Ln 2, Col 7 (Padding 2)] Whitespace " "
+  Part#203: [Offset 11 Len 1; Ln 2, Col 6 (Padding 2) -> Ln 2, Col 7 (Padding 2)] Whitespace [20] " "
+Token: [Offset 12 Len 10; Ln 2, Col 7 (Padding 2) -> Ln 3, Col 3 (Padding 2)] Heredoc "<<<HTML\n  "
+  Part#204: [Offset 12 Len 1; Ln 2, Col 7 (Padding 2) -> Ln 2, Col 8 (Padding 2)] Unknown [3C] "<"
+  Part#205: [Offset 13 Len 1; Ln 2, Col 8 (Padding 2) -> Ln 2, Col 9 (Padding 2)] Unknown [3C] "<"
+  Part#206: [Offset 14 Len 1; Ln 2, Col 9 (Padding 2) -> Ln 2, Col 10 (Padding 2)] Unknown [3C] "<"
+  Part#207: [Offset 15 Len 4; Ln 2, Col 10 (Padding 2) -> Ln 2, Col 14 (Padding 2)] Alphabet [48 54 4D 4C] "HTML"
+  Part#208: [Offset 19 Len 1; Ln 2, Col 14 (Padding 2) -> Ln 3, Col 1 (Padding 2)] Newline [0A] "\n"
+  Part#209: [Offset 20 Len 2; Ln 3, Col 1 (Padding 2) -> Ln 3, Col 3 (Padding 2)] Whitespace [20 20] "  "
+Token: [Offset 22 Len 3; Ln 3, Col 3 (Padding 2) -> Ln 3, Col 6 (Padding 2)] Keyword "div"
+  Part#210: [Offset 22 Len 3; Ln 3, Col 3 (Padding 2) -> Ln 3, Col 6 (Padding 2)] Alphabet [64 69 76] "div"
+Token: [Offset 25 Len 1; Ln 3, Col 6 (Padding 2) -> Ln 3, Col 7 (Padding 2)] Whitespace " "
+  Part#211: [Offset 25 Len 1; Ln 3, Col 6 (Padding 2) -> Ln 3, Col 7 (Padding 2)] Whitespace [20] " "
+Token: [Offset 26 Len 3; Ln 3, Col 7 (Padding 2) -> Ln 3, Col 10 (Padding 2)] Keyword "foo"
+  Part#212: [Offset 26 Len 3; Ln 3, Col 7 (Padding 2) -> Ln 3, Col 10 (Padding 2)] Alphabet [66 6F 6F] "foo"
+Token: [Offset 29 Len 1; Ln 3, Col 10 (Padding 2) -> Ln 4, Col 1 (Padding 2)] Newline "\n"
+  Part#213: [Offset 29 Len 1; Ln 3, Col 10 (Padding 2) -> Ln 4, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 30 Len 2; Ln 4, Col 1 (Padding 2) -> Ln 4, Col 3 (Padding 2)] Indent "  "
+  Part#214: [Offset 30 Len 2; Ln 4, Col 1 (Padding 2) -> Ln 4, Col 3 (Padding 2)] Whitespace [20 20] "  "
+Token: [Offset 32 Len 3; Ln 4, Col 3 (Padding 2) -> Ln 4, Col 6 (Padding 2)] Keyword "tar"
+  Part#215: [Offset 32 Len 3; Ln 4, Col 3 (Padding 2) -> Ln 4, Col 6 (Padding 2)] Alphabet [74 61 72] "tar"
+Token: [Offset 35 Len 1; Ln 4, Col 6 (Padding 2) -> Ln 5, Col 1 (Padding 2)] Newline "\n"
+  Part#216: [Offset 35 Len 1; Ln 4, Col 6 (Padding 2) -> Ln 5, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 36 Len 1; Ln 5, Col 1 (Padding 0) -> Ln 5, Col 2 (Padding 0)] CloseCurlyBrace "}"
+  Part#217: [Offset 36 Len 1; Ln 5, Col 1 (Padding 0) -> Ln 5, Col 2 (Padding 0)] CloseCurlyBrace [7D] "}"
+Token: [Offset 37 Len 1; Ln 5, Col 2 (Padding 0) -> Ln 6, Col 1 (Padding 0)] Newline "\n"
+  Part#218: [Offset 37 Len 1; Ln 5, Col 2 (Padding 0) -> Ln 6, Col 1 (Padding 0)] Newline [0A] "\n"

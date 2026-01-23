@@ -1,0 +1,39 @@
+directive foo {
+  directive2 taz lip {
+    directive4
+  }
+  directive3 bob
+}
+bliz tar
+
+------------------------------------------------------------
+
+   0:  64 69 72 65 63 74 69 76 65 20 66 6F 6F 20 7B 0A  [directive foo {\n]
+   1:  20 20 64 69 72 65 63 74 69 76 65 32 20 74 61 7A  [  directive2 taz]
+   2:  20 6C 69 70 20 7B 0A 20 20 20 20 64 69 72 65 63  [ lip {\n    direc]
+   3:  74 69 76 65 34 0A 20 20 7D 0A 20 20 64 69 72 65  [tive4\n  }\n  dire]
+   4:  63 74 69 76 65 33 20 62 6F 62 0A 7D 0A 62 6C 69  [ctive3 bob\n}\nbli]
+   5:  7A 20 74 61 72 0A                                [z tar\n]
+
+------------------------------------------------------------
+
+Document: [Offset 0 Len 162; Ln 1, Col 1 (Padding 0) -> Ln 7, Col 9 (Padding 0)]
+  Directive#3: directive [Offset 0 Len 74; Ln 1, Col 1 (Padding 0) -> Ln 5, Col 17 (Padding 0)]
+  Name: [Offset 0 Len 9; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 10 (Padding 0)] directive
+  Args:
+    Arg: [Offset 10 Len 3; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 14 (Padding 0)] foo
+    Directive#1: directive2 [Offset 18 Len 53; Ln 2, Col 3 (Padding 2) -> Ln 3, Col 15 (Padding 2)]
+    Name: [Offset 18 Len 10; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 13 (Padding 2)] directive2
+    Args:
+      Arg: [Offset 29 Len 3; Ln 2, Col 14 (Padding 2) -> Ln 2, Col 17 (Padding 2)] taz
+      Arg: [Offset 33 Len 3; Ln 2, Col 18 (Padding 2) -> Ln 2, Col 21 (Padding 2)] lip
+      Directive#0: directive4 [Offset 43 Len 53; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 15 (Padding 4)]
+      Name: [Offset 43 Len 10; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 15 (Padding 4)] directive4
+    Directive#2: directive3 [Offset 60 Len 74; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 17 (Padding 2)]
+    Name: [Offset 60 Len 10; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 13 (Padding 2)] directive3
+    Args:
+      Arg: [Offset 71 Len 3; Ln 5, Col 14 (Padding 2) -> Ln 5, Col 17 (Padding 2)] bob
+  Directive#4: bliz [Offset 77 Len 85; Ln 7, Col 1 (Padding 0) -> Ln 7, Col 9 (Padding 0)]
+  Name: [Offset 77 Len 4; Ln 7, Col 1 (Padding 0) -> Ln 7, Col 5 (Padding 0)] bliz
+  Args:
+    Arg: [Offset 82 Len 3; Ln 7, Col 6 (Padding 0) -> Ln 7, Col 9 (Padding 0)] tar

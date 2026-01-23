@@ -1,0 +1,40 @@
+{
+  "parts": [
+    {
+      "type": 3,
+      "text": " ",
+      "span": {
+        "index": 0,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 1
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 1,
+          "paddingLine": 1
+        }
+      }
+    },
+    {
+      "type": 1,
+      "text": "foo",
+      "span": {
+        "index": 1,
+        "length": 3,
+        "startLocation": {
+          "line": 0,
+          "column": 1,
+          "paddingLine": 1
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 4,
+          "paddingLine": 1
+        }
+      }
+    }
+  ]
+}
