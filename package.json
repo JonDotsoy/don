@@ -1,6 +1,6 @@
 {
   "name": "@jondotsoy/don",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "DON (Directive Object Notation) - A human-readable data serialization format based on directives and subdirectives for configuration files, infrastructure definitions, and structured data",
   "keywords": [
     "don",
