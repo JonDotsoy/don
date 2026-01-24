@@ -1,0 +1,130 @@
+{
+  "children": [
+    {
+      "id": 19,
+      "name": "name",
+      "args": [
+        "Node.js CI"
+      ],
+      "span": {
+        "index": 0,
+        "length": 17,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 17,
+          "paddingLine": 0
+        }
+      },
+      "children": []
+    },
+    {
+      "id": 20,
+      "name": "on",
+      "args": [
+        "push"
+      ],
+      "span": {
+        "index": 19,
+        "length": 26,
+        "startLocation": {
+          "line": 2,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 2,
+          "column": 7,
+          "paddingLine": 0
+        }
+      },
+      "children": []
+    },
+    {
+      "id": 23,
+      "name": "job",
+      "args": [
+        "build"
+      ],
+      "span": {
+        "index": 28,
+        "length": 137,
+        "startLocation": {
+          "line": 4,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 13,
+          "column": 6,
+          "paddingLine": 2
+        }
+      },
+      "children": [
+        {
+          "id": 21,
+          "name": "runs-on",
+          "args": [
+            "ubuntu-latest"
+          ],
+          "span": {
+            "index": 42,
+            "length": 63,
+            "startLocation": {
+              "line": 5,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 5,
+              "column": 23,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 22,
+          "name": "step",
+          "args": [
+            "step",
+            "step"
+          ],
+          "span": {
+            "index": 67,
+            "length": 137,
+            "startLocation": {
+              "line": 7,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 13,
+              "column": 6,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        }
+      ]
+    }
+  ],
+  "span": {
+    "index": 0,
+    "length": 165,
+    "startLocation": {
+      "line": 0,
+      "column": 0,
+      "paddingLine": 0
+    },
+    "endLocation": {
+      "line": 13,
+      "column": 6,
+      "paddingLine": 2
+    }
+  }
+}

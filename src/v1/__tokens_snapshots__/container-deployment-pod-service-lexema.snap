@@ -1,0 +1,106 @@
+pod nginx {
+  container nginx {
+    image nginx:stable
+    port http-web-svc 80
+  }
+}
+
+service nginx-service {
+  selector nginx
+  port http-web-svc 80 TCP
+}
+
+
+------------------------------------------------------------
+
+   0:  70 6F 64 20 6E 67 69 6E 78 20 7B 0A 20 20 63 6F  [pod nginx {\n  co]
+   1:  6E 74 61 69 6E 65 72 20 6E 67 69 6E 78 20 7B 0A  [ntainer nginx {\n]
+   2:  20 20 20 20 69 6D 61 67 65 20 6E 67 69 6E 78 3A  [    image nginx:]
+   3:  73 74 61 62 6C 65 0A 20 20 20 20 70 6F 72 74 20  [stable\n    port ]
+   4:  68 74 74 70 2D 77 65 62 2D 73 76 63 20 38 30 0A  [http-web-svc 80\n]
+   5:  20 20 7D 0A 7D 0A 0A 73 65 72 76 69 63 65 20 6E  [  }\n}\n\nservice n]
+   6:  67 69 6E 78 2D 73 65 72 76 69 63 65 20 7B 0A 20  [ginx-service {\n ]
+   7:  20 73 65 6C 65 63 74 6F 72 20 6E 67 69 6E 78 0A  [ selector nginx\n]
+   8:  20 20 70 6F 72 74 20 68 74 74 70 2D 77 65 62 2D  [  port http-web-]
+   9:  73 76 63 20 38 30 20 54 43 50 0A 7D 0A           [svc 80 TCP\n}\n]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "pod"
+  Part#206: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [70 6F 64] "pod"
+Token: [Offset 4 Len 5; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Keyword "nginx"
+  Part#208: [Offset 4 Len 5; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Alphabet [6E 67 69 6E 78] "nginx"
+Token: [Offset 10 Len 1; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 12 (Padding 0)] OpenCurlyBrace "{"
+  Part#210: [Offset 10 Len 1; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 12 (Padding 0)] OpenCurlyBrace [7B] "{"
+Token: [Offset 11 Len 1; Ln 1, Col 12 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline "\n"
+  Part#211: [Offset 11 Len 1; Ln 1, Col 12 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+Token: [Offset 14 Len 9; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 12 (Padding 2)] Keyword "container"
+  Part#213: [Offset 14 Len 9; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 12 (Padding 2)] Alphabet [63 6F 6E 74 61 69 6E 65 72] "container"
+Token: [Offset 24 Len 5; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 18 (Padding 2)] Keyword "nginx"
+  Part#215: [Offset 24 Len 5; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 18 (Padding 2)] Alphabet [6E 67 69 6E 78] "nginx"
+Token: [Offset 30 Len 1; Ln 2, Col 19 (Padding 2) -> Ln 2, Col 20 (Padding 2)] OpenCurlyBrace "{"
+  Part#217: [Offset 30 Len 1; Ln 2, Col 19 (Padding 2) -> Ln 2, Col 20 (Padding 2)] OpenCurlyBrace [7B] "{"
+Token: [Offset 31 Len 1; Ln 2, Col 20 (Padding 2) -> Ln 3, Col 1 (Padding 2)] Newline "\n"
+  Part#218: [Offset 31 Len 1; Ln 2, Col 20 (Padding 2) -> Ln 3, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 36 Len 5; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 10 (Padding 4)] Keyword "image"
+  Part#220: [Offset 36 Len 5; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 10 (Padding 4)] Alphabet [69 6D 61 67 65] "image"
+Token: [Offset 42 Len 12; Ln 3, Col 11 (Padding 4) -> Ln 3, Col 23 (Padding 4)] Keyword "nginx:stable"
+  Part#222: [Offset 42 Len 5; Ln 3, Col 11 (Padding 4) -> Ln 3, Col 16 (Padding 4)] Alphabet [6E 67 69 6E 78] "nginx"
+  Part#223: [Offset 47 Len 1; Ln 3, Col 16 (Padding 4) -> Ln 3, Col 17 (Padding 4)] Unknown [3A] ":"
+  Part#224: [Offset 48 Len 6; Ln 3, Col 17 (Padding 4) -> Ln 3, Col 23 (Padding 4)] Alphabet [73 74 61 62 6C 65] "stable"
+Token: [Offset 54 Len 1; Ln 3, Col 23 (Padding 4) -> Ln 4, Col 1 (Padding 4)] Newline "\n"
+  Part#225: [Offset 54 Len 1; Ln 3, Col 23 (Padding 4) -> Ln 4, Col 1 (Padding 4)] Newline [0A] "\n"
+Token: [Offset 59 Len 4; Ln 4, Col 5 (Padding 4) -> Ln 4, Col 9 (Padding 4)] Keyword "port"
+  Part#227: [Offset 59 Len 4; Ln 4, Col 5 (Padding 4) -> Ln 4, Col 9 (Padding 4)] Alphabet [70 6F 72 74] "port"
+Token: [Offset 64 Len 12; Ln 4, Col 10 (Padding 4) -> Ln 4, Col 22 (Padding 4)] Keyword "http-web-svc"
+  Part#229: [Offset 64 Len 4; Ln 4, Col 10 (Padding 4) -> Ln 4, Col 14 (Padding 4)] Alphabet [68 74 74 70] "http"
+  Part#230: [Offset 68 Len 1; Ln 4, Col 14 (Padding 4) -> Ln 4, Col 15 (Padding 4)] Unknown [2D] "-"
+  Part#231: [Offset 69 Len 3; Ln 4, Col 15 (Padding 4) -> Ln 4, Col 18 (Padding 4)] Alphabet [77 65 62] "web"
+  Part#232: [Offset 72 Len 1; Ln 4, Col 18 (Padding 4) -> Ln 4, Col 19 (Padding 4)] Unknown [2D] "-"
+  Part#233: [Offset 73 Len 3; Ln 4, Col 19 (Padding 4) -> Ln 4, Col 22 (Padding 4)] Alphabet [73 76 63] "svc"
+Token: [Offset 77 Len 2; Ln 4, Col 23 (Padding 4) -> Ln 4, Col 25 (Padding 4)] Numeric "80"
+  Part#235: [Offset 77 Len 2; Ln 4, Col 23 (Padding 4) -> Ln 4, Col 25 (Padding 4)] Int [38 30] "80"
+Token: [Offset 79 Len 1; Ln 4, Col 25 (Padding 4) -> Ln 5, Col 1 (Padding 4)] Newline "\n"
+  Part#236: [Offset 79 Len 1; Ln 4, Col 25 (Padding 4) -> Ln 5, Col 1 (Padding 4)] Newline [0A] "\n"
+Token: [Offset 82 Len 1; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 4 (Padding 2)] CloseCurlyBrace "}"
+  Part#238: [Offset 82 Len 1; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 4 (Padding 2)] CloseCurlyBrace [7D] "}"
+Token: [Offset 83 Len 1; Ln 5, Col 4 (Padding 2) -> Ln 6, Col 1 (Padding 2)] Newline "\n"
+  Part#239: [Offset 83 Len 1; Ln 5, Col 4 (Padding 2) -> Ln 6, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 84 Len 1; Ln 6, Col 1 (Padding 0) -> Ln 6, Col 2 (Padding 0)] CloseCurlyBrace "}"
+  Part#240: [Offset 84 Len 1; Ln 6, Col 1 (Padding 0) -> Ln 6, Col 2 (Padding 0)] CloseCurlyBrace [7D] "}"
+Token: [Offset 85 Len 2; Ln 6, Col 2 (Padding 0) -> Ln 8, Col 1 (Padding 0)] Newline "\n\n"
+  Part#241: [Offset 85 Len 2; Ln 6, Col 2 (Padding 0) -> Ln 8, Col 1 (Padding 0)] Newline [0A 0A] "\n\n"
+Token: [Offset 87 Len 7; Ln 8, Col 1 (Padding 0) -> Ln 8, Col 8 (Padding 0)] Keyword "service"
+  Part#242: [Offset 87 Len 7; Ln 8, Col 1 (Padding 0) -> Ln 8, Col 8 (Padding 0)] Alphabet [73 65 72 76 69 63 65] "service"
+Token: [Offset 95 Len 13; Ln 8, Col 9 (Padding 0) -> Ln 8, Col 22 (Padding 0)] Keyword "nginx-service"
+  Part#244: [Offset 95 Len 5; Ln 8, Col 9 (Padding 0) -> Ln 8, Col 14 (Padding 0)] Alphabet [6E 67 69 6E 78] "nginx"
+  Part#245: [Offset 100 Len 1; Ln 8, Col 14 (Padding 0) -> Ln 8, Col 15 (Padding 0)] Unknown [2D] "-"
+  Part#246: [Offset 101 Len 7; Ln 8, Col 15 (Padding 0) -> Ln 8, Col 22 (Padding 0)] Alphabet [73 65 72 76 69 63 65] "service"
+Token: [Offset 109 Len 1; Ln 8, Col 23 (Padding 0) -> Ln 8, Col 24 (Padding 0)] OpenCurlyBrace "{"
+  Part#248: [Offset 109 Len 1; Ln 8, Col 23 (Padding 0) -> Ln 8, Col 24 (Padding 0)] OpenCurlyBrace [7B] "{"
+Token: [Offset 110 Len 1; Ln 8, Col 24 (Padding 0) -> Ln 9, Col 1 (Padding 0)] Newline "\n"
+  Part#249: [Offset 110 Len 1; Ln 8, Col 24 (Padding 0) -> Ln 9, Col 1 (Padding 0)] Newline [0A] "\n"
+Token: [Offset 113 Len 8; Ln 9, Col 3 (Padding 2) -> Ln 9, Col 11 (Padding 2)] Keyword "selector"
+  Part#251: [Offset 113 Len 8; Ln 9, Col 3 (Padding 2) -> Ln 9, Col 11 (Padding 2)] Alphabet [73 65 6C 65 63 74 6F 72] "selector"
+Token: [Offset 122 Len 5; Ln 9, Col 12 (Padding 2) -> Ln 9, Col 17 (Padding 2)] Keyword "nginx"
+  Part#253: [Offset 122 Len 5; Ln 9, Col 12 (Padding 2) -> Ln 9, Col 17 (Padding 2)] Alphabet [6E 67 69 6E 78] "nginx"
+Token: [Offset 127 Len 1; Ln 9, Col 17 (Padding 2) -> Ln 10, Col 1 (Padding 2)] Newline "\n"
+  Part#254: [Offset 127 Len 1; Ln 9, Col 17 (Padding 2) -> Ln 10, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 130 Len 4; Ln 10, Col 3 (Padding 2) -> Ln 10, Col 7 (Padding 2)] Keyword "port"
+  Part#256: [Offset 130 Len 4; Ln 10, Col 3 (Padding 2) -> Ln 10, Col 7 (Padding 2)] Alphabet [70 6F 72 74] "port"
+Token: [Offset 135 Len 12; Ln 10, Col 8 (Padding 2) -> Ln 10, Col 20 (Padding 2)] Keyword "http-web-svc"
+  Part#258: [Offset 135 Len 4; Ln 10, Col 8 (Padding 2) -> Ln 10, Col 12 (Padding 2)] Alphabet [68 74 74 70] "http"
+  Part#259: [Offset 139 Len 1; Ln 10, Col 12 (Padding 2) -> Ln 10, Col 13 (Padding 2)] Unknown [2D] "-"
+  Part#260: [Offset 140 Len 3; Ln 10, Col 13 (Padding 2) -> Ln 10, Col 16 (Padding 2)] Alphabet [77 65 62] "web"
+  Part#261: [Offset 143 Len 1; Ln 10, Col 16 (Padding 2) -> Ln 10, Col 17 (Padding 2)] Unknown [2D] "-"
+  Part#262: [Offset 144 Len 3; Ln 10, Col 17 (Padding 2) -> Ln 10, Col 20 (Padding 2)] Alphabet [73 76 63] "svc"
+Token: [Offset 148 Len 2; Ln 10, Col 21 (Padding 2) -> Ln 10, Col 23 (Padding 2)] Numeric "80"
+  Part#264: [Offset 148 Len 2; Ln 10, Col 21 (Padding 2) -> Ln 10, Col 23 (Padding 2)] Int [38 30] "80"
+Token: [Offset 151 Len 3; Ln 10, Col 24 (Padding 2) -> Ln 10, Col 27 (Padding 2)] Keyword "TCP"
+  Part#266: [Offset 151 Len 3; Ln 10, Col 24 (Padding 2) -> Ln 10, Col 27 (Padding 2)] Alphabet [54 43 50] "TCP"
+Token: [Offset 154 Len 1; Ln 10, Col 27 (Padding 2) -> Ln 11, Col 1 (Padding 2)] Newline "\n"
+  Part#267: [Offset 154 Len 1; Ln 10, Col 27 (Padding 2) -> Ln 11, Col 1 (Padding 2)] Newline [0A] "\n"
+Token: [Offset 155 Len 1; Ln 11, Col 1 (Padding 0) -> Ln 11, Col 2 (Padding 0)] CloseCurlyBrace "}"
+  Part#268: [Offset 155 Len 1; Ln 11, Col 1 (Padding 0) -> Ln 11, Col 2 (Padding 0)] CloseCurlyBrace [7D] "}"
+Token: [Offset 156 Len 1; Ln 11, Col 2 (Padding 0) -> Ln 12, Col 1 (Padding 0)] Newline "\n"
+  Part#269: [Offset 156 Len 1; Ln 11, Col 2 (Padding 0) -> Ln 12, Col 1 (Padding 0)] Newline [0A] "\n"

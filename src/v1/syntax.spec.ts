@@ -331,4 +331,52 @@ describe("SyntaxEncode", () => {
     + '}\n'
     + 'bliz tar\n'
   ));
+
+  test("should encode router configuration with reverse proxy", snapSyntax("router-reverse-proxy-config",
+    ''
+    + 'example.com {\n'
+    + '  reverse_proxy 127.0.0.1:3000\n'
+    + '  tls admin@example.com\n'
+    + '  acme_dns cloudflare\n'
+    + '  log {\n'
+    + '    output file /var/log/caddy/access.log\n'
+    + '    format json\n'
+    + '  }\n'
+    + '}\n'
+  ));
+
+  test("should encode container deployment with pod and service", snapSyntax("container-deployment-pod-service",
+    ''
+    + 'pod nginx {\n'
+    + '  container nginx {\n'
+    + '    image nginx:stable\n'
+    + '    port http-web-svc 80\n'
+    + '  }\n'
+    + '}\n'
+    + '\n'
+    + 'service nginx-service {\n'
+    + '  selector nginx\n'
+    + '  port http-web-svc 80 TCP\n'
+    + '}\n'
+  ));
+
+  test("should encode CI pipeline with heredoc steps", snapSyntax("ci-pipeline-heredoc-steps",
+    ''
+    + 'name "Node.js CI"\n'
+    + '\n'
+    + 'on push\n'
+    + '\n'
+    + 'job build {\n'
+    + '  runs-on ubuntu-latest\n'
+    + '\n'
+    + '  step <<<\n'
+    + '    npm ci\n'
+    + '\n'
+    + '  step <<<\n'
+    + '    npm run build --if-present\n'
+    + '\n'
+    + '  step <<<\n'
+    + '    npm test\n'
+    + '}\n'
+  ));
 });

@@ -1,0 +1,178 @@
+{
+  "children": [
+    {
+      "id": 15,
+      "name": "pod",
+      "args": [
+        "nginx"
+      ],
+      "span": {
+        "index": 0,
+        "length": 79,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 3,
+          "column": 24,
+          "paddingLine": 4
+        }
+      },
+      "children": [
+        {
+          "id": 14,
+          "name": "container",
+          "args": [
+            "nginx"
+          ],
+          "span": {
+            "index": 14,
+            "length": 79,
+            "startLocation": {
+              "line": 1,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 3,
+              "column": 24,
+              "paddingLine": 4
+            }
+          },
+          "children": [
+            {
+              "id": 12,
+              "name": "image",
+              "args": [
+                "nginx:stable"
+              ],
+              "span": {
+                "index": 36,
+                "length": 54,
+                "startLocation": {
+                  "line": 2,
+                  "column": 4,
+                  "paddingLine": 4
+                },
+                "endLocation": {
+                  "line": 2,
+                  "column": 22,
+                  "paddingLine": 4
+                }
+              },
+              "children": []
+            },
+            {
+              "id": 13,
+              "name": "port",
+              "args": [
+                "http-web-svc",
+                "80"
+              ],
+              "span": {
+                "index": 59,
+                "length": 79,
+                "startLocation": {
+                  "line": 3,
+                  "column": 4,
+                  "paddingLine": 4
+                },
+                "endLocation": {
+                  "line": 3,
+                  "column": 24,
+                  "paddingLine": 4
+                }
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "service",
+      "args": [
+        "nginx-service"
+      ],
+      "span": {
+        "index": 87,
+        "length": 154,
+        "startLocation": {
+          "line": 7,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 9,
+          "column": 26,
+          "paddingLine": 2
+        }
+      },
+      "children": [
+        {
+          "id": 16,
+          "name": "selector",
+          "args": [
+            "nginx"
+          ],
+          "span": {
+            "index": 113,
+            "length": 127,
+            "startLocation": {
+              "line": 8,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 8,
+              "column": 16,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 17,
+          "name": "port",
+          "args": [
+            "http-web-svc",
+            "80",
+            "TCP"
+          ],
+          "span": {
+            "index": 130,
+            "length": 154,
+            "startLocation": {
+              "line": 9,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 9,
+              "column": 26,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        }
+      ]
+    }
+  ],
+  "span": {
+    "index": 0,
+    "length": 241,
+    "startLocation": {
+      "line": 0,
+      "column": 0,
+      "paddingLine": 0
+    },
+    "endLocation": {
+      "line": 9,
+      "column": 26,
+      "paddingLine": 2
+    }
+  }
+}

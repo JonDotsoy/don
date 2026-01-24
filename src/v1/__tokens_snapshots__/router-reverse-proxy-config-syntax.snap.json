@@ -1,0 +1,171 @@
+{
+  "children": [
+    {
+      "id": 11,
+      "name": "example.com",
+      "args": [],
+      "span": {
+        "index": 0,
+        "length": 156,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 6,
+          "column": 15,
+          "paddingLine": 4
+        }
+      },
+      "children": [
+        {
+          "id": 5,
+          "name": "reverse_proxy",
+          "args": [
+            "127.0.0.1:3000"
+          ],
+          "span": {
+            "index": 16,
+            "length": 44,
+            "startLocation": {
+              "line": 1,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 1,
+              "column": 30,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 6,
+          "name": "tls",
+          "args": [
+            "admin@example.com"
+          ],
+          "span": {
+            "index": 47,
+            "length": 68,
+            "startLocation": {
+              "line": 2,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 2,
+              "column": 23,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 7,
+          "name": "acme_dns",
+          "args": [
+            "cloudflare"
+          ],
+          "span": {
+            "index": 71,
+            "length": 90,
+            "startLocation": {
+              "line": 3,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 3,
+              "column": 21,
+              "paddingLine": 2
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 10,
+          "name": "log",
+          "args": [],
+          "span": {
+            "index": 93,
+            "length": 156,
+            "startLocation": {
+              "line": 4,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 6,
+              "column": 15,
+              "paddingLine": 4
+            }
+          },
+          "children": [
+            {
+              "id": 8,
+              "name": "output",
+              "args": [
+                "file",
+                "/var/log/caddy/access.log"
+              ],
+              "span": {
+                "index": 103,
+                "length": 140,
+                "startLocation": {
+                  "line": 5,
+                  "column": 4,
+                  "paddingLine": 4
+                },
+                "endLocation": {
+                  "line": 5,
+                  "column": 41,
+                  "paddingLine": 4
+                }
+              },
+              "children": []
+            },
+            {
+              "id": 9,
+              "name": "format",
+              "args": [
+                "json"
+              ],
+              "span": {
+                "index": 145,
+                "length": 156,
+                "startLocation": {
+                  "line": 6,
+                  "column": 4,
+                  "paddingLine": 4
+                },
+                "endLocation": {
+                  "line": 6,
+                  "column": 15,
+                  "paddingLine": 4
+                }
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "span": {
+    "index": 0,
+    "length": 156,
+    "startLocation": {
+      "line": 0,
+      "column": 0,
+      "paddingLine": 0
+    },
+    "endLocation": {
+      "line": 6,
+      "column": 15,
+      "paddingLine": 4
+    }
+  }
+}

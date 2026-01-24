@@ -1,7 +1,7 @@
 {
   "children": [
     {
-      "id": 11,
+      "id": 3,
       "name": "directive",
       "args": [
         "foo"
@@ -22,7 +22,7 @@
       },
       "children": [
         {
-          "id": 9,
+          "id": 1,
           "name": "directive2",
           "args": [
             "taz",
@@ -44,7 +44,7 @@
           },
           "children": [
             {
-              "id": 8,
+              "id": 0,
               "name": "directive4",
               "args": [],
               "span": {
@@ -66,7 +66,7 @@
           ]
         },
         {
-          "id": 10,
+          "id": 2,
           "name": "directive3",
           "args": [
             "bob"
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "id": 12,
+      "id": 4,
       "name": "bliz",
       "args": [
         "tar"
