@@ -382,10 +382,6 @@ graph LR
 
 [Ejemplos completos extraídos de los tests]
 
----
-
-**End of Specification v1**
-
 ````
 
 ## Tips
