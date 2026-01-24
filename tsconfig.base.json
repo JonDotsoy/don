@@ -5,5 +5,13 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/__snapshots__",
+    "**/__samples__",
+    "**/__utils__"
+  ]
 }
