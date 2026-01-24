@@ -7,4 +7,4 @@ foo
 ------------------------------------------------------------
 
 Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "foo"
-  Part#28: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+  Part#97: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"

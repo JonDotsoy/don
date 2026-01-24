@@ -2,7 +2,7 @@
   "tokens": [
     {
       "type": 12,
-      "text": "\"tar\\\"\"",
+      "text": "tar\\\"",
       "span": {
         "index": 0,
         "length": 7,

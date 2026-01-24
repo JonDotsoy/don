@@ -7,10 +7,10 @@ $foo -123
 ------------------------------------------------------------
 
 Token: [Offset 0 Len 4; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Keyword "$foo"
-  Part#34: [Offset 0 Len 1; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 2 (Padding 0)] Unknown [24] "$"
-  Part#35: [Offset 1 Len 3; Ln 1, Col 2 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Alphabet [66 6F 6F] "foo"
+  Part#103: [Offset 0 Len 1; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 2 (Padding 0)] Unknown [24] "$"
+  Part#104: [Offset 1 Len 3; Ln 1, Col 2 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Alphabet [66 6F 6F] "foo"
 Token: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Whitespace " "
-  Part#36: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Whitespace [20] " "
+  Part#105: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Whitespace [20] " "
 Token: [Offset 5 Len 4; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Numeric "-123"
-  Part#37: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Unknown [2D] "-"
-  Part#38: [Offset 6 Len 3; Ln 1, Col 7 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Int [31 32 33] "123"
+  Part#106: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Unknown [2D] "-"
+  Part#107: [Offset 6 Len 3; Ln 1, Col 7 (Padding 0) -> Ln 1, Col 10 (Padding 0)] Int [31 32 33] "123"

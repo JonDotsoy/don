@@ -40,7 +40,7 @@
     },
     {
       "type": 12,
-      "text": "'foo",
+      "text": "fo",
       "span": {
         "index": 4,
         "length": 4,

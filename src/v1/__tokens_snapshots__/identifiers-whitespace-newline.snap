@@ -7,7 +7,7 @@ abc asd
 
 ------------------------------------------------------------
 
-Part#5: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [61 62 63] "abc"
-Part#6: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
-Part#7: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Alphabet [61 73 64] "asd"
-Part#8: [Offset 7 Len 1; Ln 1, Col 8 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+Part#74: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [61 62 63] "abc"
+Part#75: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
+Part#76: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Alphabet [61 73 64] "asd"
+Part#77: [Offset 7 Len 1; Ln 1, Col 8 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"

@@ -2,7 +2,7 @@
   "tokens": [
     {
       "type": 12,
-      "text": "'foo biz'",
+      "text": "foo biz",
       "span": {
         "index": 0,
         "length": 9,

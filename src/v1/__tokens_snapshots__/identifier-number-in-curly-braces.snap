@@ -6,10 +6,10 @@ foo {12.123}
 
 ------------------------------------------------------------
 
-Part#17: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
-Part#18: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
-Part#19: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] OpenCurlyBrace [7B] "{"
-Part#20: [Offset 5 Len 2; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Int [31 32] "12"
-Part#21: [Offset 7 Len 1; Ln 1, Col 8 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Dot [2E] "."
-Part#22: [Offset 8 Len 3; Ln 1, Col 9 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Int [31 32 33] "123"
-Part#23: [Offset 11 Len 1; Ln 1, Col 12 (Padding 0) -> Ln 1, Col 13 (Padding 0)] CloseCurlyBrace [7D] "}"
+Part#86: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+Part#87: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
+Part#88: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] OpenCurlyBrace [7B] "{"
+Part#89: [Offset 5 Len 2; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Int [31 32] "12"
+Part#90: [Offset 7 Len 1; Ln 1, Col 8 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Dot [2E] "."
+Part#91: [Offset 8 Len 3; Ln 1, Col 9 (Padding 0) -> Ln 1, Col 12 (Padding 0)] Int [31 32 33] "123"
+Part#92: [Offset 11 Len 1; Ln 1, Col 12 (Padding 0) -> Ln 1, Col 13 (Padding 0)] CloseCurlyBrace [7D] "}"
