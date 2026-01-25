@@ -1,5 +1,5 @@
-import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node";
-import { SyntaxEncode } from "./v1/compiler/syntax-encode";
+import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
+import { SyntaxEncode } from "./v1/compiler/syntax-encode.js";
 
 export class Directive {
   constructor(

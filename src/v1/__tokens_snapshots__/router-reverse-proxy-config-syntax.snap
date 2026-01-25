@@ -25,28 +25,28 @@ example.com {
 ------------------------------------------------------------
 
 Document: [Offset 0 Len 156; Ln 1, Col 1 (Padding 0) -> Ln 7, Col 16 (Padding 0)]
-  Directive#11: example.com [Offset 0 Len 156; Ln 1, Col 1 (Padding 0) -> Ln 7, Col 16 (Padding 0)]
+  Directive#19: example.com [Offset 0 Len 156; Ln 1, Col 1 (Padding 0) -> Ln 7, Col 16 (Padding 0)]
   Name: [Offset 0 Len 11; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 12 (Padding 0)] example.com
-    Directive#5: reverse_proxy [Offset 16 Len 44; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 31 (Padding 2)]
+    Directive#13: reverse_proxy [Offset 16 Len 44; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 31 (Padding 2)]
     Name: [Offset 16 Len 13; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 16 (Padding 2)] reverse_proxy
     Args:
       Arg: [Offset 30 Len 14; Ln 2, Col 17 (Padding 2) -> Ln 2, Col 31 (Padding 2)] 127.0.0.1:3000
-    Directive#6: tls [Offset 47 Len 68; Ln 3, Col 3 (Padding 2) -> Ln 3, Col 24 (Padding 2)]
+    Directive#14: tls [Offset 47 Len 68; Ln 3, Col 3 (Padding 2) -> Ln 3, Col 24 (Padding 2)]
     Name: [Offset 47 Len 3; Ln 3, Col 3 (Padding 2) -> Ln 3, Col 6 (Padding 2)] tls
     Args:
       Arg: [Offset 51 Len 17; Ln 3, Col 7 (Padding 2) -> Ln 3, Col 24 (Padding 2)] admin@example.com
-    Directive#7: acme_dns [Offset 71 Len 90; Ln 4, Col 3 (Padding 2) -> Ln 4, Col 22 (Padding 2)]
+    Directive#15: acme_dns [Offset 71 Len 90; Ln 4, Col 3 (Padding 2) -> Ln 4, Col 22 (Padding 2)]
     Name: [Offset 71 Len 8; Ln 4, Col 3 (Padding 2) -> Ln 4, Col 11 (Padding 2)] acme_dns
     Args:
       Arg: [Offset 80 Len 10; Ln 4, Col 12 (Padding 2) -> Ln 4, Col 22 (Padding 2)] cloudflare
-    Directive#10: log [Offset 93 Len 156; Ln 5, Col 3 (Padding 2) -> Ln 7, Col 16 (Padding 2)]
+    Directive#18: log [Offset 93 Len 156; Ln 5, Col 3 (Padding 2) -> Ln 7, Col 16 (Padding 2)]
     Name: [Offset 93 Len 3; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 6 (Padding 2)] log
-      Directive#8: output [Offset 103 Len 140; Ln 6, Col 5 (Padding 4) -> Ln 6, Col 42 (Padding 4)]
+      Directive#16: output [Offset 103 Len 140; Ln 6, Col 5 (Padding 4) -> Ln 6, Col 42 (Padding 4)]
       Name: [Offset 103 Len 6; Ln 6, Col 5 (Padding 4) -> Ln 6, Col 11 (Padding 4)] output
       Args:
         Arg: [Offset 110 Len 4; Ln 6, Col 12 (Padding 4) -> Ln 6, Col 16 (Padding 4)] file
         Arg: [Offset 115 Len 25; Ln 6, Col 17 (Padding 4) -> Ln 6, Col 42 (Padding 4)] /var/log/caddy/access.log
-      Directive#9: format [Offset 145 Len 156; Ln 7, Col 5 (Padding 4) -> Ln 7, Col 16 (Padding 4)]
+      Directive#17: format [Offset 145 Len 156; Ln 7, Col 5 (Padding 4) -> Ln 7, Col 16 (Padding 4)]
       Name: [Offset 145 Len 6; Ln 7, Col 5 (Padding 4) -> Ln 7, Col 11 (Padding 4)] format
       Args:
         Arg: [Offset 152 Len 4; Ln 7, Col 12 (Padding 4) -> Ln 7, Col 16 (Padding 4)] json

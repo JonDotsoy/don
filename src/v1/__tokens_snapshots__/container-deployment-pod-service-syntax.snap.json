@@ -1,7 +1,7 @@
 {
   "children": [
     {
-      "id": 15,
+      "id": 23,
       "name": "pod",
       "args": [
         "nginx"
@@ -22,7 +22,7 @@
       },
       "children": [
         {
-          "id": 14,
+          "id": 22,
           "name": "container",
           "args": [
             "nginx"
@@ -43,7 +43,7 @@
           },
           "children": [
             {
-              "id": 12,
+              "id": 20,
               "name": "image",
               "args": [
                 "nginx:stable"
@@ -65,7 +65,7 @@
               "children": []
             },
             {
-              "id": 13,
+              "id": 21,
               "name": "port",
               "args": [
                 "http-web-svc",
@@ -92,7 +92,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 26,
       "name": "service",
       "args": [
         "nginx-service"
@@ -113,7 +113,7 @@
       },
       "children": [
         {
-          "id": 16,
+          "id": 24,
           "name": "selector",
           "args": [
             "nginx"
@@ -135,7 +135,7 @@
           "children": []
         },
         {
-          "id": 17,
+          "id": 25,
           "name": "port",
           "args": [
             "http-web-svc",
