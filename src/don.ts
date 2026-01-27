@@ -1,5 +1,5 @@
 import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
-import { SyntaxEncode } from "./v1/compiler/syntax-encode.js";
+import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 
 export class Directive {
   constructor(
@@ -31,7 +31,7 @@ const docToDirective = (node: DocumentNode): Directive[] => {
 
 export class DON {
   static parse(text: string) {
-    const documentNode = new SyntaxEncode().encode(text);
+    const documentNode = new SyntaxParser().parse(text);
 
     return docToDirective(documentNode);
   }

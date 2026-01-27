@@ -1,7 +1,7 @@
 import { buildLogger } from "../utils/build-logger.js";
 import { SyntaxKind } from "../utils/syntax-kind.js";
 import { DirectiveNode, DocumentNode } from "./directive-node.js";
-import { LexemaEncode } from "./lexema-encode.js";
+import { LexerParser } from "./lexema-encode.js";
 import { Lexema } from "./lexema.js";
 import type { PartSet } from "./part-set.js";
 import { Token } from "./token.js";
@@ -78,19 +78,19 @@ class SpanDirectiveResult {
   ) {}
 }
 
-export class SyntaxEncode {
+export class SyntaxParser {
   static raw = new WeakMap<
     DocumentNode,
     string | Uint8Array | Iterable<number> | PartSet | Lexema
   >();
 
-  encode(input: string | Uint8Array | Iterable<number> | PartSet | Lexema) {
+  parse(input: string | Uint8Array | Iterable<number> | PartSet | Lexema) {
     const lexema: Lexema =
-      input instanceof Lexema ? input : new LexemaEncode().encode(input);
+      input instanceof Lexema ? input : new LexerParser().parse(input);
 
-    const doc = SyntaxEncode.scan(lexema);
+    const doc = SyntaxParser.scan(lexema);
 
-    SyntaxEncode.raw.set(doc, input);
+    SyntaxParser.raw.set(doc, input);
 
     return doc;
   }

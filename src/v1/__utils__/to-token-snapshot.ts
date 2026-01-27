@@ -8,7 +8,7 @@ import type { Span } from "../compiler/span.js";
 import { PartSet } from "../compiler/part-set.js";
 import { DirectiveNode, DocumentNode } from "../compiler/directive-node.js";
 import { t } from "./t.js";
-import { SyntaxEncode } from "../compiler/syntax-encode.js";
+import { SyntaxParser } from "../compiler/syntax-encode.js";
 
 const isObject = (value: unknown) =>
   typeof value === "object" && value !== null;
@@ -200,7 +200,7 @@ expect.extend({
         }
 
         if (isDocumentNode(input)) {
-          const payload = SyntaxEncode.raw.get(input);
+          const payload = SyntaxParser.raw.get(input);
 
           if (typeof payload === "string") {
             yield payload;

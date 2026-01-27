@@ -453,6 +453,10 @@ export class Token {
     return new TextDecoder().decode(this.arrayBuffer());
   }
 
+  raw() {
+    return new TextDecoder().decode(this.arrayBuffer());
+  }
+
   toJS() {
     const parsers: Partial<Record<SyntaxKind, () => any>> = {
       [SyntaxKind.numeric]: () => {

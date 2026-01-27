@@ -11,7 +11,7 @@ export type LexemaEncodeOptions = {
   allowDebugDocument?: boolean;
 };
 
-export class LexemaEncode {
+export class LexerParser {
   #storeDocument: boolean;
   #showInvisibleTokens: boolean;
 
@@ -21,7 +21,7 @@ export class LexemaEncode {
     this.#showInvisibleTokens = options?.debug ?? false;
   }
 
-  encode(input: string | Uint8Array | Iterable<number> | PartSet) {
+  parse(input: string | Uint8Array | Iterable<number> | PartSet) {
     const partSet: PartSet =
       input instanceof PartSet ? input : new PartSetEncode().encode(input);
 
