@@ -1,2 +1,25 @@
-export { SyntaxEncode } from "./v1/compiler/syntax-encode.js";
+import { LexerParser } from "./v1/compiler/lexema-encode.js";
+import { SyntaxKind } from "./v1/utils/syntax-kind.js";
+
+export { SyntaxParser as SyntaxEncode } from "./v1/compiler/syntax-encode.js";
+export { LexerParser } from "./v1/compiler/lexema-encode.js";
 export { DON, Directive } from "./don.js";
+
+const typeStrings: Partial<Record<SyntaxKind, string>> = {
+  [SyntaxKind.keyword]: "keyword",
+  [SyntaxKind.string]: "string",
+  [SyntaxKind.numeric]: "numeric",
+  [SyntaxKind.boolean]: "boolean",
+  [SyntaxKind.null]: "null",
+  [SyntaxKind.heredoc]: "heredoc",
+  [SyntaxKind.comment]: "comment",
+  [SyntaxKind.openCurlyBrace]: "openCurlyBrace",
+  [SyntaxKind.closeCurlyBrace]: "closeCurlyBrace",
+};
+
+export const donToParts = (text: string) =>
+  Array.from(new LexerParser({ debug: true }).parse(text).tokens, (token) => ({
+    _syntax_type: token.type,
+    type: typeStrings[token.type] ?? `literal`,
+    value: token.raw(),
+  }));

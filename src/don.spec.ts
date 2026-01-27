@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { DON, Directive } from "./don";
+import { donToParts } from "./index";
 
 describe("DON.parse", () => {
   it('should parse "test" and return a Directive with name "test"', () => {
@@ -59,5 +60,66 @@ describe("DON.parse", () => {
     expect(result[2]!.children[0]!.args).toEqual(['>=1']);
     expect(result[2]!.children[1]!.name).toBe("react");
     expect(result[2]!.children[1]!.args).toEqual(['>=5']);
+  });
+});
+
+describe("donToParts", () => {
+  it('should parse simple identifier', () => {
+    const text = "test";
+    const result = donToParts(text);
+    expect(result.map(p => p.value).join('')).toBe(text);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('should parse directive with string arguments', () => {
+    const text = 'name "my-package"';
+    const result = donToParts(text);
+    expect(result.map(p => p.value).join('')).toBe(text);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('should parse directive with mixed arguments', () => {
+    const text = 'foo bar true 42 "hello world"';
+    const result = donToParts(text);
+    expect(result.map(p => p.value).join('')).toBe(text);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('should parse directive with curly braces', () => {
+    const text = 'config { port 8080 }';
+    const result = donToParts(text);
+    expect(result.map(p => p.value).join('')).toBe(text);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('should parse multiple directives with nested structure', () => {
+    const text = ""
+      + 'server {\n'
+      + '  host "localhost"\n'
+      + '  port 3000\n'
+      + '}\n'
+      + 'database {\n'
+      + '  type "postgres"\n'
+      + '}';
+    const result = donToParts(text);
+    expect(result.map(p => p.value).join('')).toBe(text);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('should parse router configuration with routes', () => {
+    const text = ""
+      + 'router {\n'
+      + '  route /api {\n'
+      + '    proxy http://backend:8080\n'
+      + '    timeout 30\n'
+      + '  }\n'
+      + '  route /static {\n'
+      + '    root /var/www\n'
+      + '    cache true\n'
+      + '  }\n'
+      + '}';
+    const result = donToParts(text);
+    expect(result.map(p => p.value).join('')).toBe(text);
+    expect(result).toMatchSnapshot();
   });
 });

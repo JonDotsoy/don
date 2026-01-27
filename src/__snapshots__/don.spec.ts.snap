@@ -1,0 +1,541 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`donToParts should parse simple identifier 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "test",
+  },
+]
+`;
+
+exports[`donToParts should parse directive with string arguments 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "name",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""my-package"",
+  },
+]
+`;
+
+exports[`donToParts should parse directive with mixed arguments 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "foo",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "bar",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 14,
+    "type": "boolean",
+    "value": "true",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "42",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""hello world"",
+  },
+]
+`;
+
+exports[`donToParts should parse directive with curly braces 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "config",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "port",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "8080",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+]
+`;
+
+exports[`donToParts should parse multiple directives with nested structure 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "server",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "host",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""localhost"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "port",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "3000",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "database",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "type",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""postgres"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+]
+`;
+
+exports[`donToParts should parse router configuration with routes 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "router",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "route",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "/api",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "    ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "proxy",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "http://backend:8080",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "    ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "timeout",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "30",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "route",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "/static",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "    ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "root",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "/var/www",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "    ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "cache",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 14,
+    "type": "boolean",
+    "value": "true",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+]
+`;
