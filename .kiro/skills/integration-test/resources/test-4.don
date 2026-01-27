@@ -1,0 +1,13 @@
+database {
+  host localhost
+  port 5432
+  credentials {
+    user admin
+    password secret
+  }
+}
+
+api {
+  endpoint /api/v1
+  timeout 3000
+}

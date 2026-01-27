@@ -1,0 +1,4 @@
+- Cuando soliciten ejecutar el test de integración, usa el skill `integration-test` ubicado en `.kiro/skills/integration-test/`
+  - Ejecuta el script completo: `.kiro/skills/integration-test/scripts/run-full-test.sh`
+  - Este skill automatiza todo el proceso: empaquetado, preparación de entorno, instalación y ejecución de pruebas
+- Este proyecto usa bun.sh para ejecutar comandos: usa `bunx` para ejecutables y `bun add` para instalar paquetes
