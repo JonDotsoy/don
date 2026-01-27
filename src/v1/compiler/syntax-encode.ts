@@ -172,12 +172,15 @@ export class SyntaxEncode {
           continue;
         }
 
-        if (token.type === SyntaxKind.newline) {
+        if (
+          token.type === SyntaxKind.newline &&
+          partialDirective.current.name
+        ) {
           // log`endline >>> push token token: ${partialDirective.current.name} args: ${partialDirective.current.args}`;
 
           directives.current.push(
             new DirectiveNode(
-              partialDirective.current.name!,
+              partialDirective.current.name,
               partialDirective.current.args,
               partialDirective.current.children,
             ),
