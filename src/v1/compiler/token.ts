@@ -42,6 +42,107 @@ export class Token {
     options?: MatchOptions,
   ][] = [
     [
+      SyntaxKind.comment,
+      (
+        partSet: PartSet,
+        fromIndex: number = 0,
+      ): { span: Span; errors?: any[] } | null => {
+        const errors: string[] = [];
+        const firstPart = partSet.parts[fromIndex];
+        const secondPart = partSet.parts[fromIndex + 1];
+
+        // Check for block comment: /* ... */
+        // 0x2f = '/', 0x2a = '*'
+        const isBlockCommentStart =
+          firstPart?.buffer.length === 1 &&
+          firstPart.buffer[0] === 0x2f &&
+          secondPart?.buffer.length === 1 &&
+          secondPart.buffer[0] === 0x2a;
+
+        if (isBlockCommentStart) {
+          const parts = [firstPart, secondPart];
+          let currentIndex = fromIndex + 2;
+          let foundClosing = false;
+
+          // Find closing */
+          while (currentIndex < partSet.parts.length) {
+            const currentPart = partSet.parts[currentIndex];
+            const nextPart = partSet.parts[currentIndex + 1];
+
+            if (!currentPart) break;
+
+            parts.push(currentPart);
+
+            // Check if we found */
+            if (
+              currentPart.buffer.length === 1 &&
+              currentPart.buffer[0] === 0x2a &&
+              nextPart?.buffer.length === 1 &&
+              nextPart.buffer[0] === 0x2f
+            ) {
+              parts.push(nextPart);
+              foundClosing = true;
+              break;
+            }
+
+            currentIndex++;
+          }
+
+          if (!foundClosing) {
+            errors.push("Unclosed block comment");
+          }
+
+          const lastPart = parts[parts.length - 1]!;
+
+          return {
+            span: new Span(
+              fromIndex,
+              parts.length,
+              firstPart.span.startLocation,
+              lastPart.span.endLocation,
+            ),
+            errors: errors.length ? errors : undefined,
+          };
+        }
+
+        // Check for line comment: # ...
+        // 0x23 = '#'
+        const isLineComment =
+          firstPart?.buffer.length === 1 && firstPart.buffer[0] === 0x23;
+
+        if (isLineComment) {
+          // Find all parts until newline or end of file
+          const parts = [firstPart];
+          let currentIndex = fromIndex + 1;
+
+          while (currentIndex < partSet.parts.length) {
+            const currentPart = partSet.parts[currentIndex];
+            if (!currentPart || currentPart.type === SyntaxKind.newline) {
+              break;
+            }
+            parts.push(currentPart);
+            currentIndex++;
+          }
+
+          const lastPart = parts[parts.length - 1]!;
+
+          return {
+            span: new Span(
+              fromIndex,
+              parts.length,
+              firstPart.span.startLocation,
+              lastPart.span.endLocation,
+            ),
+          };
+        }
+
+        return null;
+      },
+      {
+        invisible: true,
+      },
+    ],
+    [
       SyntaxKind.whitespace,
       (
         partSet: PartSet,
