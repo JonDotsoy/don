@@ -1,6 +1,6 @@
 {
   "name": "donly",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "DON (Directive Object Notation) - A human-readable data serialization format based on directives and subdirectives for configuration files, infrastructure definitions, and structured data",
   "keywords": [
     "don",
@@ -13,12 +13,17 @@
     "markup",
     "notation"
   ],
-  "author": "@jondotsoy",
+  "author": {
+    "name": "Jonathan Delgado",
+    "email": "hi@jon.soy",
+    "url": "https://jon.soy"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/jondotsoy/don"
   },
+  "homepage": "https://don.jon.soy/",
   "type": "module",
   "main": "./lib/esm/index.js",
   "types": "./lib/esm/index.d.ts",
