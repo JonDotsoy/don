@@ -539,3 +539,1042 @@ exports[`donToParts should parse router configuration with routes 1`] = `
   },
 ]
 `;
+
+exports[`donToParts should parse directive with line comment 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# This is a comment",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "name",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""my-package"",
+  },
+]
+`;
+
+exports[`donToParts should parse directive with inline comment 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "port",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "8080",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Default port",
+  },
+]
+`;
+
+exports[`donToParts should parse multiple directives with comments 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Server configuration",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "host",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""localhost"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "port",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "3000",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# HTTP port",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Database settings",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "database",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""postgres"",
+  },
+]
+`;
+
+exports[`donToParts should parse nested structure with comments 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Main server block",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "server",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Network settings",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "host",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""0.0.0.0"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "port",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "8080",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Listen port",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Security options",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "ssl",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 14,
+    "type": "boolean",
+    "value": "true",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+]
+`;
+
+exports[`donToParts should parse block comment 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "/* This is a block comment */",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "name",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""test"",
+  },
+]
+`;
+
+exports[`donToParts should parse multiline block comment 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": 
+"/*
+ * Configuration file
+ * Author: John Doe
+ */"
+,
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "version",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""1.0.0"",
+  },
+]
+`;
+
+exports[`donToParts should parse mixed comments with directives 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "/* Global settings */",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "app",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""my-app"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Environment",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "env",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""production"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+
+"
+,
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "/* Database configuration */",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "database",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Connection string",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "url",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""postgres://localhost"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "pool",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "10",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Max connections",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+]
+`;
+
+exports[`donToParts should parse comments between nested blocks 1`] = `
+[
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "router",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# API routes",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "route",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "/api",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "    ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "proxy",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "http://backend:8080",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Static files",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "route",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "/static",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 9,
+    "type": "openCurlyBrace",
+    "value": "{",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "    ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "root",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "/var/www",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 17,
+    "type": "literal",
+    "value": "  ",
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 10,
+    "type": "closeCurlyBrace",
+    "value": "}",
+  },
+]
+`;
+
+exports[`donToParts should parse empty lines with comments 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Header comment",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+
+"
+,
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Another comment",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "name",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""test"",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+
+"
+,
+  },
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# Footer comment",
+  },
+]
+`;
+
+exports[`donToParts should parse comment with special characters 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "# TODO: Fix this @bug #123 (priority: high!)",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "status",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 12,
+    "type": "string",
+    "value": ""pending"",
+  },
+]
+`;
+
+exports[`donToParts should parse unclosed block comment 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": 
+"/* This comment is not closed
+name "test""
+,
+  },
+]
+`;
+
+exports[`donToParts should parse nested block-like content in block comment 1`] = `
+[
+  {
+    "_syntax_type": 16,
+    "type": "comment",
+    "value": "/* Comment with /* nested */",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "symbols",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "*/",
+  },
+  {
+    "_syntax_type": 4,
+    "type": "literal",
+    "value": 
+"
+"
+,
+  },
+  {
+    "_syntax_type": 11,
+    "type": "keyword",
+    "value": "port",
+  },
+  {
+    "_syntax_type": 3,
+    "type": "literal",
+    "value": " ",
+  },
+  {
+    "_syntax_type": 13,
+    "type": "numeric",
+    "value": "3000",
+  },
+]
+`;

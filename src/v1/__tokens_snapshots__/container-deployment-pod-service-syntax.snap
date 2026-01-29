@@ -26,32 +26,32 @@ service nginx-service {
 ------------------------------------------------------------
 
 Document: [Offset 0 Len 241; Ln 1, Col 1 (Padding 0) -> Ln 10, Col 27 (Padding 0)]
-  Directive#23: pod [Offset 0 Len 79; Ln 1, Col 1 (Padding 0) -> Ln 4, Col 25 (Padding 0)]
+  Directive#32: pod [Offset 0 Len 79; Ln 1, Col 1 (Padding 0) -> Ln 4, Col 25 (Padding 0)]
   Name: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] pod
   Args:
     Arg: [Offset 4 Len 5; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 10 (Padding 0)] nginx
-    Directive#22: container [Offset 14 Len 79; Ln 2, Col 3 (Padding 2) -> Ln 4, Col 25 (Padding 2)]
+    Directive#31: container [Offset 14 Len 79; Ln 2, Col 3 (Padding 2) -> Ln 4, Col 25 (Padding 2)]
     Name: [Offset 14 Len 9; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 12 (Padding 2)] container
     Args:
       Arg: [Offset 24 Len 5; Ln 2, Col 13 (Padding 2) -> Ln 2, Col 18 (Padding 2)] nginx
-      Directive#20: image [Offset 36 Len 54; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 23 (Padding 4)]
+      Directive#29: image [Offset 36 Len 54; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 23 (Padding 4)]
       Name: [Offset 36 Len 5; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 10 (Padding 4)] image
       Args:
         Arg: [Offset 42 Len 12; Ln 3, Col 11 (Padding 4) -> Ln 3, Col 23 (Padding 4)] nginx:stable
-      Directive#21: port [Offset 59 Len 79; Ln 4, Col 5 (Padding 4) -> Ln 4, Col 25 (Padding 4)]
+      Directive#30: port [Offset 59 Len 79; Ln 4, Col 5 (Padding 4) -> Ln 4, Col 25 (Padding 4)]
       Name: [Offset 59 Len 4; Ln 4, Col 5 (Padding 4) -> Ln 4, Col 9 (Padding 4)] port
       Args:
         Arg: [Offset 64 Len 12; Ln 4, Col 10 (Padding 4) -> Ln 4, Col 22 (Padding 4)] http-web-svc
         Arg: [Offset 77 Len 2; Ln 4, Col 23 (Padding 4) -> Ln 4, Col 25 (Padding 4)] 80
-  Directive#26: service [Offset 87 Len 154; Ln 8, Col 1 (Padding 0) -> Ln 10, Col 27 (Padding 0)]
+  Directive#35: service [Offset 87 Len 154; Ln 8, Col 1 (Padding 0) -> Ln 10, Col 27 (Padding 0)]
   Name: [Offset 87 Len 7; Ln 8, Col 1 (Padding 0) -> Ln 8, Col 8 (Padding 0)] service
   Args:
     Arg: [Offset 95 Len 13; Ln 8, Col 9 (Padding 0) -> Ln 8, Col 22 (Padding 0)] nginx-service
-    Directive#24: selector [Offset 113 Len 127; Ln 9, Col 3 (Padding 2) -> Ln 9, Col 17 (Padding 2)]
+    Directive#33: selector [Offset 113 Len 127; Ln 9, Col 3 (Padding 2) -> Ln 9, Col 17 (Padding 2)]
     Name: [Offset 113 Len 8; Ln 9, Col 3 (Padding 2) -> Ln 9, Col 11 (Padding 2)] selector
     Args:
       Arg: [Offset 122 Len 5; Ln 9, Col 12 (Padding 2) -> Ln 9, Col 17 (Padding 2)] nginx
-    Directive#25: port [Offset 130 Len 154; Ln 10, Col 3 (Padding 2) -> Ln 10, Col 27 (Padding 2)]
+    Directive#34: port [Offset 130 Len 154; Ln 10, Col 3 (Padding 2) -> Ln 10, Col 27 (Padding 2)]
     Name: [Offset 130 Len 4; Ln 10, Col 3 (Padding 2) -> Ln 10, Col 7 (Padding 2)] port
     Args:
       Arg: [Offset 135 Len 12; Ln 10, Col 8 (Padding 2) -> Ln 10, Col 20 (Padding 2)] http-web-svc

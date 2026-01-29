@@ -7,8 +7,8 @@ foo 123
 ------------------------------------------------------------
 
 Token: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Keyword "foo"
-  Part#100: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+  Part#755: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
 Token: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace " "
-  Part#101: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
+  Part#756: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
 Token: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Numeric "123"
-  Part#102: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Int [31 32 33] "123"
+  Part#757: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Int [31 32 33] "123"

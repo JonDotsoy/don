@@ -8,9 +8,9 @@ taz
 ------------------------------------------------------------
 
 Token: [Offset 0 Len 6; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Keyword "foo123"
-  Part#168: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
-  Part#169: [Offset 3 Len 3; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Int [31 32 33] "123"
+  Part#823: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+  Part#824: [Offset 3 Len 3; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Int [31 32 33] "123"
 Token: [Offset 6 Len 1; Ln 1, Col 7 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline "\n"
-  Part#170: [Offset 6 Len 1; Ln 1, Col 7 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
+  Part#825: [Offset 6 Len 1; Ln 1, Col 7 (Padding 0) -> Ln 2, Col 1 (Padding 0)] Newline [0A] "\n"
 Token: [Offset 7 Len 3; Ln 2, Col 1 (Padding 0) -> Ln 2, Col 4 (Padding 0)] Keyword "taz"
-  Part#171: [Offset 7 Len 3; Ln 2, Col 1 (Padding 0) -> Ln 2, Col 4 (Padding 0)] Alphabet [74 61 7A] "taz"
+  Part#826: [Offset 7 Len 3; Ln 2, Col 1 (Padding 0) -> Ln 2, Col 4 (Padding 0)] Alphabet [74 61 7A] "taz"

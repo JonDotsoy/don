@@ -7,6 +7,6 @@
 ------------------------------------------------------------
 
 Token: [Offset 0 Len 2; Ln 1, Col 1 (Padding 2) -> Ln 1, Col 3 (Padding 2)] Indent "  "
-  Part#200: [Offset 0 Len 2; Ln 1, Col 1 (Padding 2) -> Ln 1, Col 3 (Padding 2)] Whitespace [20 20] "  "
+  Part#855: [Offset 0 Len 2; Ln 1, Col 1 (Padding 2) -> Ln 1, Col 3 (Padding 2)] Whitespace [20 20] "  "
 Token: [Offset 2 Len 3; Ln 1, Col 3 (Padding 2) -> Ln 1, Col 6 (Padding 2)] Keyword "foo"
-  Part#201: [Offset 2 Len 3; Ln 1, Col 3 (Padding 2) -> Ln 1, Col 6 (Padding 2)] Alphabet [66 6F 6F] "foo"
+  Part#856: [Offset 2 Len 3; Ln 1, Col 3 (Padding 2) -> Ln 1, Col 6 (Padding 2)] Alphabet [66 6F 6F] "foo"
