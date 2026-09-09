@@ -88,26 +88,7 @@ mdLine`In this example, the \`router\` directive is used multiple times with dif
 
 mdLine`**JSON equivalent (less intuitive)**:`;
 
-block({ key: "router-config-json", lang: "json" })`
-{
-  "server": {
-    "routers": [
-      {
-        "path": "/users",
-        "response": { "status": 200, "body": "Ok" }
-      },
-      {
-        "path": "/user/:user_id",
-        "response": { "status": 200, "body": "Ok" }
-      },
-      {
-        "path": "/admin",
-        "response": { "status": 403, "body": "Forbidden" }
-      }
-    ]
-  }
-}
-`;
+block({ evalBlock: "router-config-don", format: "json" });
 
 mdLine`### Key Distinctions`;
 

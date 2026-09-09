@@ -3,7 +3,7 @@ title: DON Specification v1 - Directive Object Notation
 description: Complete specification for DON v1, a human-readable data serialization format designed for configuration files, routers, and security rules. Learn syntax, directives, blocks, and examples.
 lang: en
 status: Draft
-generatedAt: 2026-09-09T15:26:21.630Z
+generatedAt: 2026-09-09T15:32:13.643Z
 ---
 
 # DON Specification v1
@@ -140,18 +140,24 @@ In this example, the `router` directive is used multiple times with different ar
 ```json
 {
   "server": {
-    "routers": [
+    "router": [
       {
-        "path": "/users",
-        "response": { "status": 200, "body": "Ok" }
+        "respond": [
+          200,
+          "Ok"
+        ]
       },
       {
-        "path": "/user/:user_id",
-        "response": { "status": 200, "body": "Ok" }
+        "respond": [
+          200,
+          "Ok"
+        ]
       },
       {
-        "path": "/admin",
-        "response": { "status": 403, "body": "Forbidden" }
+        "respond": [
+          403,
+          "Forbidden"
+        ]
       }
     ]
   }
