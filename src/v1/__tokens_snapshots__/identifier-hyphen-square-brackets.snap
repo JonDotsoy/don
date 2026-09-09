@@ -1,0 +1,14 @@
+my-[age]
+
+------------------------------------------------------------
+
+   0:  6D 79 2D 5B 61 67 65 5D                          [my-[age]]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 8; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Keyword "my-[age]"
+  Part#885: [Offset 0 Len 2; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 3 (Padding 0)] Alphabet [6D 79] "my"
+  Part#886: [Offset 2 Len 1; Ln 1, Col 3 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Unknown [2D] "-"
+  Part#887: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Unknown [5B] "["
+  Part#888: [Offset 4 Len 3; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 8 (Padding 0)] Alphabet [61 67 65] "age"
+  Part#889: [Offset 7 Len 1; Ln 1, Col 8 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Unknown [5D] "]"

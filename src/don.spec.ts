@@ -12,6 +12,35 @@ describe("DON.parse", () => {
     expect(result[0]!.name).toBe("test");
   });
 
+  it('should parse identifiers with square brackets', () => {
+    const result = DON.parse("[name]");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toBeInstanceOf(Directive);
+    expect(result[0]!.name).toBe("[name]");
+  });
+
+  it('should parse identifiers mixing hyphen and square brackets', () => {
+    const result = DON.parse("my-[age]");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.name).toBe("my-[age]");
+  });
+
+  it('should parse a bracketed identifier directive with a block', () => {
+    const result = DON.parse(""
+      + "route-[id] {\n"
+      + '  handler "process"\n'
+      + "}\n"
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.name).toBe("route-[id]");
+    expect(result[0]!.children).toHaveLength(1);
+    expect(result[0]!.children[0]!.name).toBe("handler");
+    expect(result[0]!.children[0]!.args).toEqual(["process"]);
+  });
+
   it('should parse "foo biz true 1 {tar true}"', () => {
     const result = DON.parse(""
       + "foo biz true 1 {\n"

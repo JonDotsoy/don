@@ -1,0 +1,114 @@
+{
+  "tokens": [
+    {
+      "type": 11,
+      "text": "my-[age]",
+      "span": {
+        "index": 0,
+        "length": 8,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 8,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "my",
+          "span": {
+            "index": 0,
+            "length": 2,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 2,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "-",
+          "span": {
+            "index": 2,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 2,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "[",
+          "span": {
+            "index": 3,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 3,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 4,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 1,
+          "text": "age",
+          "span": {
+            "index": 4,
+            "length": 3,
+            "startLocation": {
+              "line": 0,
+              "column": 4,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 7,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "]",
+          "span": {
+            "index": 7,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 7,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 8,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
