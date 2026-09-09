@@ -49,12 +49,13 @@
     "lib"
   ],
   "scripts": {
-    "prepack": "npm run lint && npm run build",
+    "prepack": "npm run docs && npm run lint && npm run build",
     "build": "npm run build:esm",
     "build:esm": "tsc -p tsconfig.esm.json",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
+    "docs": "bun scripts/docs-generator/run.ts",
     "docs:spec": "bun scripts/spec-generator/run.ts"
   },
   "devDependencies": {
