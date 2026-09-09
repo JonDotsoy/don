@@ -1,12 +1,17 @@
 import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
+import { directiveToJSON } from "./directive-json.js";
 
 export class Directive {
   constructor(
-    readonly name: string,
+    readonly name: string | symbol,
     readonly args: (number | string | boolean)[],
     readonly children: Directive[] = [],
   ) {}
+
+  toJSON(): unknown {
+    return directiveToJSON(this);
+  }
 }
 
 const toDirective = (node: DirectiveNode): Directive => {

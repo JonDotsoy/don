@@ -4,6 +4,15 @@ import { SyntaxKind } from "./v1/utils/syntax-kind.js";
 export { SyntaxParser as SyntaxEncode } from "./v1/compiler/syntax-encode.js";
 export { LexerParser } from "./v1/compiler/lexema-encode.js";
 export { DON, Directive } from "./don.js";
+export {
+  DirectiveJSONEncoder,
+  DirectiveJSONDecoder,
+  ROOT_DIRECTIVE_NAME,
+} from "./directive-json.js";
+export type {
+  DirectiveReducer,
+  DirectiveJSONEncoderOptions,
+} from "./directive-json.js";
 
 const typeStrings: Partial<Record<SyntaxKind, string>> = {
   [SyntaxKind.keyword]: "keyword",

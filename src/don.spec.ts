@@ -161,6 +161,43 @@ describe("DON.parse", () => {
   });
 });
 
+describe("JSON.stringify(DON.parse(...))", () => {
+  it('serializes a flat directive using Directive#toJSON', () => {
+    const result = DON.parse('name "my-package"');
+
+    expect(JSON.parse(JSON.stringify(result))).toEqual([
+      { name: "my-package" },
+    ]);
+  });
+
+  it('serializes nested directives using Directive#toJSON', () => {
+    const result = DON.parse(""
+      + "server {\n"
+      + '  host "localhost"\n'
+      + "  port 8080\n"
+      + "}\n"
+    );
+
+    expect(JSON.parse(JSON.stringify(result))).toEqual([
+      { server: { host: "localhost", port: 8080 } },
+    ]);
+  });
+
+  it('serializes multiple directives, one object per array entry', () => {
+    const result = DON.parse(""
+      + 'name "@tar"\n'
+      + "dependencies {\n"
+      + '  zod ">=1"\n'
+      + "}\n"
+    );
+
+    expect(JSON.parse(JSON.stringify(result))).toEqual([
+      { name: "@tar" },
+      { dependencies: { zod: ">=1" } },
+    ]);
+  });
+});
+
 describe("donToParts", () => {
   it('should parse simple identifier', () => {
     const text = "test";
