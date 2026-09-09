@@ -49,10 +49,15 @@ export const compileSpec = async (
 ): Promise<CompiledSpec> => {
   const doc = new SpecDocument();
   const globals = globalThis as Record<string, unknown>;
-  const previous = { mdLine: globals.mdLine, block: globals.block };
+  const previous = {
+    mdLine: globals.mdLine,
+    block: globals.block,
+    tableOfContents: globals.tableOfContents,
+  };
 
   globals.mdLine = doc.mdLine;
   globals.block = doc.block;
+  globals.tableOfContents = doc.tableOfContents;
 
   const tempPath = path.join(
     os.tmpdir(),
@@ -68,6 +73,7 @@ export const compileSpec = async (
   } finally {
     globals.mdLine = previous.mdLine;
     globals.block = previous.block;
+    globals.tableOfContents = previous.tableOfContents;
     fs.rmSync(tempPath, { force: true });
   }
 };

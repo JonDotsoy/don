@@ -3,12 +3,15 @@ title: DON Specification v1 - Directive Object Notation
 description: Complete specification for DON v1, a human-readable data serialization format designed for configuration files, routers, and security rules. Learn syntax, directives, blocks, and examples.
 lang: en
 status: Draft
-generatedAt: 2026-09-09T15:11:15.071Z
+generatedAt: 2026-09-09T15:16:51.484Z
 ---
 
 # DON Specification v1
 
 > **Status**: Draft
+
+- [1. Overview](#1-overview)
+- [1.1 DON vs JSON](#11-don-vs-json)
 
 ## 1. Overview
 

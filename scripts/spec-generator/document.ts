@@ -1,5 +1,9 @@
 import { defaultFormatters } from "./formatters.ts";
 import {
+  resolveTableOfContents,
+  TOC_PLACEHOLDER,
+} from "./table-of-contents.ts";
+import {
   isBlockEvalOptions,
   type Block,
   type BlockOptions,
@@ -7,6 +11,7 @@ import {
   type Formatter,
   type MdLine,
   type StoredBlock,
+  type TableOfContents,
   type TemplateArgs,
 } from "./types.ts";
 
@@ -40,6 +45,11 @@ export class SpecDocument {
 
   mdLine: MdLine = (...args) => {
     this.#fragments.push(renderTemplate(...args).trim());
+  };
+
+  /** Inserts a table of contents, resolved once the full document is known. */
+  tableOfContents: TableOfContents = () => {
+    this.#fragments.push(TOC_PLACEHOLDER);
   };
 
   block: Block = (options: BlockOptions) => {
@@ -80,6 +90,6 @@ export class SpecDocument {
   }
 
   toMarkdown(): string {
-    return this.#fragments.join("\n\n") + "\n";
+    return resolveTableOfContents(this.#fragments).join("\n\n") + "\n";
   }
 }

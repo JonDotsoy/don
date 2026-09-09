@@ -7,6 +7,8 @@ export const lang = "en";
 
 mdLine`# DON Specification v1`;
 
+tableOfContents();
+
 mdLine`## 1. Overview`;
 
 mdLine`DON (Directive Object Notation) v1 is a human-readable data serialization format built around directives and subdirectives. This format is designed for configuration files such as security rules, routers, reverse proxies, and similar use cases.`;

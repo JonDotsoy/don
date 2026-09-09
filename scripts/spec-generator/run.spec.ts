@@ -50,5 +50,6 @@ describe("generateSpec", () => {
       'new Directive("dependencies", [], [new Directive("zod", [">=1"], []), new Directive("react", [">=5"], [])]);',
     );
     expect(markdown).toContain('"dependencies": {\n    "zod": ">=1",\n    "react": ">=5"\n  }');
+    expect(markdown).toContain("- [1. Overview](#1-overview)\n- [1.1 DON vs JSON](#11-don-vs-json)");
   });
 });

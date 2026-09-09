@@ -90,4 +90,34 @@ describe("compileSpec + renderDocument", () => {
     expect(generatedAtMs).toBeGreaterThanOrEqual(before);
     expect(generatedAtMs).toBeLessThanOrEqual(after);
   });
+
+  it("resolves tableOfContents() against headings compiled after it", async () => {
+    const { meta, fragments } = await compileSpec(fixture("fixture-toc.ts"));
+    const generatedAt = new Date("2026-01-02T03:04:05.000Z");
+    const markdown = renderDocument(meta, fragments, generatedAt);
+
+    expect(markdown).toBe(
+      ""
+      + "---\n"
+      + "title: Fixture TOC\n"
+      + "description: Exercises tableOfContents() with headings emitted after the call.\n"
+      + "lang: en\n"
+      + "status: Draft\n"
+      + "generatedAt: 2026-01-02T03:04:05.000Z\n"
+      + "---\n"
+      + "\n"
+      + "# Fixture TOC\n"
+      + "\n"
+      + "> **Status**: Draft\n"
+      + "\n"
+      + "- [1. Overview](#1-overview)\n"
+      + "- [1.1 DON vs JSON](#11-don-vs-json)\n"
+      + "\n"
+      + "## 1. Overview\n"
+      + "\n"
+      + "Some paragraph.\n"
+      + "\n"
+      + "## 1.1 DON vs JSON\n",
+    );
+  });
 });

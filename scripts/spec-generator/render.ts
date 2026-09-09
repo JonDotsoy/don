@@ -1,3 +1,4 @@
+import { resolveTableOfContents } from "./table-of-contents.ts";
 import type { GeneratorModule } from "./types.ts";
 
 const renderFrontmatter = (
@@ -31,7 +32,7 @@ export const renderDocument = (
   const frontmatter = renderFrontmatter(meta, generatedAt);
   const statusLine = `> **Status**: ${meta.status}`;
 
-  const body = [...fragments];
+  const body = resolveTableOfContents(fragments);
   const h1Index = body.findIndex((fragment) => fragment.startsWith("# "));
 
   if (h1Index === -1) {

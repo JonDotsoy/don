@@ -69,6 +69,37 @@ name "john"
     expect(doc.fragments.at(-1)).toBe("```shout\nFOO BAR\n```");
   });
 
+  it("resolves tableOfContents() against headings emitted after it, in toMarkdown()", () => {
+    const doc = new SpecDocument();
+
+    doc.mdLine`# DON Specification v1`;
+    doc.tableOfContents();
+    doc.mdLine`## 1. Overview`;
+    doc.mdLine`## 1.1 DON vs JSON`;
+
+    expect(doc.toMarkdown()).toBe(
+      ""
+      + "# DON Specification v1\n"
+      + "\n"
+      + "- [1. Overview](#1-overview)\n"
+      + "- [1.1 DON vs JSON](#11-don-vs-json)\n"
+      + "\n"
+      + "## 1. Overview\n"
+      + "\n"
+      + "## 1.1 DON vs JSON\n",
+    );
+  });
+
+  it("keeps the unresolved placeholder in the raw fragments list", () => {
+    const doc = new SpecDocument();
+
+    doc.mdLine`# Title`;
+    doc.tableOfContents();
+
+    expect(doc.fragments.at(-1)).not.toBe("");
+    expect(doc.fragments).toHaveLength(2);
+  });
+
   it("returns a no-op tag function from block({ evalBlock, format })", () => {
     const doc = new SpecDocument();
     doc.block({ key: "sample1", lang: "don" })`foo`;

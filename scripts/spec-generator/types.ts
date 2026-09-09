@@ -7,6 +7,12 @@ export type TemplateArgs = [
 export type MdLine = (...args: TemplateArgs) => void;
 
 /**
+ * `tableOfContents()` inserts a table of contents linking every `##`-`######`
+ * heading in the document — including headings emitted after this call.
+ */
+export type TableOfContents = () => void;
+
+/**
  * `block({ key, lang })` registers a fenced code block: the tagged template
  * body is rendered verbatim as a ```lang fence and stored under `key` so a
  * later `block({ evalBlock: key, format })` can evaluate it.
