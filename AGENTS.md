@@ -2,3 +2,5 @@
   - Ejecuta el script completo: `.kiro/skills/integration-test/scripts/run-full-test.sh`
   - Este skill automatiza todo el proceso: empaquetado, preparación de entorno, instalación y ejecución de pruebas
 - Este proyecto usa bun.sh para ejecutar comandos: usa `bunx` para ejecutables y `bun add` para instalar paquetes
+- Toda feature debe publicarse en `CHANGELOG.md` (bajo `Unreleased` hasta su release) y debe estar probada con un test unitario
+  - Si la feature es de sintaxis, debe probarse en distintos entornos: en la raíz del documento, dentro de un bloque, y junto a otras directivas
