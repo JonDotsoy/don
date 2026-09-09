@@ -53,18 +53,34 @@ jobs:
 
       - name: Publish to npm (OIDC trusted publisher)
         if: steps.check.outputs.exists == 'false'
-        run: npm stage publish --provenance --access public
+        env:
+          # "stage" queues the version for manual 2FA approval on npmjs.com;
+          # "publish" goes live immediately. Set via repository variable
+          # NPM_PUBLISH_MODE (Settings > Secrets and variables > Actions > Variables).
+          NPM_PUBLISH_MODE: ${{ vars.NPM_PUBLISH_MODE || 'stage' }}
+        run: |
+          if [ "$NPM_PUBLISH_MODE" = "publish" ]; then
+            npm publish --provenance --access public
+          else
+            npm stage publish --provenance --access public
+          fi
 
       - name: Create GitHub release with npm URL
         if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          NPM_PUBLISH_MODE: ${{ vars.NPM_PUBLISH_MODE || 'stage' }}
         run: |
           version="${{ steps.package.outputs.version }}"
           package_name="$(node -p "require('./package.json').name")"
           npm_url="https://www.npmjs.com/package/${package_name}/v/${version}"
+          if [ "$NPM_PUBLISH_MODE" = "publish" ]; then
+            notes="Published to npm: ${npm_url}"
+          else
+            notes="Staged on npm, pending manual 2FA approval: ${npm_url}"
+          fi
           gh release create "v${version}" \
             --repo "${{ github.repository }}" \
             --title "v${version}" \
-            --notes "Published to npm: ${npm_url}" \
+            --notes "${notes}" \
             --target "${{ github.sha }}"
