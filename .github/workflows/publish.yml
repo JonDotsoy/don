@@ -7,6 +7,7 @@ on:
       - claude/update-readme-3cx8s1
     paths:
       - package.json
+      - .github/workflows/publish.yml
 
 permissions:
   contents: write
@@ -52,7 +53,7 @@ jobs:
 
       - name: Publish to npm (OIDC trusted publisher)
         if: steps.check.outputs.exists == 'false'
-        run: npm publish --provenance --access public
+        run: npm stage publish --provenance --access public
 
       - name: Create GitHub release with npm URL
         if: steps.check.outputs.exists == 'false'
