@@ -75,6 +75,52 @@ server {
 
 See [`docs/specs/v1/spec.md`](./docs/specs/v1/spec.md) for the full language specification.
 
+## JSON Serialization
+
+`Directive` implements `toJSON()`, so passing a parsed document straight to `JSON.stringify` produces a readable JSON representation instead of dumping the raw `{name, args, children}` instance fields:
+
+```ts
+import { DON } from "donly";
+
+const directives = DON.parse(`
+server {
+  host "localhost"
+  port 8080
+}
+`);
+
+console.log(JSON.stringify(directives));
+// [{"server":{"host":"localhost","port":8080}}]
+```
+
+Since `JSON.stringify` calls `toJSON()` on each array element independently, the result is one `{name: value}` object per top-level directive — it does not merge directives that share a name. For that (and for more control over the output shape — a lossless array form, or nesting args as object keys instead of `[...args, children]`), use `DirectiveJSONEncoder` directly:
+
+```ts
+import { DON, DirectiveJSONEncoder } from "donly";
+
+const directives = DON.parse(`
+server {
+  host "localhost"
+  port 8080
+}
+server {
+  host "127.0.0.1"
+  port 9090
+}
+`);
+
+console.log(DirectiveJSONEncoder.encode(directives));
+// {"server":[{"host":"localhost","port":8080},{"host":"127.0.0.1","port":9090}]}
+```
+
+`DirectiveJSONDecoder` reverses this back into `Directive` instances:
+
+```ts
+import { DirectiveJSONDecoder } from "donly";
+
+const decoded = new DirectiveJSONDecoder().decode(json);
+```
+
 ## Development
 
 This project uses [Bun](https://bun.sh):
