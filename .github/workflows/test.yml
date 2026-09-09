@@ -1,0 +1,77 @@
+name: Test
+
+on:
+  push:
+
+jobs:
+  unit-tests:
+    name: Unit tests (bun test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run tests
+        run: bun test
+
+  smoke-test-imports:
+    name: Import smoke test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: node-lts
+            runtime: node
+            node-version: lts/*
+          - name: node-current
+            runtime: node
+            node-version: current
+          - name: bun-current
+            runtime: bun
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node
+        if: matrix.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: bun install
+
+      # Packs (which runs prepack: lint + build), installs the tarball
+      # into a scratch project as a real dependency, then runs run.mjs
+      # against it with this runtime — exercises the real npm exports
+      # resolution, not self-reference.
+      - name: Pack, install, and run the import smoke test
+        run: bash scripts/smoke-test-imports/npm-pack-test.sh ${{ matrix.runtime }}
+
+  type-smoke-test-imports:
+    name: Import types smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      # Same packaging as smoke-test-imports, but type-checks
+      # check-types.ts against the installed package's own .d.ts files.
+      - name: Pack, install, and type-check the published entry points
+        run: bash scripts/smoke-test-imports/npm-pack-test.sh types
