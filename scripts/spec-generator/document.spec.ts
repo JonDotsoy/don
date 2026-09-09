@@ -161,4 +161,34 @@ describe("jsonFormatter", () => {
   it("renders an argument-less directive as true", () => {
     expect(JSON.parse(jsonFormatter("ssl"))).toEqual({ ssl: true });
   });
+
+  it("drops a directive's args when it also has children (HTTP Router Configuration)", () => {
+    const json = JSON.parse(
+      jsonFormatter(""
+        + "server {\n"
+        + '  router /users {\n'
+        + '    respond 200 "Ok"\n'
+        + "  }\n"
+        + '  router /user/:user_id {\n'
+        + '    respond 200 "Ok"\n'
+        + "  }\n"
+        + '  router /admin {\n'
+        + '    respond 403 "Forbidden"\n'
+        + "  }\n"
+        + "}\n"
+      ),
+    );
+
+    // Known limitation: router's path arg (/users, /user/:user_id, /admin) is
+    // lost because directiveValue() only keeps args OR children, never both.
+    expect(json).toEqual({
+      server: {
+        router: [
+          { respond: [200, "Ok"] },
+          { respond: [200, "Ok"] },
+          { respond: [403, "Forbidden"] },
+        ],
+      },
+    });
+  });
 });

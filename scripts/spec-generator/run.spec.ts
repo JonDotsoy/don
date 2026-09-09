@@ -56,4 +56,60 @@ describe("generateSpec", () => {
     expect(markdown).toContain("### 2.4 Numbers");
     expect(markdown).toContain("### 3.5 Mixed Types");
   });
+
+  it("renders the HTTP Router Configuration example and its evaluated JSON", async () => {
+    const output = path.join(tmpDir, "router-spec.md");
+    const generatorPath = path.join(import.meta.dir, "..", "..", "docs", "specs", "v1", "_generator_specs.ts");
+
+    const { markdown } = await generateSpec(generatorPath, output);
+
+    expect(markdown).toContain("**Example: HTTP Router Configuration**");
+    expect(markdown).toContain(
+      ""
+      + "```don\n"
+      + "server {\n"
+      + "  router /users {\n"
+      + '    respond 200 "Ok"\n'
+      + "  }\n"
+      + "  router /user/:user_id {\n"
+      + '    respond 200 "Ok"\n'
+      + "  }\n"
+      + "  router /admin {\n"
+      + '    respond 403 "Forbidden"\n'
+      + "  }\n"
+      + "}\n"
+      + "```",
+    );
+
+    expect(markdown).toContain("**JSON equivalent (less intuitive)**:");
+    expect(markdown).toContain(
+      ""
+      + "```json\n"
+      + "{\n"
+      + '  "server": {\n'
+      + '    "router": [\n'
+      + "      {\n"
+      + '        "respond": [\n'
+      + "          200,\n"
+      + '          "Ok"\n'
+      + "        ]\n"
+      + "      },\n"
+      + "      {\n"
+      + '        "respond": [\n'
+      + "          200,\n"
+      + '          "Ok"\n'
+      + "        ]\n"
+      + "      },\n"
+      + "      {\n"
+      + '        "respond": [\n'
+      + "          403,\n"
+      + '          "Forbidden"\n'
+      + "        ]\n"
+      + "      }\n"
+      + "    ]\n"
+      + "  }\n"
+      + "}\n"
+      + "```",
+    );
+  });
 });
