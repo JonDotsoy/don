@@ -1,36 +1,65 @@
-const CODE_FENCE = /```[\s\S]*?```/g;
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkMdx from "remark-mdx";
+import remarkStringify from "remark-stringify";
+import type { Root, RootContent } from "mdast";
 
-const stripImportsAndExports = (text: string): string =>
-  text.replace(/^\s*(import\s.+from\s+["'].+["'];?|export\s+.+)\s*$/gm, "");
+const isCommentExpression = (value: unknown): boolean => {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed.startsWith("/*") && trimmed.endsWith("*/");
+};
 
-const stripJsxComments = (text: string): string =>
-  text.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "");
+/** Drops MDX-only nodes (imports/exports, JSX comments, custom JSX
+ * components) from an mdast tree, unwrapping custom components into their
+ * children so their content survives in plain Markdown. Native (lowercase)
+ * JSX/HTML tags are left in place. */
+const stripMdxNodes = (node: Root | RootContent): void => {
+  const parent = node as { children?: RootContent[] };
+  if (!parent.children) return;
 
-const stripCustomComponents = (text: string): string =>
-  text
-    // Self-closing custom components: <Foo ... />
-    .replace(/<([A-Z]\w*)(\s[^>]*)?\/>/g, "")
-    // Paired custom components: <Foo ...>children</Foo> — keep the children.
-    .replace(/<([A-Z]\w*)(\s[^>]*)?>([\s\S]*?)<\/\1>/g, "$3");
+  const kept: RootContent[] = [];
+  for (const child of parent.children) {
+    if (child.type === "mdxjsEsm") continue;
 
-/**
- * Converts MDX source into plain Markdown by removing MDX-only constructs
- * (imports/exports, JSX comments, custom JSX components) while leaving
- * standard Markdown and native HTML tags untouched. Code fences are left
- * as-is so example code is never rewritten.
- */
-export const mdxToMarkdown = (mdx: string): string => {
-  const segments = mdx.split(CODE_FENCE);
-  const fences = mdx.match(CODE_FENCE) ?? [];
+    if (
+      (child.type === "mdxFlowExpression" ||
+        child.type === "mdxTextExpression") &&
+      isCommentExpression((child as { value?: unknown }).value)
+    ) {
+      continue;
+    }
 
-  const converted = segments.map((segment) =>
-    stripCustomComponents(stripJsxComments(stripImportsAndExports(segment))),
-  );
+    if (
+      child.type === "mdxJsxFlowElement" ||
+      child.type === "mdxJsxTextElement"
+    ) {
+      const name = (child as { name?: string | null }).name ?? "";
+      if (/^[A-Z]/.test(name)) {
+        stripMdxNodes(child);
+        kept.push(...((child as { children?: RootContent[] }).children ?? []));
+        continue;
+      }
+    }
 
-  let result = converted[0] ?? "";
-  for (let i = 0; i < fences.length; i++) {
-    result += fences[i] + (converted[i + 1] ?? "");
+    stripMdxNodes(child);
+    kept.push(child);
   }
 
-  return result.replace(/\n{3,}/g, "\n\n").replace(/^\s+/, "");
+  parent.children = kept;
+};
+
+const parser = unified().use(remarkParse).use(remarkMdx);
+const serializer = unified()
+  .use(remarkStringify, { bullet: "-", fences: true })
+  .use(remarkMdx);
+
+/**
+ * Converts MDX source into plain Markdown by parsing it with the same
+ * MDX syntax extension the MDX compiler itself uses (remark-mdx), removing
+ * MDX-only constructs from the resulting AST, and re-serializing it.
+ */
+export const mdxToMarkdown = (mdx: string): string => {
+  const tree = parser.parse(mdx) as Root;
+  stripMdxNodes(tree);
+  return serializer.stringify(tree);
 };
