@@ -53,7 +53,8 @@ describe("compileSpec", () => {
 describe("compileSpec + renderDocument", () => {
   it("renders a full markdown document with the status line after the H1", async () => {
     const { meta, fragments } = await compileSpec(fixture("fixture-basic.ts"));
-    const markdown = renderDocument(meta, fragments);
+    const generatedAt = new Date("2026-01-02T03:04:05.000Z");
+    const markdown = renderDocument(meta, fragments, generatedAt);
 
     expect(markdown).toBe(
       ""
@@ -61,6 +62,8 @@ describe("compileSpec + renderDocument", () => {
       + "title: Fixture Spec\n"
       + "description: A minimal fixture used to test the spec generator.\n"
       + "lang: en\n"
+      + "status: Draft\n"
+      + "generatedAt: 2026-01-02T03:04:05.000Z\n"
       + "---\n"
       + "\n"
       + "# Fixture Spec\n"
@@ -73,5 +76,18 @@ describe("compileSpec + renderDocument", () => {
       + "\n"
       + '```js\nnew Directive("name", ["john"], []);\n```\n',
     );
+  });
+
+  it("defaults generatedAt to the current time when not provided", async () => {
+    const { meta, fragments } = await compileSpec(fixture("fixture-basic.ts"));
+    const before = Date.now();
+    const markdown = renderDocument(meta, fragments);
+    const after = Date.now();
+
+    const match = markdown.match(/generatedAt: (.+)/);
+    expect(match).not.toBeNull();
+    const generatedAtMs = new Date(match![1]!).getTime();
+    expect(generatedAtMs).toBeGreaterThanOrEqual(before);
+    expect(generatedAtMs).toBeLessThanOrEqual(after);
   });
 });

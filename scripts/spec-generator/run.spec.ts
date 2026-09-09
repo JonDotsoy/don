@@ -22,6 +22,8 @@ describe("generateSpec", () => {
     expect(fs.readFileSync(output, "utf8")).toBe(markdown);
     expect(markdown).toContain("# Fixture Spec");
     expect(markdown).toContain('new Directive("name", ["john"], []);');
+    expect(markdown).toContain("status: Draft");
+    expect(markdown).toMatch(/generatedAt: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/);
   });
 
   it("defaults the output path by replacing _generator_specs.ts with spec.generated.md", async () => {

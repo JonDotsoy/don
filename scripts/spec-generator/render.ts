@@ -1,6 +1,9 @@
 import type { GeneratorModule } from "./types.ts";
 
-const renderFrontmatter = (meta: GeneratorModule): string => {
+const renderFrontmatter = (
+  meta: GeneratorModule,
+  generatedAt: Date,
+): string => {
   const description = meta.description.trim().replace(/\s*\n\s*/g, " ");
 
   return [
@@ -8,6 +11,8 @@ const renderFrontmatter = (meta: GeneratorModule): string => {
     `title: ${meta.title}`,
     `description: ${description}`,
     `lang: ${meta.lang}`,
+    `status: ${meta.status}`,
+    `generatedAt: ${generatedAt.toISOString()}`,
     "---",
   ].join("\n");
 };
@@ -16,12 +21,14 @@ const renderFrontmatter = (meta: GeneratorModule): string => {
  * Combines the compiled frontmatter and body fragments into the final
  * markdown document, inserting the `> **Status**` line right after the
  * first `#` heading (matching the hand-authored spec.md convention).
+ * `status` and `generatedAt` are also written into the frontmatter.
  */
 export const renderDocument = (
   meta: GeneratorModule,
   fragments: readonly string[],
+  generatedAt: Date = new Date(),
 ): string => {
-  const frontmatter = renderFrontmatter(meta);
+  const frontmatter = renderFrontmatter(meta, generatedAt);
   const statusLine = `> **Status**: ${meta.status}`;
 
   const body = [...fragments];
