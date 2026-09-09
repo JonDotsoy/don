@@ -47,9 +47,13 @@ describe("generateSpec", () => {
     expect(markdown).toContain("> **Status**: Draft");
     expect(markdown).toContain('new Directive("name", ["john"], []);');
     expect(markdown).toContain(
-      'new Directive("dependencies", [], [new Directive("zod", [">=1"], []), new Directive("react", [">=5"], [])]);',
+      'new Directive("dependencies", [], [new Directive("zod", [4], []), new Directive("react", [5], [])]);',
     );
-    expect(markdown).toContain('"dependencies": {\n    "zod": ">=1",\n    "react": ">=5"\n  }');
-    expect(markdown).toContain("- [1. Overview](#1-overview)\n- [1.1 DON vs JSON](#11-don-vs-json)");
+    expect(markdown).toContain('"dependencies": {\n    "zod": 4,\n    "react": 5\n  }');
+    expect(markdown).toContain(
+      "- [1. Overview](#1-overview)\n  - [Design Goals](#design-goals)\n- [1.1 DON vs JSON](#11-don-vs-json)",
+    );
+    expect(markdown).toContain("### 2.4 Numbers");
+    expect(markdown).toContain("### 3.5 Mixed Types");
   });
 });
