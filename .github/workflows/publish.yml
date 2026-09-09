@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - claude/update-readme-3cx8s1
     paths:
       - package.json
 
