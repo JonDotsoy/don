@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { mdxToMarkdown } from "./convert.ts";
+import { fillCodeResponses } from "./verify-code-blocks.ts";
 
 const DEFAULT_INPUT = "README.mdx";
 
@@ -15,7 +16,7 @@ export const generateDocs = (
   const output = path.resolve(outputPath ?? defaultOutputFor(input));
 
   const mdx = fs.readFileSync(input, "utf8");
-  const markdown = mdxToMarkdown(mdx);
+  const markdown = mdxToMarkdown(fillCodeResponses(mdx));
 
   fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, markdown);

@@ -40,12 +40,12 @@ database {
 
 const directives = DON.parse(text);
 
-console.log(directives[0].name); // "name"
-console.log(directives[0].args); // ["my-app"]
+console.log(directives[0].name); // {code_response}
+console.log(directives[0].args); // {code_response}
 
 const database = directives.find((d) => d.name === "database");
 console.log(database?.children.map((c) => [c.name, c.args]));
-// [["host", ["localhost"]], ["port", [5432]]]
+// {code_response}
 ```
 
 Each `Directive` has:
@@ -90,7 +90,7 @@ server {
 `);
 
 console.log(JSON.stringify(directives));
-// [{"server":{"host":"localhost","port":8080}}]
+// {code_response}
 ```
 
 Since `JSON.stringify` calls `toJSON()` on each array element independently, the result is one `{name: value}` object per top-level directive — it does not merge directives that share a name. For that (and for more control over the output shape — a lossless array form, or nesting args as object keys instead of `[...args, children]`), use `DirectiveJSONEncoder` directly:
@@ -110,7 +110,7 @@ server {
 `);
 
 console.log(DirectiveJSONEncoder.encode(directives));
-// {"server":[{"host":"localhost","port":8080},{"host":"127.0.0.1","port":9090}]}
+// {code_response}
 ```
 
 `DirectiveJSONDecoder` reverses this back into `Directive` instances:

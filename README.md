@@ -40,7 +40,7 @@ database {
 
 const directives = DON.parse(text);
 
-console.log(directives[0].name); // "name"
+console.log(directives[0].name); // name
 console.log(directives[0].args); // ["my-app"]
 
 const database = directives.find((d) => d.name === "database");
