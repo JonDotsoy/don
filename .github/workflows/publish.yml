@@ -1,0 +1,68 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - package.json
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Read version from package.json
+        id: package
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.package.outputs.version }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.exists == 'false'
+        run: bun install
+
+      - name: Publish to npm (OIDC trusted publisher)
+        if: steps.check.outputs.exists == 'false'
+        run: npm publish --provenance --access public
+
+      - name: Create GitHub release with npm URL
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.package.outputs.version }}"
+          package_name="$(node -p "require('./package.json').name")"
+          npm_url="https://www.npmjs.com/package/${package_name}/v/${version}"
+          gh release create "v${version}" \
+            --repo "${{ github.repository }}" \
+            --title "v${version}" \
+            --notes "Published to npm: ${npm_url}" \
+            --target "${{ github.sha }}"
