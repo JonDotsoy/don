@@ -1,6 +1,6 @@
 {
   "name": "donly",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "DON (Directive Object Notation) - A human-readable data serialization format based on directives and subdirectives for configuration files, infrastructure definitions, and structured data",
   "keywords": [
     "don",
@@ -21,7 +21,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jondotsoy/don"
+    "url": "https://github.com/JonDotsoy/don"
   },
   "homepage": "https://don.jon.soy/",
   "type": "module",
@@ -46,7 +46,8 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
-    "fmt": "prettier --write ."
+    "fmt": "prettier --write .",
+    "docs:spec": "bun scripts/spec-generator/run.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

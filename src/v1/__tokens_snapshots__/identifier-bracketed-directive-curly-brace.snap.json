@@ -1,0 +1,152 @@
+{
+  "tokens": [
+    {
+      "type": 11,
+      "text": "route-[id]",
+      "span": {
+        "index": 0,
+        "length": 10,
+        "startLocation": {
+          "line": 0,
+          "column": 0,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 10,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 1,
+          "text": "route",
+          "span": {
+            "index": 0,
+            "length": 5,
+            "startLocation": {
+              "line": 0,
+              "column": 0,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 5,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "-",
+          "span": {
+            "index": 5,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 5,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 6,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "[",
+          "span": {
+            "index": 6,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 6,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 7,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 1,
+          "text": "id",
+          "span": {
+            "index": 7,
+            "length": 2,
+            "startLocation": {
+              "line": 0,
+              "column": 7,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 9,
+              "paddingLine": 0
+            }
+          }
+        },
+        {
+          "type": 0,
+          "text": "]",
+          "span": {
+            "index": 9,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 9,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 10,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": 9,
+      "text": "{",
+      "span": {
+        "index": 11,
+        "length": 1,
+        "startLocation": {
+          "line": 0,
+          "column": 11,
+          "paddingLine": 0
+        },
+        "endLocation": {
+          "line": 0,
+          "column": 12,
+          "paddingLine": 0
+        }
+      },
+      "parts": [
+        {
+          "type": 9,
+          "text": "{",
+          "span": {
+            "index": 11,
+            "length": 1,
+            "startLocation": {
+              "line": 0,
+              "column": 11,
+              "paddingLine": 0
+            },
+            "endLocation": {
+              "line": 0,
+              "column": 12,
+              "paddingLine": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

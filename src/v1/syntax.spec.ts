@@ -163,6 +163,24 @@ describe("LexemaEncode", () => {
     expect(lexema).toTokenSnapshot("leading-whitespace-identifier");
   });
 
+  test("should encode identifier with square brackets", () => {
+    const lexema = new LexerParser({ allowDebugDocument: true }).parse("[name]");
+
+    expect(lexema).toTokenSnapshot("identifier-square-brackets");
+  });
+
+  test("should encode identifier mixing hyphen and square brackets", () => {
+    const lexema = new LexerParser({ allowDebugDocument: true }).parse("my-[age]");
+
+    expect(lexema).toTokenSnapshot("identifier-hyphen-square-brackets");
+  });
+
+  test("should encode bracketed identifier directive followed by curly brace", () => {
+    const lexema = new LexerParser({ allowDebugDocument: true }).parse("route-[id] {");
+
+    expect(lexema).toTokenSnapshot("identifier-bracketed-directive-curly-brace");
+  });
+
   test("should encode heredoc with HTML content", () => {
     const lexema = new LexerParser({ allowDebugDocument: true }).parse(
       ''

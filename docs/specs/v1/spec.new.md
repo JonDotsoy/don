@@ -1,0 +1,721 @@
+---
+title: DON Specification v1 - Directive Object Notation
+description: Complete specification for DON v1, a human-readable data serialization format designed for configuration files, routers, and security rules. Learn syntax, directives, blocks, and examples.
+lang: en
+status: Draft
+generatedAt: 2026-09-09T15:32:13.643Z
+---
+
+# DON Specification v1
+
+> **Status**: Draft
+
+- [1. Overview](#1-overview)
+  - [Design Goals](#design-goals)
+- [1.1 DON vs JSON](#11-don-vs-json)
+  - [Conceptual Model](#conceptual-model)
+  - [Structural Differences](#structural-differences)
+  - [Advantages for Configuration](#advantages-for-configuration)
+  - [Key Distinctions](#key-distinctions)
+- [1.2 DON vs JSX](#12-don-vs-jsx)
+  - [Can DON be used as an alternative to JSX rendering?](#can-don-be-used-as-an-alternative-to-jsx-rendering)
+- [2. Syntax Elements](#2-syntax-elements)
+  - [2.1 Directives](#21-directives)
+  - [2.2 Blocks](#22-blocks)
+  - [2.3 Identifiers](#23-identifiers)
+  - [2.4 Numbers](#24-numbers)
+    - [Integer Literals](#integer-literals)
+    - [Hexadecimal Literals](#hexadecimal-literals)
+    - [Octal Literals](#octal-literals)
+    - [Binary Literals](#binary-literals)
+    - [Decimal Literals](#decimal-literals)
+    - [BigInt Literals](#bigint-literals)
+  - [2.5 Strings](#25-strings)
+    - [Double-Quoted Strings](#double-quoted-strings)
+    - [Single-Quoted Strings](#single-quoted-strings)
+    - [Escape Sequences](#escape-sequences)
+  - [2.6 Booleans](#26-booleans)
+  - [2.7 Null](#27-null)
+  - [2.8 Heredocs](#28-heredocs)
+  - [2.9 Comments](#29-comments)
+    - [Single-Line Comments](#single-line-comments)
+    - [Multi-Line Comments](#multi-line-comments)
+- [3. Examples](#3-examples)
+  - [3.1 Simple Configuration](#31-simple-configuration)
+  - [3.2 Nested Blocks](#32-nested-blocks)
+  - [3.3 Heredoc Content](#33-heredoc-content)
+  - [3.4 Complex Directive](#34-complex-directive)
+  - [3.5 Mixed Types](#35-mixed-types)
+
+---
+
+## 1. Overview
+
+DON (Directive Object Notation) v1 is a human-readable data serialization format built around directives and subdirectives. This format is designed for configuration files such as security rules, routers, reverse proxies, and similar use cases.
+
+### Design Goals
+
+- **Minimal Syntax**: Reduce special characters to improve readability
+- **Hierarchical Structure**: Support arbitrary nesting depth through blocks
+- **Type Flexibility**: Support multiple primitive types (strings, numbers, booleans, null)
+- **Multi-line Content**: Provide heredoc syntax for embedded content
+- **Unambiguous Parsing**: Clear lexical and syntactic rules with no ambiguity
+
+## 1.1 DON vs JSON
+
+DON differs fundamentally from JSON in its approach to data representation. While JSON is a key-value structure designed for object serialization, DON uses a directive-based model that more closely resembles program execution with repeated function calls.
+
+### Conceptual Model
+
+In DON, a declaration like:
+
+```don
+name "john"
+```
+
+Is conceptually equivalent to a function call in JavaScript:
+
+```js
+new Directive("name", ["john"], []);
+```
+
+This directive-based approach allows for more flexible and expressive configurations compared to JSON's rigid object structure.
+
+### Structural Differences
+
+Consider a dependencies declaration:
+
+**DON**:
+
+```don
+dependencies {
+  zod 4
+  react 5
+}
+```
+
+**Equivalent JavaScript representation**:
+
+```js
+new Directive("dependencies", [], [new Directive("zod", [4], []), new Directive("react", [5], [])]);
+```
+
+**JSON equivalent**:
+
+```json
+{
+  "dependencies": {
+    "zod": 4,
+    "react": 5
+  }
+}
+```
+
+While DON can be transformed into JSON-like structures, its directive model provides significant advantages for certain use cases.
+
+### Advantages for Configuration
+
+DON's directive-based structure excels in scenarios where repeated keys with different contexts are needed. This is particularly valuable for routing configurations and other domain-specific languages where key repetition is semantically meaningful.
+
+**Example: HTTP Router Configuration**
+
+```don
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
+  }
+}
+```
+
+In this example, the `router` directive is used multiple times with different arguments and nested configurations. This pattern is natural in DON but would require array structures or artificial key naming in JSON:
+
+**JSON equivalent (less intuitive)**:
+
+```json
+{
+  "server": {
+    "router": [
+      {
+        "respond": [
+          200,
+          "Ok"
+        ]
+      },
+      {
+        "respond": [
+          200,
+          "Ok"
+        ]
+      },
+      {
+        "respond": [
+          403,
+          "Forbidden"
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Key Distinctions
+
+1. **Directive Repetition**: DON allows the same directive name to appear multiple times at the same level, each representing a distinct instruction. JSON requires unique keys or array structures.
+
+2. **Semantic Clarity**: DON's syntax naturally expresses imperative configurations (commands and actions), while JSON is optimized for declarative data structures (state and properties).
+
+3. **Reduced Verbosity**: DON eliminates the need for explicit key-value separators (`:`) and quotation marks around keys, resulting in cleaner configuration files.
+
+4. **Positional Arguments**: DON directives support multiple positional arguments without requiring object wrapping, making simple declarations more concise.
+
+5. **Domain-Specific Languages**: DON's structure is well-suited for building DSLs where the same operation (directive) needs to be invoked multiple times with different parameters, such as routing rules, middleware chains, or build steps.
+
+## 1.2 DON vs JSX
+
+### Can DON be used as an alternative to JSX rendering?
+
+Yes, DON can be used as an alternative to JSX rendering. However, its design is primarily focused on configuration files for security rules, routers, reverse proxies, and similar use cases rather than UI component rendering.
+
+**DON**:
+
+```don
+div x-data=name {
+  span key=key1 hello
+}
+```
+
+**JSX equivalent**:
+
+```jsx
+<div x-data="name">
+  <span key="key1">hello</span>
+</div>
+```
+
+---
+
+## 2. Syntax Elements
+
+### 2.1 Directives
+
+A directive is a named instruction with optional arguments.
+
+**Syntax**:
+
+```don
+directive_name [arg1] [arg2] ... [argN]
+```
+
+**Examples**:
+
+```don
+name "my-app"
+version "1.0.0"
+port 8080
+enabled true
+route /api/users GET POST
+```
+
+**Directive Names**:
+
+- Must be valid identifiers
+- Tokenized as `keyword` tokens
+
+**Arguments**:
+
+- Can be any valid token: keywords, strings, numbers, booleans, null
+- Separated by whitespace
+
+### 2.2 Blocks
+
+Blocks group nested directives using curly braces.
+
+**Syntax**:
+
+```don
+directive_name {
+  subdirective1
+  subdirective2
+}
+```
+
+**Delimiters**:
+
+- Opening: `{`
+- Closing: `}`
+
+**Nesting**:
+
+Blocks can be nested to arbitrary depth:
+
+```don
+directive foo {
+  directive2 taz lip {
+    directive4
+  }
+  directive3 bob
+}
+```
+
+**Whitespace Requirements**:
+
+- Whitespace is **required** before `{`
+- Whitespace is **required** after `}`
+
+**Valid**:
+
+```don
+container { image "nginx" }
+foo {
+  bar
+}
+```
+
+**Invalid**:
+
+```don
+foo{bar}           # Error: missing whitespace before {
+foo{ bar }         # Error: missing whitespace before {
+foo { bar }tar     # Error: missing whitespace after }
+```
+
+**Constraint**:
+
+After a closing brace `}`, no additional tokens are allowed on the same directive line (except newlines).
+
+**Invalid**:
+
+```don
+container { image "nginx" } extra  # Error: tokens after block close
+```
+
+### 2.3 Identifiers
+
+Identifiers are alphanumeric tokens that name directives and serve as keywords.
+
+**Formation Rules**:
+
+- Must start with an alphabetic character (`a-z`, `A-Z`), underscore (`_`), or special symbols
+- May contain alphabetic characters, digits (`0-9`), underscores, and special symbols
+- Special symbols include: `$`, `-`, `/`, `:`, `[`, `]`, and others
+- Case-sensitive
+
+**Valid Examples**:
+
+```don
+foo
+foo123
+_private
+myVariable
+${name}
+/api/:name
+[name]
+my-[age]
+path/to/resource
+$prod
+route-handler
+```
+
+**Lexical Behavior**:
+
+- Identifiers are tokenized as `keyword` tokens
+- Special characters are part of the keyword token when not separated by whitespace
+- Whitespace is required to separate keywords from block delimiters (`{` and `}`)
+
+**Examples**:
+
+```don
+${name} "value"           # Valid: keyword with special chars
+/api/users GET            # Valid: path-like keyword
+route-[id] {              # Valid: keyword with brackets
+  handler "process"
+}
+```
+
+### 2.4 Numbers
+
+DON v1 supports multiple numeric formats.
+
+#### Integer Literals
+
+Sequences of digits without decimal points.
+
+```don
+123
+-123
+```
+
+**Pattern**: `[integer]` or `[-][integer]`
+
+#### Hexadecimal Literals
+
+Integers prefixed with `0x` or `0X`.
+
+```don
+0xDEADB
+0xFF
+0xDEADBn  # BigInt variant
+```
+
+**Pattern**: `0x[hexdigit]+` or `0X[hexdigit]+`
+**BigInt Pattern**: `0x[hexdigit]+n` or `0X[hexdigit]+n`
+
+#### Octal Literals
+
+Integers prefixed with `0o` or `0O`.
+
+```don
+0o755
+0o644
+0o755n  # BigInt variant
+```
+
+**Pattern**: `0o[octaldigit]+` or `0O[octaldigit]+`
+**BigInt Pattern**: `0o[octaldigit]+n` or `0O[octaldigit]+n`
+
+#### Binary Literals
+
+Integers prefixed with `0b` or `0B`.
+
+```don
+0b1101
+0b1010
+0b1101n  # BigInt variant
+```
+
+**Pattern**: `0b[binarydigit]+` or `0B[binarydigit]+`
+**BigInt Pattern**: `0b[binarydigit]+n` or `0B[binarydigit]+n`
+
+#### Decimal Literals
+
+Numbers with decimal points.
+
+```don
+123.456
+-123.123
+```
+
+**Pattern**: `[integer][dot][integer]` or `[-][integer][dot][integer]`
+
+#### BigInt Literals
+
+Integers suffixed with `n`.
+
+```don
+123n
+```
+
+**Pattern**: `[integer][alphabet('n')]`
+
+> **Why BigInt exists**: Standard integers have a maximum bit limit (typically 32 or 64 bits depending on the implementation), which restricts the range of representable values. BigInt provides support for arbitrarily large integers with much higher limits, enabling precise representation of very large numbers without overflow or precision loss.
+>
+> **Inspiration from JavaScript**: The BigInt syntax with the `n` suffix is inspired by JavaScript's BigInt implementation. Languages like Java, JavaScript, and Kotlin use two distinct data types to express numeric values (e.g., `int` and `long`, `Number` and `BigInt`). DON adopts this approach natively to avoid forcing programs to make distinctions between numeric types at runtime, which would complicate program logic and make the language more complex to work with.
+
+**Constraint**: The `n` suffix must immediately follow the integer with no additional characters.
+
+**Valid**:
+
+```don
+123n
+```
+
+**Invalid**:
+
+```don
+123n1  # Trailing digits after 'n'
+```
+
+### 2.5 Strings
+
+String literals are delimited by single (`'`) or double (`"`) quotes.
+
+#### Double-Quoted Strings
+
+```don
+"Hello world"
+"Says: \"Hello\""
+```
+
+- Delimiter: `"`
+- Escape sequence: `\"` for literal quote character
+- May contain spaces
+
+#### Single-Quoted Strings
+
+```don
+'Hello world'
+'It\'s working'
+```
+
+- Delimiter: `'`
+- Escape sequence: `\'` for literal quote character
+- May contain spaces
+
+#### Escape Sequences
+
+The backslash (`\`) character escapes the delimiter within a string:
+
+- `\"` inside double-quoted strings
+- `\'` inside single-quoted strings
+
+**Example**:
+
+```don
+message "foo \"tar\""
+path 'C:\\Users\\file.txt'
+```
+
+### 2.6 Booleans
+
+Boolean literals represent true/false values.
+
+```don
+true
+false
+```
+
+- Tokenized as `boolean` tokens
+- Case-sensitive (must be lowercase)
+
+### 2.7 Null
+
+The null literal represents absence of value.
+
+```don
+null
+```
+
+- Tokenized as a `null` token
+- Case-sensitive (must be lowercase)
+
+### 2.8 Heredocs
+
+Heredocs provide syntax for multi-line content blocks with custom delimiters.
+
+**Syntax**:
+
+```don
+directive <<<DELIMITER
+  content line 1
+  content line 2
+```
+
+**Rules**:
+
+- Starts with `<<<` followed by a delimiter identifier (e.g., `HTML`, `SCRIPT`)
+- Content begins on the next line
+- Content must have greater indentation than the heredoc declaration
+- Continues until a token with indentation equal to or less than the heredoc declaration line is found
+- Tokenized as a `heredoc` token
+
+**Payload Determination**:
+
+The heredoc payload is determined by finding the smallest padding (indentation) among all content lines that is greater than the directive's indentation. This smallest padding is then removed from all lines to produce the final payload.
+
+> If you require more precise control over whitespace and indentation, we recommend using string literals instead.
+
+**Example 1**:
+
+```don
+template <<<HTML
+  <div>
+    <h1>Hello</h1>
+  </div>
+```
+
+The smallest padding greater than the directive indentation is 2 spaces. The payload becomes:
+
+```html
+<div>
+  <h1>Hello</h1>
+</div>
+```
+
+**Example 2**:
+
+```don
+template <<<
+    foo
+  tar
+```
+
+The smallest padding greater than the directive indentation is 2 spaces (from the `tar` line). The payload becomes:
+
+```
+  foo
+tar
+```
+
+**Example 3**:
+
+```don
+server {
+  response <<<HTML
+    <html>
+      <body>Content</body>
+    </html>
+  handler
+}
+```
+
+**Nested in Blocks**:
+
+```don
+server {
+  response <<<HTML
+    <html>
+      <body>Content</body>
+    </html>
+  handler
+}
+```
+
+**Without Closing Delimiter**:
+
+If no token with equal or lesser indentation is found, the heredoc consumes all remaining content:
+
+```don
+server {
+  content <<<HTML
+    div foo
+    handler
+}
+```
+
+In this case, `div foo` and `handler` are part of the heredoc content because they maintain greater indentation. The `}` closes the heredoc as it has lesser indentation.
+
+### 2.9 Comments
+
+DON supports two types of comments for documentation and annotations.
+
+#### Single-Line Comments
+
+Single-line comments start with `#` and continue until the end of the line.
+
+```don
+# This is a comment
+name "my-app"  # Inline comment
+version "1.0.0"
+```
+
+- All text after `#` on the same line is ignored
+- Can appear on their own line or after directives
+
+#### Multi-Line Comments
+
+Multi-line comments are delimited by `/*` and `*/`.
+
+```don
+/*
+  This is a multi-line comment
+  spanning multiple lines
+*/
+name "my-app"
+
+server {
+  /* Comment inside block */
+  port 8080
+}
+```
+
+- Start with `/*` and end with `*/`
+- Can span multiple lines
+- Can appear anywhere whitespace is allowed
+
+**Nesting**:
+
+Multi-line comments do not nest. The first `*/` closes the comment.
+
+```don
+/* Outer comment /* inner */ still commented? */ name "app"
+```
+
+In this example, the comment closes at the first `*/`, and `still commented? */ name "app"` would be parsed as code.
+
+---
+
+## 3. Examples
+
+### 3.1 Simple Configuration
+
+```don
+name "my-application"
+version "1.0.0"
+port 8080
+enabled true
+```
+
+### 3.2 Nested Blocks
+
+```don
+server {
+  host "example.com"
+  port 443
+
+  route /api/* {
+    handler "apiHandler"
+    timeout 30
+  }
+
+  route /static/* {
+    handler "staticHandler"
+  }
+}
+```
+
+### 3.3 Heredoc Content
+
+```don
+template <<<HTML
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>My Page</title>
+    </head>
+    <body>
+      <h1>Welcome</h1>
+    </body>
+  </html>
+
+script <<<BASH
+  #!/bin/bash
+  echo "Deploying..."
+  npm run build
+```
+
+### 3.4 Complex Directive
+
+```don
+deployment $prod _internal path/${name} {
+  container {
+    image "nginx:latest"
+    port 80
+    env {
+      NODE_ENV "production"
+      API_KEY "secret"
+    }
+  }
+
+  replicas 3
+  strategy "rolling"
+}
+```
+
+### 3.5 Mixed Types
+
+```don
+config {
+  name "app"
+  version 2
+  beta true
+  deprecated null
+  timeout 30.5
+  maxSize 1024n
+}
+```

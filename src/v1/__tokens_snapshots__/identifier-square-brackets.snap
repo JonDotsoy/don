@@ -1,0 +1,12 @@
+[name]
+
+------------------------------------------------------------
+
+   0:  5B 6E 61 6D 65 5D                                [[name]]
+
+------------------------------------------------------------
+
+Token: [Offset 0 Len 6; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Keyword "[name]"
+  Part#882: [Offset 0 Len 1; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 2 (Padding 0)] Unknown [5B] "["
+  Part#883: [Offset 1 Len 4; Ln 1, Col 2 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Alphabet [6E 61 6D 65] "name"
+  Part#884: [Offset 5 Len 1; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 7 (Padding 0)] Unknown [5D] "]"

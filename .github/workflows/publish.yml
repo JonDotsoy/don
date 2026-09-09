@@ -1,0 +1,86 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - develop
+      - claude/update-readme-3cx8s1
+    paths:
+      - package.json
+      - .github/workflows/publish.yml
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Read version from package.json
+        id: package
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.package.outputs.version }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.exists == 'false'
+        run: bun install
+
+      - name: Publish to npm (OIDC trusted publisher)
+        if: steps.check.outputs.exists == 'false'
+        env:
+          # "stage" queues the version for manual 2FA approval on npmjs.com;
+          # "publish" goes live immediately. Set via repository variable
+          # NPM_PUBLISH_MODE (Settings > Secrets and variables > Actions > Variables).
+          NPM_PUBLISH_MODE: ${{ vars.NPM_PUBLISH_MODE || 'stage' }}
+        run: |
+          if [ "$NPM_PUBLISH_MODE" = "publish" ]; then
+            npm publish --provenance --access public
+          else
+            npm stage publish --provenance --access public
+          fi
+
+      - name: Create GitHub release with npm URL
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NPM_PUBLISH_MODE: ${{ vars.NPM_PUBLISH_MODE || 'stage' }}
+        run: |
+          version="${{ steps.package.outputs.version }}"
+          package_name="$(node -p "require('./package.json').name")"
+          npm_url="https://www.npmjs.com/package/${package_name}/v/${version}"
+          if [ "$NPM_PUBLISH_MODE" = "publish" ]; then
+            notes="Published to npm: ${npm_url}"
+          else
+            notes="Staged on npm, pending manual 2FA approval: ${npm_url}"
+          fi
+          gh release create "v${version}" \
+            --repo "${{ github.repository }}" \
+            --title "v${version}" \
+            --notes "${notes}" \
+            --target "${{ github.sha }}"
