@@ -48,7 +48,30 @@ export class HeredocValue {
 
     return new HeredocValue(
       body.slice(0, newlineIndex),
-      body.slice(newlineIndex + 1),
+      dedent(body.slice(newlineIndex + 1)),
     );
   }
 }
+
+/**
+ * Strips the common leading whitespace shared by every non-blank line,
+ * so a heredoc's own indentation (inherited from its position in the
+ * source) doesn't leak into its content. Blank lines are ignored when
+ * computing the margin and are normalized to empty lines.
+ */
+const dedent = (content: string): string => {
+  const lines = content.split("\n");
+
+  let margin: number | null = null;
+  for (const line of lines) {
+    if (line.trim() === "") continue;
+    const leadingWhitespace = line.match(/^[ \t]*/)?.[0].length ?? 0;
+    if (margin === null || leadingWhitespace < margin) margin = leadingWhitespace;
+  }
+
+  if (!margin) return content;
+
+  return lines
+    .map((line) => (line.trim() === "" ? "" : line.slice(margin)))
+    .join("\n");
+};

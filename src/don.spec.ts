@@ -175,7 +175,7 @@ describe("DON.parse", () => {
     expect(response.name).toBe("response");
     expect(response.args[0]).toBeInstanceOf(HeredocValue);
     expect(response.args[0]).toEqual(
-      new HeredocValue("HTML", "    <html>\n      <body>Content</body>\n    </html>\n"),
+      new HeredocValue("HTML", "<html>\n  <body>Content</body>\n</html>\n"),
     );
     expect(response.args[1]).toBe("handler");
   });
@@ -186,7 +186,7 @@ describe("DON.parse", () => {
       + "    npm ci\n"
     );
 
-    expect(result[0]!.args[0]).toEqual(new HeredocValue("", "    npm ci\n"));
+    expect(result[0]!.args[0]).toEqual(new HeredocValue("", "npm ci\n"));
   });
 });
 
@@ -239,7 +239,7 @@ describe("JSON.stringify(DON.parse(...))", () => {
       {
         server: {
           response: [
-            { type: "HTML", content: "    <html></html>\n" },
+            { type: "HTML", content: "<html></html>\n" },
             "handler",
           ],
         },

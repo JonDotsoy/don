@@ -944,7 +944,7 @@ template <<<HTML
     args: [
       HeredocValue {
         type: "HTML",
-        content: "  <div>\n    <h1>Hello</h1>\n  </div>\n",
+        content: "<div>\n  <h1>Hello</h1>\n</div>\n",
       }
     ],
     children: [],
@@ -985,7 +985,7 @@ template <<<
     args: [
       HeredocValue {
         type: "",
-        content: "    foo\n  tar\n",
+        content: "  foo\ntar\n",
       }
     ],
     children: [],
@@ -1037,7 +1037,7 @@ server {
         args: [
           HeredocValue {
             type: "HTML",
-            content: "    <html>\n      <body>Content</body>\n    </html>\n",
+            content: "<html>\n  <body>Content</body>\n</html>\n",
           }, "handler"
         ],
         children: [],
@@ -1094,7 +1094,7 @@ server {
         args: [
           HeredocValue {
             type: "HTML",
-            content: "    div foo\n    handler\n",
+            content: "div foo\nhandler\n",
           }
         ],
         children: [],
@@ -1410,11 +1410,11 @@ script <<<BASH
     args: [
       HeredocValue {
         type: "HTML",
-        content: "  <!DOCTYPE html>\n  <html>\n    <head>\n      <title>My Page</title>\n    </head>\n    <body>\n      <h1>Welcome</h1>\n    </body>\n  </html>\n\n",
+        content: "<!DOCTYPE html>\n<html>\n  <head>\n    <title>My Page</title>\n  </head>\n  <body>\n    <h1>Welcome</h1>\n  </body>\n</html>\n\n",
       },
       "script", HeredocValue {
         type: "BASH",
-        content: "  #!/bin/bash\n  echo \"Deploying...\"\n  npm run build\n",
+        content: "#!/bin/bash\necho \"Deploying...\"\nnpm run build\n",
       }
     ],
     children: [],

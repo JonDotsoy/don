@@ -457,7 +457,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     const decoded = new DirectiveJSONDecoder().decode(json);
 
     expect(decoded[0]!.children[0]!.args[0]).toEqual(
-      new HeredocValue("HTML", "    <html></html>\n"),
+      new HeredocValue("HTML", "<html></html>\n"),
     );
   });
 
