@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { DON, Directive } from "./don";
+import { DON, Directive, HeredocValue } from "./don";
 import { donToParts } from "./index";
 
 describe("DON.parse", () => {
@@ -159,6 +159,35 @@ describe("DON.parse", () => {
     expect(result[1]!.children[1]!.name).toBe("port");
     expect(result[1]!.children[1]!.args).toEqual([8080]);
   });
+
+  it('should parse a heredoc argument into a HeredocValue', () => {
+    const result = DON.parse(""
+      + "server {\n"
+      + "  response <<<HTML\n"
+      + "    <html>\n"
+      + "      <body>Content</body>\n"
+      + "    </html>\n"
+      + "  handler\n"
+      + "}\n"
+    );
+
+    const response = result[0]!.children[0]!;
+    expect(response.name).toBe("response");
+    expect(response.args[0]).toBeInstanceOf(HeredocValue);
+    expect(response.args[0]).toEqual(
+      new HeredocValue("HTML", "    <html>\n      <body>Content</body>\n    </html>\n"),
+    );
+    expect(response.args[1]).toBe("handler");
+  });
+
+  it('should parse a heredoc argument without a delimiter', () => {
+    const result = DON.parse(""
+      + "step <<<\n"
+      + "    npm ci\n"
+    );
+
+    expect(result[0]!.args[0]).toEqual(new HeredocValue("", "    npm ci\n"));
+  });
 });
 
 describe("JSON.stringify(DON.parse(...))", () => {
@@ -195,6 +224,40 @@ describe("JSON.stringify(DON.parse(...))", () => {
       { name: "@tar" },
       { dependencies: { zod: ">=1" } },
     ]);
+  });
+
+  it('serializes a HeredocValue arg as a { type, content } object', () => {
+    const result = DON.parse(""
+      + "server {\n"
+      + "  response <<<HTML\n"
+      + "    <html></html>\n"
+      + "  handler\n"
+      + "}\n"
+    );
+
+    expect(JSON.parse(JSON.stringify(result))).toEqual([
+      {
+        server: {
+          response: [
+            { type: "HTML", content: "    <html></html>\n" },
+            "handler",
+          ],
+        },
+      },
+    ]);
+  });
+});
+
+describe("HeredocValue custom inspect", () => {
+  it("hides toString/toJSON and keeps the HeredocValue tag", () => {
+    const heredoc = new HeredocValue("HTML", "<div></div>\n");
+
+    const inspected = Bun.inspect(heredoc);
+
+    expect(inspected).toContain("HeredocValue");
+    expect(inspected).toContain('type: "HTML"');
+    expect(inspected).not.toContain("toJSON");
+    expect(inspected).not.toContain("toString");
   });
 });
 

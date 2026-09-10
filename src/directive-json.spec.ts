@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { DON, Directive } from "./don";
+import { DON, Directive, HeredocValue } from "./don";
 import { DirectiveJSONEncoder, DirectiveJSONDecoder } from "./directive-json";
 import { ROOT_DIRECTIVE_NAME } from "./directive-json";
 import type { DirectiveReducer } from "./directive-json";
@@ -427,6 +427,38 @@ describe("DirectiveJSONDecoder#decode", () => {
     const decoded = new DirectiveJSONDecoder().decode(json);
 
     expect(decoded).toEqual(original);
+  });
+
+  it("round-trips a heredoc argument through DON.parse -> encode -> decode", () => {
+    const text = ""
+      + "server {\n"
+      + "  response <<<HTML\n"
+      + "    <html></html>\n"
+      + "  handler\n"
+      + "}\n";
+
+    const original = DON.parse(text);
+    const json = DirectiveJSONEncoder.encode(original, { reducer: null });
+    const decoded = new DirectiveJSONDecoder().decode(json);
+
+    expect(decoded).toEqual(original);
+    expect(decoded[0]!.children[0]!.args[0]).toBeInstanceOf(HeredocValue);
+  });
+
+  it("round-trips a lone heredoc argument through the reduced (tuple) JSON shape", () => {
+    const text = ""
+      + "server {\n"
+      + "  response <<<HTML\n"
+      + "    <html></html>\n"
+      + "}\n";
+
+    const original = DON.parse(text);
+    const json = DirectiveJSONEncoder.encode(original);
+    const decoded = new DirectiveJSONDecoder().decode(json);
+
+    expect(decoded[0]!.children[0]!.args[0]).toEqual(
+      new HeredocValue("HTML", "    <html></html>\n"),
+    );
   });
 
   it("decodes a reduced (object) JSON shape back into directives", () => {

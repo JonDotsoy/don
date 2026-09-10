@@ -1,6 +1,9 @@
 import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON } from "./directive-json.js";
+import { HeredocValue } from "./v1/compiler/heredoc-value.js";
+
+export { HeredocValue } from "./v1/compiler/heredoc-value.js";
 
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
@@ -25,7 +28,7 @@ const DirectiveInspectView = (() => {
 export class Directive {
   constructor(
     readonly name: string | symbol,
-    readonly args: (number | string | boolean)[],
+    readonly args: (number | string | boolean | HeredocValue)[],
     readonly children: Directive[] = [],
   ) {}
 

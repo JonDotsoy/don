@@ -4,6 +4,7 @@ import type { Part } from "./part.js";
 import type { PartSet } from "./part-set.js";
 import { Span } from "./span.js";
 import { partsMatch } from "../utils/parts-match.js";
+import { HeredocValue } from "./heredoc-value.js";
 
 type MatchOptions = {
   /**
@@ -566,6 +567,7 @@ export class Token {
       },
       [SyntaxKind.boolean]: () => this.text() === "true",
       [SyntaxKind.null]: () => null,
+      [SyntaxKind.heredoc]: () => HeredocValue.parse(this.text()),
     };
 
     return parsers[this.type]?.() ?? this.text();

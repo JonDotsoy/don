@@ -941,7 +941,12 @@ template <<<HTML
 [
   Directive {
     name: "template",
-    args: [ "<<<HTML\n  <div>\n    <h1>Hello</h1>\n  </div>\n" ],
+    args: [
+      HeredocValue {
+        type: "HTML",
+        content: "  <div>\n    <h1>Hello</h1>\n  </div>\n",
+      }
+    ],
     children: [],
   }
 ]
@@ -977,7 +982,12 @@ template <<<
 [
   Directive {
     name: "template",
-    args: [ "<<<\n    foo\n  tar\n" ],
+    args: [
+      HeredocValue {
+        type: "",
+        content: "    foo\n  tar\n",
+      }
+    ],
     children: [],
   }
 ]
@@ -1024,7 +1034,12 @@ server {
     children: [
       Directive {
         name: "response",
-        args: [ "<<<HTML\n    <html>\n      <body>Content</body>\n    </html>\n", "handler" ],
+        args: [
+          HeredocValue {
+            type: "HTML",
+            content: "    <html>\n      <body>Content</body>\n    </html>\n",
+          }, "handler"
+        ],
         children: [],
       }
     ],
@@ -1076,7 +1091,12 @@ server {
     children: [
       Directive {
         name: "content",
-        args: [ "<<<HTML\n    div foo\n    handler\n" ],
+        args: [
+          HeredocValue {
+            type: "HTML",
+            content: "    div foo\n    handler\n",
+          }
+        ],
         children: [],
       }
     ],
@@ -1387,8 +1407,15 @@ script <<<BASH
 [
   Directive {
     name: "template",
-    args: [ "<<<HTML\n  <!DOCTYPE html>\n  <html>\n    <head>\n      <title>My Page</title>\n    </head>\n    <body>\n      <h1>Welcome</h1>\n    </body>\n  </html>\n\n",
-      "script", "<<<BASH\n  #!/bin/bash\n  echo \"Deploying...\"\n  npm run build\n"
+    args: [
+      HeredocValue {
+        type: "HTML",
+        content: "  <!DOCTYPE html>\n  <html>\n    <head>\n      <title>My Page</title>\n    </head>\n    <body>\n      <h1>Welcome</h1>\n    </body>\n  </html>\n\n",
+      },
+      "script", HeredocValue {
+        type: "BASH",
+        content: "  #!/bin/bash\n  echo \"Deploying...\"\n  npm run build\n",
+      }
     ],
     children: [],
   }
