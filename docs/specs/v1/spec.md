@@ -67,7 +67,6 @@ const directive = new Directive("name", ["john"], []);
 //   name: "name",
 //   args: [ "john" ],
 //   children: [],
-//   toJSON: [Function: toJSON],
 // }
 ```
 
@@ -103,15 +102,12 @@ const directive = new Directive("dependencies", [], [
 //       name: "zod",
 //       args: [ 4 ],
 //       children: [],
-//       toJSON: [Function: toJSON],
 //     }, Directive {
 //       name: "react",
 //       args: [ 5 ],
 //       children: [],
-//       toJSON: [Function: toJSON],
 //     }
 //   ],
-//   toJSON: [Function: toJSON],
 // }
 ```
 
@@ -310,10 +306,8 @@ div x-data=name {
         name: "span",
         args: [ "key=key1", "hello" ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -368,27 +362,22 @@ route /api/users GET POST
     name: "name",
     args: [ "my-app" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "version",
     args: [ "1.0.0" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "port",
     args: [ 8080 ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "enabled",
     args: [ true ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "route",
     args: [ "/api/users", "GET", "POST" ],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -437,15 +426,12 @@ directive_name {
         name: "subdirective1",
         args: [],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "subdirective2",
         args: [],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -495,18 +481,14 @@ directive foo {
             name: "directive4",
             args: [],
             children: [],
-            toJSON: [Function: toJSON],
           }
         ],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "directive3",
         args: [ "bob" ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -546,10 +528,8 @@ foo {
         name: "image",
         args: [ "nginx" ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "foo",
     args: [],
@@ -558,10 +538,8 @@ foo {
         name: "bar",
         args: [],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -635,57 +613,46 @@ route-handler
     name: "foo",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "foo123",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "_private",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "myVariable",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "${name}",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "/api/:name",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "[name]",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "my-[age]",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "path/to/resource",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "$prod",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "route-handler",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -724,12 +691,10 @@ route-[id] {              # Valid: keyword with brackets
     name: "${name}",
     args: [ "value" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "/api/users",
     args: [ "GET" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "route-[id]",
     args: [],
@@ -738,10 +703,8 @@ route-[id] {              # Valid: keyword with brackets
         name: "handler",
         args: [ "process" ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -894,12 +857,10 @@ path 'C:\\\\Users\\\\file.txt'
     name: "message",
     args: [ "foo \\\"tar\\\"" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "path",
     args: [ "C:\\\\Users\\\\file.txt" ],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -979,7 +940,6 @@ template <<<HTML
     name: "template",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1016,7 +976,6 @@ template <<<
     name: "template",
     args: [],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1064,10 +1023,8 @@ server {
         name: "response",
         args: [ "handler" ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1118,10 +1075,8 @@ server {
         name: "content",
         args: [],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1158,12 +1113,10 @@ version "1.0.0"
     name: "name",
     args: [ "my-app" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "version",
     args: [ "1.0.0" ],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1211,7 +1164,6 @@ server {
     name: "name",
     args: [ "my-app" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "server",
     args: [],
@@ -1220,10 +1172,8 @@ server {
         name: "port",
         args: [ 8080 ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1254,7 +1204,6 @@ const result = DON.parse(`
     name: "still",
     args: [ "commented?", "*/", "name", "app" ],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1291,22 +1240,18 @@ enabled true
     name: "name",
     args: [ "my-application" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "version",
     args: [ "1.0.0" ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "port",
     args: [ 8080 ],
     children: [],
-    toJSON: [Function: toJSON],
   }, Directive {
     name: "enabled",
     args: [ true ],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1359,12 +1304,10 @@ server {
         name: "host",
         args: [ "example.com" ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "port",
         args: [ 443 ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "route",
         args: [ "/api/*" ],
@@ -1373,15 +1316,12 @@ server {
             name: "handler",
             args: [ "apiHandler" ],
             children: [],
-            toJSON: [Function: toJSON],
           }, Directive {
             name: "timeout",
             args: [ 30 ],
             children: [],
-            toJSON: [Function: toJSON],
           }
         ],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "route",
         args: [ "/static/*" ],
@@ -1390,13 +1330,10 @@ server {
             name: "handler",
             args: [ "staticHandler" ],
             children: [],
-            toJSON: [Function: toJSON],
           }
         ],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1449,7 +1386,6 @@ script <<<BASH
     name: "template",
     args: [ "script" ],
     children: [],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1506,12 +1442,10 @@ deployment $prod _internal path/\${name} {
             name: "image",
             args: [ "nginx:latest" ],
             children: [],
-            toJSON: [Function: toJSON],
           }, Directive {
             name: "port",
             args: [ 80 ],
             children: [],
-            toJSON: [Function: toJSON],
           }, Directive {
             name: "env",
             args: [],
@@ -1520,31 +1454,24 @@ deployment $prod _internal path/\${name} {
                 name: "NODE_ENV",
                 args: [ "production" ],
                 children: [],
-                toJSON: [Function: toJSON],
               }, Directive {
                 name: "API_KEY",
                 args: [ "secret" ],
                 children: [],
-                toJSON: [Function: toJSON],
               }
             ],
-            toJSON: [Function: toJSON],
           }
         ],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "replicas",
         args: [ 3 ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "strategy",
         args: [ "rolling" ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```
@@ -1587,35 +1514,28 @@ config {
         name: "name",
         args: [ "app" ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "version",
         args: [ 2 ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "beta",
         args: [ true ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "deprecated",
         args: [ "null" ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "timeout",
         args: [ 30.5 ],
         children: [],
-        toJSON: [Function: toJSON],
       }, Directive {
         name: "maxSize",
         args: [ 1024n ],
         children: [],
-        toJSON: [Function: toJSON],
       }
     ],
-    toJSON: [Function: toJSON],
   }
 ]
 ```

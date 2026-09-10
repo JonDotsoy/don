@@ -198,6 +198,29 @@ describe("JSON.stringify(DON.parse(...))", () => {
   });
 });
 
+describe("Directive custom inspect", () => {
+  it("hides toJSON and keeps the Directive tag", () => {
+    const directive = new Directive("host", ["localhost"], []);
+
+    const inspected = Bun.inspect(directive);
+
+    expect(inspected).toContain("Directive");
+    expect(inspected).toContain('name: "host"');
+    expect(inspected).toContain('args: [ "localhost" ]');
+    expect(inspected).not.toContain("toJSON");
+  });
+
+  it("hides toJSON on nested children too", () => {
+    const directive = new Directive("server", [], [
+      new Directive("host", ["localhost"], []),
+    ]);
+
+    const inspected = Bun.inspect(directive);
+
+    expect(inspected).not.toContain("toJSON");
+  });
+});
+
 describe("donToParts", () => {
   it('should parse simple identifier', () => {
     const text = "test";

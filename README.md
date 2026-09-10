@@ -137,15 +137,12 @@ const decoded = new DirectiveJSONDecoder().decode(json);
 //         name: "host",
 //         args: [ "localhost" ],
 //         children: [],
-//         toJSON: [Function: toJSON],
 //       }, Directive {
 //         name: "port",
 //         args: [ 8080 ],
 //         children: [],
-//         toJSON: [Function: toJSON],
 //       }
 //     ],
-//     toJSON: [Function: toJSON],
 //   }
 // ]
 ```
