@@ -941,7 +941,7 @@ template <<<HTML
 [
   Directive {
     name: "template",
-    args: [],
+    args: [ "<<<HTML\n  <div>\n    <h1>Hello</h1>\n  </div>\n" ],
     children: [],
   }
 ]
@@ -977,7 +977,7 @@ template <<<
 [
   Directive {
     name: "template",
-    args: [],
+    args: [ "<<<\n    foo\n  tar\n" ],
     children: [],
   }
 ]
@@ -1024,7 +1024,7 @@ server {
     children: [
       Directive {
         name: "response",
-        args: [ "handler" ],
+        args: [ "<<<HTML\n    <html>\n      <body>Content</body>\n    </html>\n", "handler" ],
         children: [],
       }
     ],
@@ -1076,7 +1076,7 @@ server {
     children: [
       Directive {
         name: "content",
-        args: [],
+        args: [ "<<<HTML\n    div foo\n    handler\n" ],
         children: [],
       }
     ],
@@ -1387,7 +1387,9 @@ script <<<BASH
 [
   Directive {
     name: "template",
-    args: [ "script" ],
+    args: [ "<<<HTML\n  <!DOCTYPE html>\n  <html>\n    <head>\n      <title>My Page</title>\n    </head>\n    <body>\n      <h1>Welcome</h1>\n    </body>\n  </html>\n\n",
+      "script", "<<<BASH\n  #!/bin/bash\n  echo \"Deploying...\"\n  npm run build\n"
+    ],
     children: [],
   }
 ]
