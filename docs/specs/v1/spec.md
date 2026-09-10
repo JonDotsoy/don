@@ -161,10 +161,10 @@ server {
 }
 ```
 
-<!-- before-block
-import { DON } from "donly";
+<!-- before-block-eval
+import { DON, DirectiveJSONEncoder } from "donly";
 
-const result = DON.parse(`
+const directives = DON.parse(`
 server {
   router /users {
     respond 200 "Ok"
@@ -177,55 +177,44 @@ server {
   }
 }
 `);
+
+const result = JSON.parse(DirectiveJSONEncoder.encode(directives));
 -->
 
-```ts
-// ? const result = [
-//   Directive {
-//     name: "server",
-//     args: [],
-//     children: [
-//       Directive {
-//         name: "router",
-//         args: [ "/users" ],
-//         children: [
-//           Directive {
-//             name: "respond",
-//             args: [ 200, "Ok" ],
-//             children: [],
-//             toJSON: [Function: toJSON],
-//           }
-//         ],
-//         toJSON: [Function: toJSON],
-//       }, Directive {
-//         name: "router",
-//         args: [ "/user/:user_id" ],
-//         children: [
-//           Directive {
-//             name: "respond",
-//             args: [ 200, "Ok" ],
-//             children: [],
-//             toJSON: [Function: toJSON],
-//           }
-//         ],
-//         toJSON: [Function: toJSON],
-//       }, Directive {
-//         name: "router",
-//         args: [ "/admin" ],
-//         children: [
-//           Directive {
-//             name: "respond",
-//             args: [ 403, "Forbidden" ],
-//             children: [],
-//             toJSON: [Function: toJSON],
-//           }
-//         ],
-//         toJSON: [Function: toJSON],
-//       }
-//     ],
-//     toJSON: [Function: toJSON],
-//   }
-// ]
+```json
+{
+  "server": {
+    "router": [
+      [
+        "/users",
+        {
+          "respond": [
+            200,
+            "Ok"
+          ]
+        }
+      ],
+      [
+        "/user/:user_id",
+        {
+          "respond": [
+            200,
+            "Ok"
+          ]
+        }
+      ],
+      [
+        "/admin",
+        {
+          "respond": [
+            403,
+            "Forbidden"
+          ]
+        }
+      ]
+    ]
+  }
+}
 ```
 
 In this example, the `router` directive is used multiple times with different arguments and nested configurations. This pattern is natural in DON but would require array structures or artificial key naming in JSON:
