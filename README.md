@@ -89,8 +89,8 @@ server {
 }
 `);
 
-console.log(JSON.stringify(directives));
-// [{"server":{"host":"localhost","port":8080}}]
+const encoded = JSON.stringify(directives);
+// ? const encoded = "[{\"server\":{\"host\":\"localhost\",\"port\":8080}}]"
 ```
 
 Since `JSON.stringify` calls `toJSON()` on each array element independently, the result is one `{name: value}` object per top-level directive — it does not merge directives that share a name. For that (and for more control over the output shape — a lossless array form, or nesting args as object keys instead of `[...args, children]`), use `DirectiveJSONEncoder` directly:
