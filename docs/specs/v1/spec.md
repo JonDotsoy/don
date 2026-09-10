@@ -178,40 +178,36 @@ server {
 }
 `);
 
-const result = JSON.parse(DirectiveJSONEncoder.encode(directives));
+const result = JSON.parse(
+  DirectiveJSONEncoder.encode(directives, { reducer: DirectiveJSONEncoder.nestedReducer }),
+);
 -->
 
 ```json
 {
   "server": {
     "router": [
-      [
-        "/users",
-        {
-          "respond": [
-            200,
-            "Ok"
-          ]
+      {
+        "/users": {
+          "respond": {
+            "200": "Ok"
+          }
         }
-      ],
-      [
-        "/user/:user_id",
-        {
-          "respond": [
-            200,
-            "Ok"
-          ]
+      },
+      {
+        "/user/:user_id": {
+          "respond": {
+            "200": "Ok"
+          }
         }
-      ],
-      [
-        "/admin",
-        {
-          "respond": [
-            403,
-            "Forbidden"
-          ]
+      },
+      {
+        "/admin": {
+          "respond": {
+            "403": "Forbidden"
+          }
         }
-      ]
+      }
     ]
   }
 }
