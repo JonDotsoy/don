@@ -117,11 +117,24 @@ const directive = new Directive("dependencies", [], [
 
 **JSON equivalent**:
 
+<!-- before-block-eval
+import { DON, DirectiveJSONEncoder } from "donly";
+
+const directives = DON.parse(`
+dependencies {
+  zod 4
+  react 5
+}
+`);
+
+const result = JSON.parse(DirectiveJSONEncoder.encode(directives));
+-->
+
 ```json
 {
   "dependencies": {
-    "zod": "4",
-    "react": "5"
+    "zod": 4,
+    "react": 5
   }
 }
 ```
