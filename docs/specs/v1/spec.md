@@ -59,8 +59,16 @@ name "john"
 
 Is conceptually equivalent to a function call in JavaScript:
 
-```js
-Directive("name", "john", []);
+```ts
+import { Directive } from "donly";
+
+const directive = new Directive("name", ["john"], []);
+// ? const directive = Directive {
+//   name: "name",
+//   args: [ "john" ],
+//   children: [],
+//   toJSON: [Function: toJSON],
+// }
 ```
 
 This directive-based approach allows for more flexible and expressive configurations compared to JSON's rigid object structure.
@@ -80,8 +88,31 @@ dependencies {
 
 **Equivalent JavaScript representation**:
 
-```js
-Directive("dependencies", [], [Directive("zod", "4"), Directive("react", "5")]);
+```ts
+import { Directive } from "donly";
+
+const directive = new Directive("dependencies", [], [
+  new Directive("zod", [4], []),
+  new Directive("react", [5], []),
+]);
+// ? const directive = Directive {
+//   name: "dependencies",
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "zod",
+//       args: [ 4 ],
+//       children: [],
+//       toJSON: [Function: toJSON],
+//     }, Directive {
+//       name: "react",
+//       args: [ 5 ],
+//       children: [],
+//       toJSON: [Function: toJSON],
+//     }
+//   ],
+//   toJSON: [Function: toJSON],
+// }
 ```
 
 **JSON equivalent**:
@@ -115,6 +146,73 @@ server {
     respond 403 "Forbidden"
   }
 }
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
+  }
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "router",
+//         args: [ "/users" ],
+//         children: [
+//           Directive {
+//             name: "respond",
+//             args: [ 200, "Ok" ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "router",
+//         args: [ "/user/:user_id" ],
+//         children: [
+//           Directive {
+//             name: "respond",
+//             args: [ 200, "Ok" ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "router",
+//         args: [ "/admin" ],
+//         children: [
+//           Directive {
+//             name: "respond",
+//             args: [ 403, "Forbidden" ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 In this example, the `router` directive is used multiple times with different arguments and nested configurations. This pattern is natural in DON but would require array structures or artificial key naming in JSON:
@@ -168,6 +266,34 @@ div x-data=name {
 }
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+div x-data=name {
+  span key=key1 hello
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "div",
+//     args: [ "x-data=name" ],
+//     children: [
+//       Directive {
+//         name: "span",
+//         args: [ "key=key1", "hello" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 **JSX equivalent**:
 
 ```jsx
@@ -200,6 +326,49 @@ enabled true
 route /api/users GET POST
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+name "my-app"
+version "1.0.0"
+port 8080
+enabled true
+route /api/users GET POST
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "name",
+//     args: [ "my-app" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "version",
+//     args: [ "1.0.0" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "port",
+//     args: [ 8080 ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "enabled",
+//     args: [ true ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "route",
+//     args: [ "/api/users", "GET", "POST" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 **Directive Names**:
 
 - Must be valid identifiers
@@ -223,6 +392,40 @@ directive_name {
 }
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+directive_name {
+  subdirective1
+  subdirective2
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "directive_name",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "subdirective1",
+//         args: [],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "subdirective2",
+//         args: [],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 **Delimiters**:
 
 - Opening: `{`
@@ -241,6 +444,49 @@ directive foo {
 }
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+directive foo {
+  directive2 taz lip {
+    directive4
+  }
+  directive3 bob
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "directive",
+//     args: [ "foo" ],
+//     children: [
+//       Directive {
+//         name: "directive2",
+//         args: [ "taz", "lip" ],
+//         children: [
+//           Directive {
+//             name: "directive4",
+//             args: [],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "directive3",
+//         args: [ "bob" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 **Whitespace Requirements**:
 
 - Whitespace is **required** before `{`
@@ -253,6 +499,47 @@ container { image "nginx" }
 foo {
   bar
 }
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+container { image "nginx" }
+foo {
+  bar
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "container",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "image",
+//         args: [ "nginx" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "foo",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "bar",
+//         args: [],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 **Invalid**:
@@ -300,6 +587,85 @@ $prod
 route-handler
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+foo
+foo123
+_private
+myVariable
+\${name}
+/api/:name
+[name]
+my-[age]
+path/to/resource
+$prod
+route-handler
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "foo",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "foo123",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "_private",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "myVariable",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "${name}",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "/api/:name",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "[name]",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "my-[age]",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "path/to/resource",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "$prod",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "route-handler",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 **Lexical Behavior**:
 
 - Identifiers are tokenized as `keyword` tokens
@@ -314,6 +680,46 @@ ${name} "value"           # Valid: keyword with special chars
 route-[id] {              # Valid: keyword with brackets
   handler "process"
 }
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+\${name} "value"           # Valid: keyword with special chars
+/api/users GET            # Valid: path-like keyword
+route-[id] {              # Valid: keyword with brackets
+  handler "process"
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "${name}",
+//     args: [ "value" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "/api/users",
+//     args: [ "GET" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "route-[id]",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "handler",
+//         args: [ "process" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 ### 2.4 Numbers
@@ -449,6 +855,31 @@ message "foo \"tar\""
 path 'C:\\Users\\file.txt'
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+message "foo \\"tar\\""
+path 'C:\\\\Users\\\\file.txt'
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "message",
+//     args: [ "foo \\\"tar\\\"" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "path",
+//     args: [ "C:\\\\Users\\\\file.txt" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 ### 2.6 Booleans
 
 Boolean literals represent true/false values.
@@ -507,6 +938,28 @@ template <<<HTML
   </div>
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+template <<<HTML
+  <div>
+    <h1>Hello</h1>
+  </div>
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "template",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 The smallest padding greater than the directive indentation is 2 spaces. The payload becomes:
 
 ```html
@@ -521,6 +974,27 @@ The smallest padding greater than the directive indentation is 2 spaces. The pay
 template <<<
     foo
   tar
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+template <<<
+    foo
+  tar
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "template",
+//     args: [],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 The smallest padding greater than the directive indentation is 2 spaces (from the `tar` line). The payload becomes:
@@ -540,6 +1014,38 @@ server {
     </html>
   handler
 }
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  response <<<HTML
+    <html>
+      <body>Content</body>
+    </html>
+  handler
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "response",
+//         args: [ "handler" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 **Nested in Blocks**:
@@ -566,6 +1072,36 @@ server {
 }
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  content <<<HTML
+    div foo
+    handler
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "content",
+//         args: [],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 In this case, `div foo` and `handler` are part of the heredoc content because they maintain greater indentation. The `}` closes the heredoc as it has lesser indentation.
 
 ### 2.9 Comments
@@ -580,6 +1116,32 @@ Single-line comments start with `#` and continue until the end of the line.
 # This is a comment
 name "my-app"  # Inline comment
 version "1.0.0"
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+# This is a comment
+name "my-app"  # Inline comment
+version "1.0.0"
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "name",
+//     args: [ "my-app" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "version",
+//     args: [ "1.0.0" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 - All text after `#` on the same line is ignored
@@ -602,6 +1164,46 @@ server {
 }
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+/*
+  This is a multi-line comment
+  spanning multiple lines
+*/
+name "my-app"
+
+server {
+  /* Comment inside block */
+  port 8080
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "name",
+//     args: [ "my-app" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "port",
+//         args: [ 8080 ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 - Start with `/*` and end with `*/`
 - Can span multiple lines
 - Can appear anywhere whitespace is allowed
@@ -612,6 +1214,25 @@ Multi-line comments do not nest. The first `*/` closes the comment.
 
 ```don
 /* Outer comment /* inner */ still commented? */ name "app"
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+/* Outer comment /* inner */ still commented? */ name "app"
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "still",
+//     args: [ "commented?", "*/", "name", "app" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 In this example, the comment closes at the first `*/`, and `still commented? */ name "app"` would be parsed as code.
@@ -627,6 +1248,43 @@ name "my-application"
 version "1.0.0"
 port 8080
 enabled true
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+name "my-application"
+version "1.0.0"
+port 8080
+enabled true
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "name",
+//     args: [ "my-application" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "version",
+//     args: [ "1.0.0" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "port",
+//     args: [ 8080 ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }, Directive {
+//     name: "enabled",
+//     args: [ true ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 ### 3.2 Nested Blocks
@@ -645,6 +1303,78 @@ server {
     handler "staticHandler"
   }
 }
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  host "example.com"
+  port 443
+
+  route /api/* {
+    handler "apiHandler"
+    timeout 30
+  }
+
+  route /static/* {
+    handler "staticHandler"
+  }
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "host",
+//         args: [ "example.com" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "port",
+//         args: [ 443 ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "route",
+//         args: [ "/api/*" ],
+//         children: [
+//           Directive {
+//             name: "handler",
+//             args: [ "apiHandler" ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }, Directive {
+//             name: "timeout",
+//             args: [ 30 ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "route",
+//         args: [ "/static/*" ],
+//         children: [
+//           Directive {
+//             name: "handler",
+//             args: [ "staticHandler" ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 ### 3.3 Heredoc Content
@@ -667,6 +1397,39 @@ script <<<BASH
   npm run build
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+template <<<HTML
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>My Page</title>
+    </head>
+    <body>
+      <h1>Welcome</h1>
+    </body>
+  </html>
+
+script <<<BASH
+  #!/bin/bash
+  echo "Deploying..."
+  npm run build
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "template",
+//     args: [ "script" ],
+//     children: [],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 ### 3.4 Complex Directive
 
 ```don
@@ -685,6 +1448,83 @@ deployment $prod _internal path/${name} {
 }
 ```
 
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+deployment $prod _internal path/\${name} {
+  container {
+    image "nginx:latest"
+    port 80
+    env {
+      NODE_ENV "production"
+      API_KEY "secret"
+    }
+  }
+
+  replicas 3
+  strategy "rolling"
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "deployment",
+//     args: [ "$prod", "_internal", "path/${name}" ],
+//     children: [
+//       Directive {
+//         name: "container",
+//         args: [],
+//         children: [
+//           Directive {
+//             name: "image",
+//             args: [ "nginx:latest" ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }, Directive {
+//             name: "port",
+//             args: [ 80 ],
+//             children: [],
+//             toJSON: [Function: toJSON],
+//           }, Directive {
+//             name: "env",
+//             args: [],
+//             children: [
+//               Directive {
+//                 name: "NODE_ENV",
+//                 args: [ "production" ],
+//                 children: [],
+//                 toJSON: [Function: toJSON],
+//               }, Directive {
+//                 name: "API_KEY",
+//                 args: [ "secret" ],
+//                 children: [],
+//                 toJSON: [Function: toJSON],
+//               }
+//             ],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "replicas",
+//         args: [ 3 ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "strategy",
+//         args: [ "rolling" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
+```
+
 ### 3.5 Mixed Types
 
 ```don
@@ -696,4 +1536,62 @@ config {
   timeout 30.5
   maxSize 1024n
 }
+```
+
+<!-- before-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+config {
+  name "app"
+  version 2
+  beta true
+  deprecated null
+  timeout 30.5
+  maxSize 1024n
+}
+`);
+-->
+
+```ts
+// ? const result = [
+//   Directive {
+//     name: "config",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "name",
+//         args: [ "app" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "version",
+//         args: [ 2 ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "beta",
+//         args: [ true ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "deprecated",
+//         args: [ "null" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "timeout",
+//         args: [ 30.5 ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "maxSize",
+//         args: [ 1024n ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
