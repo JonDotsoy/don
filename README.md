@@ -116,9 +116,38 @@ const encoded = DirectiveJSONEncoder.encode(directives)
 `DirectiveJSONDecoder` reverses this back into `Directive` instances:
 
 ```ts
-import { DirectiveJSONDecoder } from "donly";
+import { DON, DirectiveJSONDecoder, DirectiveJSONEncoder } from "donly";
+
+const json = DirectiveJSONEncoder.encode(
+  DON.parse(`
+server {
+  host "localhost"
+  port 8080
+}
+`),
+);
 
 const decoded = new DirectiveJSONDecoder().decode(json);
+// ? const decoded = [
+//   Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "host",
+//         args: [ "localhost" ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }, Directive {
+//         name: "port",
+//         args: [ 8080 ],
+//         children: [],
+//         toJSON: [Function: toJSON],
+//       }
+//     ],
+//     toJSON: [Function: toJSON],
+//   }
+// ]
 ```
 
 ## Development
