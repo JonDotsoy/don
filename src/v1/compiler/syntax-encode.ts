@@ -152,6 +152,7 @@ export class SyntaxParser {
             SyntaxKind.numeric,
             SyntaxKind.boolean,
             SyntaxKind.null,
+            SyntaxKind.heredoc,
           ].includes(token.type)
         ) {
           partialDirective.current.name = token;
@@ -166,6 +167,7 @@ export class SyntaxParser {
             SyntaxKind.numeric,
             SyntaxKind.boolean,
             SyntaxKind.null,
+            SyntaxKind.heredoc,
           ].includes(token.type)
         ) {
           partialDirective.current.args.push(token);
