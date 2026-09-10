@@ -219,25 +219,51 @@ In this example, the `router` directive is used multiple times with different ar
 
 **JSON equivalent (less intuitive)**:
 
-```json
-{
-  "server": {
-    "routers": [
-      {
-        "path": "/users",
-        "response": { "status": 200, "body": "Ok" }
-      },
-      {
-        "path": "/user/:user_id",
-        "response": { "status": 200, "body": "Ok" }
-      },
-      {
-        "path": "/admin",
-        "response": { "status": 403, "body": "Forbidden" }
-      }
-    ]
+```ts
+import { DON, DirectiveJSONEncoder } from "donly";
+
+const directives = DON.parse(`
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
   }
 }
+`);
+
+const encoded = JSON.parse(
+  DirectiveJSONEncoder.encode(directives, { reducer: DirectiveJSONEncoder.nestedReducer }),
+);
+// ? const encoded = {
+//   server: {
+//     router: [
+//       {
+//         "/users": {
+//           respond: {
+//             "200": "Ok",
+//           },
+//         },
+//       }, {
+//         "/user/:user_id": {
+//           respond: {
+//             "200": "Ok",
+//           },
+//         },
+//       }, {
+//         "/admin": {
+//           respond: {
+//             "403": "Forbidden",
+//           },
+//         },
+//       }
+//     ],
+//   },
+// }
 ```
 
 ### Key Distinctions
