@@ -109,7 +109,7 @@ server {
 }
 `);
 
-const encoded = DirectiveJSONEncoder.encode(directives)
+const encoded = DirectiveJSONEncoder.encode(directives);
 // ? const encoded = "{\"server\":[{\"host\":\"localhost\",\"port\":8080},{\"host\":\"127.0.0.1\",\"port\":9090}]}"
 ```
 

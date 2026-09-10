@@ -90,10 +90,11 @@ dependencies {
 ```ts
 import { Directive } from "donly";
 
-const directive = new Directive("dependencies", [], [
-  new Directive("zod", [4], []),
-  new Directive("react", [5], []),
-]);
+const directive = new Directive(
+  "dependencies",
+  [],
+  [new Directive("zod", [4], []), new Directive("react", [5], [])],
+);
 // ? const directive = Directive {
 //   name: "dependencies",
 //   args: [],
@@ -231,7 +232,9 @@ server {
 `);
 
 const encoded = JSON.parse(
-  DirectiveJSONEncoder.encode(directives, { reducer: DirectiveJSONEncoder.nestedReducer }),
+  DirectiveJSONEncoder.encode(directives, {
+    reducer: DirectiveJSONEncoder.nestedReducer,
+  }),
 );
 // ? const encoded = {
 //   server: {
