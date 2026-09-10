@@ -1,4 +1,3 @@
 src/v1/__tokens_snapshots__
 *.spec.ts
 *.generated.md
-docs/specs/v1/spec.new.md

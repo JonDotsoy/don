@@ -54,8 +54,7 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
-    "fmt": "prettier --write .",
-    "docs:spec": "bun scripts/spec-generator/run.ts"
+    "fmt": "prettier --write ."
   },
   "devDependencies": {
     "@types/bun": "latest",

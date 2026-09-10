@@ -7,8 +7,8 @@
 ------------------------------------------------------------
 
 Token: [Offset 0 Len 9; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 10 (Padding 0)] String "'foo biz'"
-  Part#953: [Offset 0 Len 1; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 2 (Padding 0)] SingleQuote [27] "'"
-  Part#954: [Offset 1 Len 3; Ln 1, Col 2 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Alphabet [66 6F 6F] "foo"
-  Part#955: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Whitespace [20] " "
-  Part#956: [Offset 5 Len 3; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Alphabet [62 69 7A] "biz"
-  Part#957: [Offset 8 Len 1; Ln 1, Col 9 (Padding 0) -> Ln 1, Col 10 (Padding 0)] SingleQuote [27] "'"
+  Part#1847: [Offset 0 Len 1; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 2 (Padding 0)] SingleQuote [27] "'"
+  Part#1848: [Offset 1 Len 3; Ln 1, Col 2 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Alphabet [66 6F 6F] "foo"
+  Part#1849: [Offset 4 Len 1; Ln 1, Col 5 (Padding 0) -> Ln 1, Col 6 (Padding 0)] Whitespace [20] " "
+  Part#1850: [Offset 5 Len 3; Ln 1, Col 6 (Padding 0) -> Ln 1, Col 9 (Padding 0)] Alphabet [62 69 7A] "biz"
+  Part#1851: [Offset 8 Len 1; Ln 1, Col 9 (Padding 0) -> Ln 1, Col 10 (Padding 0)] SingleQuote [27] "'"
