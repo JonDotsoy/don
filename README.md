@@ -89,8 +89,8 @@ server {
 }
 `);
 
-console.log(JSON.stringify(directives));
-// [{"server":{"host":"localhost","port":8080}}]
+const encoded = JSON.stringify(directives);
+// ? const encoded = "[{\"server\":{\"host\":\"localhost\",\"port\":8080}}]"
 ```
 
 Since `JSON.stringify` calls `toJSON()` on each array element independently, the result is one `{name: value}` object per top-level directive — it does not merge directives that share a name. For that (and for more control over the output shape — a lossless array form, or nesting args as object keys instead of `[...args, children]`), use `DirectiveJSONEncoder` directly:
@@ -109,16 +109,42 @@ server {
 }
 `);
 
-console.log(DirectiveJSONEncoder.encode(directives));
-// {"server":[{"host":"localhost","port":8080},{"host":"127.0.0.1","port":9090}]}
+const encoded = DirectiveJSONEncoder.encode(directives);
+// ? const encoded = "{\"server\":[{\"host\":\"localhost\",\"port\":8080},{\"host\":\"127.0.0.1\",\"port\":9090}]}"
 ```
 
 `DirectiveJSONDecoder` reverses this back into `Directive` instances:
 
 ```ts
-import { DirectiveJSONDecoder } from "donly";
+import { DON, DirectiveJSONDecoder, DirectiveJSONEncoder } from "donly";
+
+const json = DirectiveJSONEncoder.encode(
+  DON.parse(`
+server {
+  host "localhost"
+  port 8080
+}
+`),
+);
 
 const decoded = new DirectiveJSONDecoder().decode(json);
+// ? const decoded = [
+//   Directive {
+//     name: "server",
+//     args: [],
+//     children: [
+//       Directive {
+//         name: "host",
+//         args: [ "localhost" ],
+//         children: [],
+//       }, Directive {
+//         name: "port",
+//         args: [ 8080 ],
+//         children: [],
+//       }
+//     ],
+//   }
+// ]
 ```
 
 ## Development

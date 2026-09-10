@@ -6,5 +6,5 @@ foo
 
 ------------------------------------------------------------
 
-Part#748: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
-Part#749: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "
+Part#1627: [Offset 0 Len 3; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 4 (Padding 0)] Alphabet [66 6F 6F] "foo"
+Part#1628: [Offset 3 Len 1; Ln 1, Col 4 (Padding 0) -> Ln 1, Col 5 (Padding 0)] Whitespace [20] " "

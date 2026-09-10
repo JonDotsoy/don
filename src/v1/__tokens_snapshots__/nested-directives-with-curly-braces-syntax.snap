@@ -18,22 +18,22 @@ bliz tar
 ------------------------------------------------------------
 
 Document: [Offset 0 Len 162; Ln 1, Col 1 (Padding 0) -> Ln 7, Col 9 (Padding 0)]
-  Directive#20: directive [Offset 0 Len 74; Ln 1, Col 1 (Padding 0) -> Ln 5, Col 17 (Padding 0)]
+  Directive#134: directive [Offset 0 Len 74; Ln 1, Col 1 (Padding 0) -> Ln 5, Col 17 (Padding 0)]
   Name: [Offset 0 Len 9; Ln 1, Col 1 (Padding 0) -> Ln 1, Col 10 (Padding 0)] directive
   Args:
     Arg: [Offset 10 Len 3; Ln 1, Col 11 (Padding 0) -> Ln 1, Col 14 (Padding 0)] foo
-    Directive#18: directive2 [Offset 18 Len 53; Ln 2, Col 3 (Padding 2) -> Ln 3, Col 15 (Padding 2)]
+    Directive#132: directive2 [Offset 18 Len 53; Ln 2, Col 3 (Padding 2) -> Ln 3, Col 15 (Padding 2)]
     Name: [Offset 18 Len 10; Ln 2, Col 3 (Padding 2) -> Ln 2, Col 13 (Padding 2)] directive2
     Args:
       Arg: [Offset 29 Len 3; Ln 2, Col 14 (Padding 2) -> Ln 2, Col 17 (Padding 2)] taz
       Arg: [Offset 33 Len 3; Ln 2, Col 18 (Padding 2) -> Ln 2, Col 21 (Padding 2)] lip
-      Directive#17: directive4 [Offset 43 Len 53; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 15 (Padding 4)]
+      Directive#131: directive4 [Offset 43 Len 53; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 15 (Padding 4)]
       Name: [Offset 43 Len 10; Ln 3, Col 5 (Padding 4) -> Ln 3, Col 15 (Padding 4)] directive4
-    Directive#19: directive3 [Offset 60 Len 74; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 17 (Padding 2)]
+    Directive#133: directive3 [Offset 60 Len 74; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 17 (Padding 2)]
     Name: [Offset 60 Len 10; Ln 5, Col 3 (Padding 2) -> Ln 5, Col 13 (Padding 2)] directive3
     Args:
       Arg: [Offset 71 Len 3; Ln 5, Col 14 (Padding 2) -> Ln 5, Col 17 (Padding 2)] bob
-  Directive#21: bliz [Offset 77 Len 85; Ln 7, Col 1 (Padding 0) -> Ln 7, Col 9 (Padding 0)]
+  Directive#135: bliz [Offset 77 Len 85; Ln 7, Col 1 (Padding 0) -> Ln 7, Col 9 (Padding 0)]
   Name: [Offset 77 Len 4; Ln 7, Col 1 (Padding 0) -> Ln 7, Col 5 (Padding 0)] bliz
   Args:
     Arg: [Offset 82 Len 3; Ln 7, Col 6 (Padding 0) -> Ln 7, Col 9 (Padding 0)] tar

@@ -59,8 +59,15 @@ name "john"
 
 Is conceptually equivalent to a function call in JavaScript:
 
-```js
-Directive("name", "john", []);
+```ts
+import { Directive } from "donly";
+
+const directive = new Directive("name", ["john"], []);
+// ? const directive = Directive {
+//   name: "name",
+//   args: [ "john" ],
+//   children: [],
+// }
 ```
 
 This directive-based approach allows for more flexible and expressive configurations compared to JSON's rigid object structure.
@@ -80,17 +87,51 @@ dependencies {
 
 **Equivalent JavaScript representation**:
 
-```js
-Directive("dependencies", [], [Directive("zod", "4"), Directive("react", "5")]);
+```ts
+import { Directive } from "donly";
+
+const directive = new Directive(
+  "dependencies",
+  [],
+  [new Directive("zod", [4], []), new Directive("react", [5], [])],
+);
+// ? const directive = Directive {
+//   name: "dependencies",
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "zod",
+//       args: [ 4 ],
+//       children: [],
+//     }, Directive {
+//       name: "react",
+//       args: [ 5 ],
+//       children: [],
+//     }
+//   ],
+// }
 ```
 
 **JSON equivalent**:
 
+<!-- before-block-eval
+import { DON, DirectiveJSONEncoder } from "donly";
+
+const directives = DON.parse(`
+dependencies {
+  zod 4
+  react 5
+}
+`);
+
+const result = JSON.parse(DirectiveJSONEncoder.encode(directives));
+-->
+
 ```json
 {
   "dependencies": {
-    "zod": "4",
-    "react": "5"
+    "zod": 4,
+    "react": 5
   }
 }
 ```
@@ -117,29 +158,109 @@ server {
 }
 ```
 
-In this example, the `router` directive is used multiple times with different arguments and nested configurations. This pattern is natural in DON but would require array structures or artificial key naming in JSON:
+<!-- before-block-eval
+import { DON, DirectiveJSONEncoder } from "donly";
 
-**JSON equivalent (less intuitive)**:
+const directives = DON.parse(`
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
+  }
+}
+`);
+
+const result = JSON.parse(
+  DirectiveJSONEncoder.encode(directives, { reducer: DirectiveJSONEncoder.nestedReducer }),
+);
+-->
 
 ```json
 {
   "server": {
-    "routers": [
+    "router": [
       {
-        "path": "/users",
-        "response": { "status": 200, "body": "Ok" }
+        "/users": {
+          "respond": {
+            "200": "Ok"
+          }
+        }
       },
       {
-        "path": "/user/:user_id",
-        "response": { "status": 200, "body": "Ok" }
+        "/user/:user_id": {
+          "respond": {
+            "200": "Ok"
+          }
+        }
       },
       {
-        "path": "/admin",
-        "response": { "status": 403, "body": "Forbidden" }
+        "/admin": {
+          "respond": {
+            "403": "Forbidden"
+          }
+        }
       }
     ]
   }
 }
+```
+
+In this example, the `router` directive is used multiple times with different arguments and nested configurations. This pattern is natural in DON but would require array structures or artificial key naming in JSON:
+
+**JSON equivalent (less intuitive)**:
+
+```ts
+import { DON, DirectiveJSONEncoder } from "donly";
+
+const directives = DON.parse(`
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
+  }
+}
+`);
+
+const encoded = JSON.parse(
+  DirectiveJSONEncoder.encode(directives, {
+    reducer: DirectiveJSONEncoder.nestedReducer,
+  }),
+);
+// ? const encoded = {
+//   server: {
+//     router: [
+//       {
+//         "/users": {
+//           respond: {
+//             "200": "Ok",
+//           },
+//         },
+//       }, {
+//         "/user/:user_id": {
+//           respond: {
+//             "200": "Ok",
+//           },
+//         },
+//       }, {
+//         "/admin": {
+//           respond: {
+//             "403": "Forbidden",
+//           },
+//         },
+//       }
+//     ],
+//   },
+// }
 ```
 
 ### Key Distinctions
@@ -166,6 +287,32 @@ Yes, DON can be used as an alternative to JSX rendering. However, its design is 
 div x-data=name {
   span key=key1 hello
 }
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+div x-data=name {
+  span key=key1 hello
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "div",
+    args: [ "x-data=name" ],
+    children: [
+      Directive {
+        name: "span",
+        args: [ "key=key1", "hello" ],
+        children: [],
+      }
+    ],
+  }
+]
 ```
 
 **JSX equivalent**:
@@ -200,6 +347,44 @@ enabled true
 route /api/users GET POST
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+name "my-app"
+version "1.0.0"
+port 8080
+enabled true
+route /api/users GET POST
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "name",
+    args: [ "my-app" ],
+    children: [],
+  }, Directive {
+    name: "version",
+    args: [ "1.0.0" ],
+    children: [],
+  }, Directive {
+    name: "port",
+    args: [ 8080 ],
+    children: [],
+  }, Directive {
+    name: "enabled",
+    args: [ true ],
+    children: [],
+  }, Directive {
+    name: "route",
+    args: [ "/api/users", "GET", "POST" ],
+    children: [],
+  }
+]
+```
+
 **Directive Names**:
 
 - Must be valid identifiers
@@ -223,6 +408,37 @@ directive_name {
 }
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+directive_name {
+  subdirective1
+  subdirective2
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "directive_name",
+    args: [],
+    children: [
+      Directive {
+        name: "subdirective1",
+        args: [],
+        children: [],
+      }, Directive {
+        name: "subdirective2",
+        args: [],
+        children: [],
+      }
+    ],
+  }
+]
+```
+
 **Delimiters**:
 
 - Opening: `{`
@@ -241,6 +457,45 @@ directive foo {
 }
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+directive foo {
+  directive2 taz lip {
+    directive4
+  }
+  directive3 bob
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "directive",
+    args: [ "foo" ],
+    children: [
+      Directive {
+        name: "directive2",
+        args: [ "taz", "lip" ],
+        children: [
+          Directive {
+            name: "directive4",
+            args: [],
+            children: [],
+          }
+        ],
+      }, Directive {
+        name: "directive3",
+        args: [ "bob" ],
+        children: [],
+      }
+    ],
+  }
+]
+```
+
 **Whitespace Requirements**:
 
 - Whitespace is **required** before `{`
@@ -253,6 +508,43 @@ container { image "nginx" }
 foo {
   bar
 }
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+container { image "nginx" }
+foo {
+  bar
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "container",
+    args: [],
+    children: [
+      Directive {
+        name: "image",
+        args: [ "nginx" ],
+        children: [],
+      }
+    ],
+  }, Directive {
+    name: "foo",
+    args: [],
+    children: [
+      Directive {
+        name: "bar",
+        args: [],
+        children: [],
+      }
+    ],
+  }
+]
 ```
 
 **Invalid**:
@@ -300,6 +592,74 @@ $prod
 route-handler
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+foo
+foo123
+_private
+myVariable
+\${name}
+/api/:name
+[name]
+my-[age]
+path/to/resource
+$prod
+route-handler
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "foo",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "foo123",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "_private",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "myVariable",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "${name}",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "/api/:name",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "[name]",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "my-[age]",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "path/to/resource",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "$prod",
+    args: [],
+    children: [],
+  }, Directive {
+    name: "route-handler",
+    args: [],
+    children: [],
+  }
+]
+```
+
 **Lexical Behavior**:
 
 - Identifiers are tokenized as `keyword` tokens
@@ -314,6 +674,42 @@ ${name} "value"           # Valid: keyword with special chars
 route-[id] {              # Valid: keyword with brackets
   handler "process"
 }
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+\${name} "value"           # Valid: keyword with special chars
+/api/users GET            # Valid: path-like keyword
+route-[id] {              # Valid: keyword with brackets
+  handler "process"
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "${name}",
+    args: [ "value" ],
+    children: [],
+  }, Directive {
+    name: "/api/users",
+    args: [ "GET" ],
+    children: [],
+  }, Directive {
+    name: "route-[id]",
+    args: [],
+    children: [
+      Directive {
+        name: "handler",
+        args: [ "process" ],
+        children: [],
+      }
+    ],
+  }
+]
 ```
 
 ### 2.4 Numbers
@@ -449,6 +845,29 @@ message "foo \"tar\""
 path 'C:\\Users\\file.txt'
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+message "foo \\"tar\\""
+path 'C:\\\\Users\\\\file.txt'
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "message",
+    args: [ "foo \\\"tar\\\"" ],
+    children: [],
+  }, Directive {
+    name: "path",
+    args: [ "C:\\\\Users\\\\file.txt" ],
+    children: [],
+  }
+]
+```
+
 ### 2.6 Booleans
 
 Boolean literals represent true/false values.
@@ -507,6 +926,27 @@ template <<<HTML
   </div>
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+template <<<HTML
+  <div>
+    <h1>Hello</h1>
+  </div>
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "template",
+    args: [],
+    children: [],
+  }
+]
+```
+
 The smallest padding greater than the directive indentation is 2 spaces. The payload becomes:
 
 ```html
@@ -521,6 +961,26 @@ The smallest padding greater than the directive indentation is 2 spaces. The pay
 template <<<
     foo
   tar
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+template <<<
+    foo
+  tar
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "template",
+    args: [],
+    children: [],
+  }
+]
 ```
 
 The smallest padding greater than the directive indentation is 2 spaces (from the `tar` line). The payload becomes:
@@ -540,6 +1000,36 @@ server {
     </html>
   handler
 }
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  response <<<HTML
+    <html>
+      <body>Content</body>
+    </html>
+  handler
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "server",
+    args: [],
+    children: [
+      Directive {
+        name: "response",
+        args: [ "handler" ],
+        children: [],
+      }
+    ],
+  }
+]
 ```
 
 **Nested in Blocks**:
@@ -566,6 +1056,34 @@ server {
 }
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  content <<<HTML
+    div foo
+    handler
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "server",
+    args: [],
+    children: [
+      Directive {
+        name: "content",
+        args: [],
+        children: [],
+      }
+    ],
+  }
+]
+```
+
 In this case, `div foo` and `handler` are part of the heredoc content because they maintain greater indentation. The `}` closes the heredoc as it has lesser indentation.
 
 ### 2.9 Comments
@@ -580,6 +1098,30 @@ Single-line comments start with `#` and continue until the end of the line.
 # This is a comment
 name "my-app"  # Inline comment
 version "1.0.0"
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+# This is a comment
+name "my-app"  # Inline comment
+version "1.0.0"
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "name",
+    args: [ "my-app" ],
+    children: [],
+  }, Directive {
+    name: "version",
+    args: [ "1.0.0" ],
+    children: [],
+  }
+]
 ```
 
 - All text after `#` on the same line is ignored
@@ -602,6 +1144,43 @@ server {
 }
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+/*
+  This is a multi-line comment
+  spanning multiple lines
+*/
+name "my-app"
+
+server {
+  /* Comment inside block */
+  port 8080
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "name",
+    args: [ "my-app" ],
+    children: [],
+  }, Directive {
+    name: "server",
+    args: [],
+    children: [
+      Directive {
+        name: "port",
+        args: [ 8080 ],
+        children: [],
+      }
+    ],
+  }
+]
+```
+
 - Start with `/*` and end with `*/`
 - Can span multiple lines
 - Can appear anywhere whitespace is allowed
@@ -612,6 +1191,24 @@ Multi-line comments do not nest. The first `*/` closes the comment.
 
 ```don
 /* Outer comment /* inner */ still commented? */ name "app"
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+/* Outer comment /* inner */ still commented? */ name "app"
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "still",
+    args: [ "commented?", "*/", "name", "app" ],
+    children: [],
+  }
+]
 ```
 
 In this example, the comment closes at the first `*/`, and `still commented? */ name "app"` would be parsed as code.
@@ -627,6 +1224,39 @@ name "my-application"
 version "1.0.0"
 port 8080
 enabled true
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+name "my-application"
+version "1.0.0"
+port 8080
+enabled true
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "name",
+    args: [ "my-application" ],
+    children: [],
+  }, Directive {
+    name: "version",
+    args: [ "1.0.0" ],
+    children: [],
+  }, Directive {
+    name: "port",
+    args: [ 8080 ],
+    children: [],
+  }, Directive {
+    name: "enabled",
+    args: [ true ],
+    children: [],
+  }
+]
 ```
 
 ### 3.2 Nested Blocks
@@ -645,6 +1275,70 @@ server {
     handler "staticHandler"
   }
 }
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+server {
+  host "example.com"
+  port 443
+
+  route /api/* {
+    handler "apiHandler"
+    timeout 30
+  }
+
+  route /static/* {
+    handler "staticHandler"
+  }
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "server",
+    args: [],
+    children: [
+      Directive {
+        name: "host",
+        args: [ "example.com" ],
+        children: [],
+      }, Directive {
+        name: "port",
+        args: [ 443 ],
+        children: [],
+      }, Directive {
+        name: "route",
+        args: [ "/api/*" ],
+        children: [
+          Directive {
+            name: "handler",
+            args: [ "apiHandler" ],
+            children: [],
+          }, Directive {
+            name: "timeout",
+            args: [ 30 ],
+            children: [],
+          }
+        ],
+      }, Directive {
+        name: "route",
+        args: [ "/static/*" ],
+        children: [
+          Directive {
+            name: "handler",
+            args: [ "staticHandler" ],
+            children: [],
+          }
+        ],
+      }
+    ],
+  }
+]
 ```
 
 ### 3.3 Heredoc Content
@@ -667,6 +1361,38 @@ script <<<BASH
   npm run build
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+template <<<HTML
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>My Page</title>
+    </head>
+    <body>
+      <h1>Welcome</h1>
+    </body>
+  </html>
+
+script <<<BASH
+  #!/bin/bash
+  echo "Deploying..."
+  npm run build
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "template",
+    args: [ "script" ],
+    children: [],
+  }
+]
+```
+
 ### 3.4 Complex Directive
 
 ```don
@@ -685,6 +1411,74 @@ deployment $prod _internal path/${name} {
 }
 ```
 
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+deployment $prod _internal path/\${name} {
+  container {
+    image "nginx:latest"
+    port 80
+    env {
+      NODE_ENV "production"
+      API_KEY "secret"
+    }
+  }
+
+  replicas 3
+  strategy "rolling"
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "deployment",
+    args: [ "$prod", "_internal", "path/${name}" ],
+    children: [
+      Directive {
+        name: "container",
+        args: [],
+        children: [
+          Directive {
+            name: "image",
+            args: [ "nginx:latest" ],
+            children: [],
+          }, Directive {
+            name: "port",
+            args: [ 80 ],
+            children: [],
+          }, Directive {
+            name: "env",
+            args: [],
+            children: [
+              Directive {
+                name: "NODE_ENV",
+                args: [ "production" ],
+                children: [],
+              }, Directive {
+                name: "API_KEY",
+                args: [ "secret" ],
+                children: [],
+              }
+            ],
+          }
+        ],
+      }, Directive {
+        name: "replicas",
+        args: [ 3 ],
+        children: [],
+      }, Directive {
+        name: "strategy",
+        args: [ "rolling" ],
+        children: [],
+      }
+    ],
+  }
+]
+```
+
 ### 3.5 Mixed Types
 
 ```don
@@ -696,4 +1490,55 @@ config {
   timeout 30.5
   maxSize 1024n
 }
+```
+
+<!-- before-block-eval
+import { DON } from "donly";
+
+const result = DON.parse(`
+config {
+  name "app"
+  version 2
+  beta true
+  deprecated null
+  timeout 30.5
+  maxSize 1024n
+}
+`);
+-->
+
+```js
+[
+  Directive {
+    name: "config",
+    args: [],
+    children: [
+      Directive {
+        name: "name",
+        args: [ "app" ],
+        children: [],
+      }, Directive {
+        name: "version",
+        args: [ 2 ],
+        children: [],
+      }, Directive {
+        name: "beta",
+        args: [ true ],
+        children: [],
+      }, Directive {
+        name: "deprecated",
+        args: [ "null" ],
+        children: [],
+      }, Directive {
+        name: "timeout",
+        args: [ 30.5 ],
+        children: [],
+      }, Directive {
+        name: "maxSize",
+        args: [ 1024n ],
+        children: [],
+      }
+    ],
+  }
+]
 ```
