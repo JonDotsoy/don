@@ -1038,8 +1038,12 @@ server {
           HeredocValue {
             type: "HTML",
             content: "<html>\n  <body>Content</body>\n</html>\n",
-          }, "handler"
+          }
         ],
+        children: [],
+      }, Directive {
+        name: "handler",
+        args: [],
         children: [],
       }
     ],
@@ -1411,8 +1415,13 @@ script <<<BASH
       HeredocValue {
         type: "HTML",
         content: "<!DOCTYPE html>\n<html>\n  <head>\n    <title>My Page</title>\n  </head>\n  <body>\n    <h1>Welcome</h1>\n  </body>\n</html>\n\n",
-      },
-      "script", HeredocValue {
+      }
+    ],
+    children: [],
+  }, Directive {
+    name: "script",
+    args: [
+      HeredocValue {
         type: "BASH",
         content: "#!/bin/bash\necho \"Deploying...\"\nnpm run build\n",
       }

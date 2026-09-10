@@ -177,7 +177,13 @@ describe("DON.parse", () => {
     expect(response.args[0]).toEqual(
       new HeredocValue("HTML", "<html>\n  <body>Content</body>\n</html>\n"),
     );
-    expect(response.args[1]).toBe("handler");
+
+    // A heredoc always spans to the end of its own (dedented) line, so
+    // whatever follows at the same indentation is a sibling directive,
+    // not another arg of `response`.
+    const handler = result[0]!.children[1]!;
+    expect(handler.name).toBe("handler");
+    expect(handler.args).toEqual([]);
   });
 
   it('should parse a heredoc argument without a delimiter', () => {
@@ -238,10 +244,8 @@ describe("JSON.stringify(DON.parse(...))", () => {
     expect(JSON.parse(JSON.stringify(result))).toEqual([
       {
         server: {
-          response: [
-            { type: "HTML", content: "<html></html>\n" },
-            "handler",
-          ],
+          response: { type: "HTML", content: "<html></html>\n" },
+          handler: [],
         },
       },
     ]);

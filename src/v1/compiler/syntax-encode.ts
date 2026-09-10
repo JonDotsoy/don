@@ -171,6 +171,28 @@ export class SyntaxParser {
           ].includes(token.type)
         ) {
           partialDirective.current.args.push(token);
+
+          // A heredoc's own closing (dedented) line swallows the newline
+          // that would otherwise separate it from whatever follows, so
+          // no SyntaxKind.newline token remains to close this directive
+          // below. Close it here instead: a heredoc always spans to the
+          // end of its logical line, so nothing else can follow it as a
+          // sibling arg on the same directive.
+          if (token.type === SyntaxKind.heredoc) {
+            directives.current.push(
+              new DirectiveNode(
+                partialDirective.current.name,
+                partialDirective.current.args,
+                partialDirective.current.children,
+              ),
+            );
+            partialDirective.current = {
+              name: null,
+              args: [],
+              children: [],
+            };
+          }
+
           continue;
         }
 
