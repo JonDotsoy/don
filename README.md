@@ -110,7 +110,7 @@ server {
 `);
 
 const encoded = JSON.parse(DirectiveJSONEncoder.encode(directives))
-// ? const encoded: any = {
+// ? const encoded = {
 //   server: [
 //     {
 //       host: "localhost",
