@@ -14,6 +14,7 @@ lang: en
    - [Design Goals](#design-goals)
    - [DON vs JSON](#11-don-vs-json)
    - [DON vs JSX](#12-don-vs-jsx)
+   - [DON vs XML](#13-don-vs-xml)
 2. [Syntax Elements](#2-syntax-elements)
    - [Directives](#21-directives)
    - [Blocks](#22-blocks)
@@ -318,6 +319,112 @@ div x-data=name {
   <span key="key1">hello</span>
 </div>
 ```
+
+## 1.3 DON vs XML
+
+### Conceptual Model
+
+XML represents data as a tree of elements, each with a tag name, an optional set of attributes, and content that is either child elements or text. Every element must be explicitly closed, either with a matching closing tag or a self-closing marker. DON represents the same kind of hierarchical data as directives: a name, a list of positional arguments, and optional nested subdirectives enclosed in `{ }`. There is no separate "attribute" concept in DON — everything is an argument — and no closing tag is required, since the block delimiters (`{` / `}`) already mark the extent of the children.
+
+### Structural Differences
+
+Consider the same router configuration used in [1.1](#11-don-vs-json), expressed in XML:
+
+**XML**:
+
+```xml
+<server>
+  <router path="/users">
+    <respond status="200">Ok</respond>
+  </router>
+  <router path="/user/:user_id">
+    <respond status="200">Ok</respond>
+  </router>
+  <router path="/admin">
+    <respond status="403">Forbidden</respond>
+  </router>
+</server>
+```
+
+**DON**:
+
+```don
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
+  }
+}
+```
+
+Both formats allow the same element/directive name (`router`, `respond`) to repeat at the same level — unlike JSON, neither XML nor DON requires artificial keys or array wrapping for this. The difference is in how each attaches data to a node:
+
+- **Attributes vs. positional arguments**: XML separates data into attributes (`path="/users"`) and text content (`Ok`), each requiring its own quoting and assignment syntax (`name="value"`). DON has a single, ordered list of arguments (`/users`, `200`, `"Ok"`) with no key names required, so no schema is needed to know that the first argument of `router` is a path.
+- **Closing tags**: Every XML element needs an explicit closing tag (`</router>`) or self-closing form (`<br/>`), which duplicates the element name and adds visual noise, especially in deeply nested documents. DON blocks close with a single `}`, independent of the directive's name.
+- **Typed values**: XML attributes and text content are always strings; a consumer must parse `"200"` into a number itself. DON's grammar recognizes numbers, booleans, and null natively (see [2.4](#24-numbers), [2.6](#26-booleans), [2.7](#27-null)), so `200` is already an integer after parsing.
+- **Mixed content**: XML allows text and child elements to be interleaved inside the same element (`<p>Hello <b>world</b></p>`), which is essential for markup/document use cases. DON has no notion of mixed content — a directive's children are either arguments or subdirectives, never both interleaved — which keeps parsing simpler but makes DON unsuitable for representing prose-style documents.
+- **Namespaces and schemas**: XML has a mature ecosystem for validating and namespacing documents (XML Namespaces, DTD, XSD, XPath). DON v1 defines no equivalent; validation is left to the consuming application.
+
+### Verbosity Comparison
+
+**XML**:
+
+```xml
+<database host="localhost" port="5432" ssl="true"/>
+```
+
+**DON**:
+
+```don
+database {
+  host "localhost"
+  port 5432
+  ssl true
+}
+```
+
+Or, using positional arguments directly on the directive instead of a block:
+
+```don
+database "localhost" 5432 true
+```
+
+DON eliminates the repeated element name, the attribute `=` syntax, and the closing/self-closing tag, at the cost of relying on argument order (or explicit subdirectives) rather than named attributes to convey meaning.
+
+### Heredocs vs. CDATA
+
+Both formats provide an escape hatch for embedding raw, multi-line content without needing to escape special characters. XML uses `CDATA` sections:
+
+```xml
+<script><![CDATA[
+  if (a < b && b > c) {
+    console.log("raw content");
+  }
+]]></script>
+```
+
+DON uses heredocs (see [2.8](#28-heredocs)):
+
+```don
+script <<<HTML
+  if (a < b && b > c) {
+    console.log("raw content");
+  }
+```
+
+### Key Distinctions
+
+1. **No Closing Tags**: DON blocks are delimited by `{ }`, so the directive name never needs to be repeated to close a scope, unlike XML's `</tagname>`.
+2. **Unified Arguments**: DON has no separate attribute syntax — every value is a positional argument, whether it plays the role XML would give an attribute or a text node.
+3. **Native Types**: DON parses numbers, booleans, and null as typed values; XML attributes and text are always strings that the application must convert.
+4. **No Mixed Content**: DON directives cannot interleave text and subdirectives the way XML elements can interleave text and child elements, making DON a poor fit for document/markup content but simpler to parse for configuration data.
+5. **No Built-in Schema Layer**: XML has standardized namespace, DTD, and XSD mechanisms for validation; DON v1 does not define an equivalent, leaving structural validation to the application.
+6. **Comparable Repetition Support**: Unlike the DON-vs-JSON comparison, repeated keys are not a DON advantage over XML — XML already allows repeated elements naturally. DON's advantage over XML here is purely in reduced syntax (no attribute `=` pairs, no closing tags), not in expressive repetition.
 
 ---
 
