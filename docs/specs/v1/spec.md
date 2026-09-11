@@ -411,11 +411,10 @@ Both formats provide an escape hatch for embedding raw, multi-line content witho
 DON uses heredocs (see [2.8](#28-heredocs)):
 
 ```don
-script <<EOF
+script <<<HTML
   if (a < b && b > c) {
     console.log("raw content");
   }
-EOF
 ```
 
 ### Key Distinctions
