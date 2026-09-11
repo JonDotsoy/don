@@ -13,6 +13,8 @@ export type {
   DirectiveReducer,
   DirectiveJSONEncoderOptions,
 } from "./directive-json.js";
+export { DirectiveXMLEncoder, DirectiveXMLDecoder } from "./directive-xml.js";
+export type { DirectiveXMLEncoderOptions } from "./directive-xml.js";
 
 const typeStrings: Partial<Record<SyntaxKind, string>> = {
   [SyntaxKind.keyword]: "keyword",
