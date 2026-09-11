@@ -43,6 +43,10 @@
     "./decoder": {
       "types": "./lib/esm/directive-json.d.ts",
       "import": "./lib/esm/directive-json.js"
+    },
+    "./load": {
+      "types": "./lib/esm/load.d.ts",
+      "import": "./lib/esm/load.js"
     }
   },
   "files": [

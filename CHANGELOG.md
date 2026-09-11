@@ -31,3 +31,5 @@ documentation.
 - `LexerParser` and `SyntaxEncode` — lower-level tokenizer and syntax parser
   exports for building custom tooling on top of DON.
 - `donToParts(text)` — utility to break a DON document into typed lexical parts.
+- `load(filePath)` (`donly/load`) — reads a `.donly` file and parses it into a
+  plain object using the nested reducer shape.
