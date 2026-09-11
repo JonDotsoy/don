@@ -19,8 +19,8 @@ import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
 
 // --- "donly": DON.parse ---
 
-const parseFn: (text: string) => Directive[] = DON.parse;
-const parsed: Directive[] = DON.parse("name value");
+const parseFn: (text: string) => Directive = DON.parse;
+const parsed: Directive = DON.parse("name value");
 
 // --- "donly": Directive ---
 
@@ -42,6 +42,7 @@ const heredocContent: string = heredoc.content;
 // --- "donly": DirectiveJSONEncoder (static + instance) ---
 
 const staticValue: unknown = DirectiveJSONEncoder.encode(parsed);
+const staticValueFromArray: unknown = DirectiveJSONEncoder.encode([parsed]);
 const staticValueWithOptions: unknown = DirectiveJSONEncoder.encode(parsed, {
   reducer: DirectiveJSONEncoder.tupleReducer,
 });
@@ -80,7 +81,7 @@ const decodedViaSubpath: Directive[] = new DecoderOnly().decode(
 // @ts-expect-error DON.parse requires a string
 DON.parse(123);
 
-// @ts-expect-error encode's first argument must be Directive[]
+// @ts-expect-error encode's first argument must be Directive or Directive[]
 DirectiveJSONEncoder.encode("nope");
 
 // @ts-expect-error Directive args must be number | string | boolean
@@ -100,6 +101,7 @@ void [
   directiveWithHeredoc,
   heredocDelimiter,
   heredocContent,
+  staticValueFromArray,
   staticValueWithOptions,
   staticValueRawShape,
   instanceValue,

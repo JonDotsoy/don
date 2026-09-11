@@ -2,6 +2,7 @@ import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
+import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
 
@@ -56,20 +57,16 @@ const toDirective = (node: DirectiveNode): Directive => {
   );
 };
 
-const docToDirective = (node: DocumentNode): Directive[] => {
-  const directives = node.children.map((node) => {
-    return new Directive(
-      node.name.text(),
-      node.args.map((token) => token.toJS()),
-      node.children.map((child) => toDirective(child)).flat(),
-    );
-  });
+const docToDirective = (node: DocumentNode): Directive => {
+  const topLevel = node.children.map((child) => toDirective(child));
 
-  return directives;
+  if (topLevel.length === 1) return topLevel[0]!;
+
+  return new Directive(ROOT_DIRECTIVE_NAME, [], topLevel);
 };
 
 export class DON {
-  static parse(text: string) {
+  static parse(text: string): Directive {
     const documentNode = new SyntaxParser().parse(text);
 
     return docToDirective(documentNode);
