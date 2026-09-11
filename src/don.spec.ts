@@ -192,7 +192,7 @@ describe("DON.parse", () => {
       + "    npm ci\n"
     );
 
-    expect(result[0]!.args[0]).toEqual(new HeredocValue("", "npm ci\n"));
+    expect(result[0]!.args[0]).toEqual(new HeredocValue(null, "npm ci\n"));
   });
 });
 
@@ -232,7 +232,7 @@ describe("JSON.stringify(DON.parse(...))", () => {
     ]);
   });
 
-  it('serializes a HeredocValue arg as a { type, content } object', () => {
+  it('serializes a HeredocValue arg as a { delimiter, content } object', () => {
     const result = DON.parse(""
       + "server {\n"
       + "  response <<<HTML\n"
@@ -244,7 +244,7 @@ describe("JSON.stringify(DON.parse(...))", () => {
     expect(JSON.parse(JSON.stringify(result))).toEqual([
       {
         server: {
-          response: { type: "HTML", content: "<html></html>\n" },
+          response: { delimiter: "HTML", content: "<html></html>\n" },
           handler: [],
         },
       },
@@ -259,7 +259,7 @@ describe("HeredocValue custom inspect", () => {
     const inspected = Bun.inspect(heredoc);
 
     expect(inspected).toContain("HeredocValue");
-    expect(inspected).toContain('type: "HTML"');
+    expect(inspected).toContain('delimiter: "HTML"');
     expect(inspected).not.toContain("toJSON");
     expect(inspected).not.toContain("toString");
   });

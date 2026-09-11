@@ -939,7 +939,7 @@ template <<<HTML
     name: "template",
     args: [
       HeredocValue {
-        type: "HTML",
+        delimiter: "HTML",
         content: "<div>\n  <h1>Hello</h1>\n</div>\n",
       }
     ],
@@ -980,7 +980,7 @@ template <<<
     name: "template",
     args: [
       HeredocValue {
-        type: "",
+        delimiter: null,
         content: "  foo\ntar\n",
       }
     ],
@@ -1032,7 +1032,7 @@ server {
         name: "response",
         args: [
           HeredocValue {
-            type: "HTML",
+            delimiter: "HTML",
             content: "<html>\n  <body>Content</body>\n</html>\n",
           }
         ],
@@ -1093,7 +1093,7 @@ server {
         name: "content",
         args: [
           HeredocValue {
-            type: "HTML",
+            delimiter: "HTML",
             content: "div foo\nhandler\n",
           }
         ],
@@ -1409,7 +1409,7 @@ script <<<BASH
     name: "template",
     args: [
       HeredocValue {
-        type: "HTML",
+        delimiter: "HTML",
         content: "<!DOCTYPE html>\n<html>\n  <head>\n    <title>My Page</title>\n  </head>\n  <body>\n    <h1>Welcome</h1>\n  </body>\n</html>\n\n",
       }
     ],
@@ -1418,7 +1418,7 @@ script <<<BASH
     name: "script",
     args: [
       HeredocValue {
-        type: "BASH",
+        delimiter: "BASH",
         content: "#!/bin/bash\necho \"Deploying...\"\nnpm run build\n",
       }
     ],
