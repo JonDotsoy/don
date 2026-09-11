@@ -147,6 +147,64 @@ const decoded = new DirectiveJSONDecoder().decode(encoded);
 // ]
 ```
 
+## XML Serialization
+
+`DirectiveXMLEncoder` and `DirectiveXMLDecoder` live in the `donly/xml` subpath rather than the main module. `DirectiveXMLEncoder` renders parsed directives as an HTML-like XML string. Args written as `key=value` become attributes, and any remaining args become the element's text content:
+
+```ts
+import { DON } from "donly";
+import { DirectiveXMLEncoder } from "donly/xml";
+
+const directives = DON.parse(`
+div x-data=name {
+  span key=key1 hello
+}
+`);
+
+const xml = DirectiveXMLEncoder.encode(directives);
+// ? const xml = '<div x-data="name">\n  <span key="key1">hello</span>\n</div>'
+```
+
+An element with no children and no text is self-closed:
+
+```ts
+const directives = DON.parse("input name=email");
+
+DirectiveXMLEncoder.encode(directives);
+// ? "<input name=\"email\" />"
+```
+
+Pass `{ indent }` to change the indentation (defaults to two spaces):
+
+```ts
+DirectiveXMLEncoder.encode(directives, { indent: "    " });
+```
+
+`DirectiveXMLDecoder` reverses this back into `Directive` instances, parsing element attributes into `key=value` args and text content into a trailing string arg:
+
+```ts
+import { DirectiveXMLDecoder } from "donly/xml";
+
+const decoded = DirectiveXMLDecoder.decode(
+  '<div x-data="name">\n  <span key="key1">hello</span>\n</div>',
+);
+// ? const decoded = [
+//   Directive {
+//     name: "div",
+//     args: [ "x-data=name" ],
+//     children: [
+//       Directive {
+//         name: "span",
+//         args: [ "key=key1", "hello" ],
+//         children: [],
+//       }
+//     ],
+//   }
+// ]
+```
+
+Both classes expose instance methods (`new DirectiveXMLEncoder().encode(...)`, `new DirectiveXMLDecoder().decode(...)`) in addition to the static `encode`/`decode` shortcuts shown above.
+
 ## Development
 
 This project uses [Bun](https://bun.sh):
