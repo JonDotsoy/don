@@ -19,17 +19,16 @@ import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
 
 // "donly"
-const directives = DON.parse('name "example"');
-assert.equal(directives.length, 1);
-assert.ok(directives[0] instanceof Directive);
-assert.equal(directives[0].name, "name");
-assert.deepEqual(directives[0].args, ["example"]);
+const directive = DON.parse('name "example"');
+assert.ok(directive instanceof Directive);
+assert.equal(directive.name, "name");
+assert.deepEqual(directive.args, ["example"]);
 assert.equal(typeof DirectiveJSONEncoder.encode, "function");
 assert.equal(typeof DirectiveJSONDecoder, "function");
 
 // "donly/encoder"
 assert.equal(EncoderOnly, DirectiveJSONEncoder);
-const encoded = new EncoderOnly().encode(directives);
+const encoded = new EncoderOnly().encode(directive);
 assert.deepEqual(encoded, { name: "example" });
 
 // "donly/decoder"

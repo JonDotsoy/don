@@ -16,10 +16,7 @@ export class DocumentNode {
 
     if (!first || !last) {
       const emptyLocation = { paddingLine: 0, line: 0, column: 0 };
-      return new DocumentNode(
-        [],
-        new Span(0, 0, emptyLocation, emptyLocation),
-      );
+      return new DocumentNode([], new Span(0, 0, emptyLocation, emptyLocation));
     }
 
     return new DocumentNode(
