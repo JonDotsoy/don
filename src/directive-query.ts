@@ -121,3 +121,25 @@ export const findFirstDirective = (
   directive: Directive,
   path: string,
 ): Directive | undefined => findAllDirectives(directive, path)[0];
+
+const TRAILING_INDEX_RE = /^(.*)\[(\d+)\]$/;
+
+/**
+ * Como `findFirstDirective`, pero si la ruta termina en `[N]` con `N` un
+ * entero puro (ej. `port[1]`), en vez de la `Directive` "port" devuelve
+ * directamente su `args[N-1]` (1-indexado). Es una sintaxis de corchetes
+ * distinta de la de `findAll`/`findFirst` (`nombre[valor, ...]`, que
+ * filtra por igualdad de `args`): acá un sufijo puramente numérico al
+ * final de la ruta significa "extraer el argumento N-ésimo", no filtrar.
+ */
+export const atDirective = (
+  directive: Directive,
+  path: string,
+): Directive | DirectiveArg | undefined => {
+  const match = path.match(TRAILING_INDEX_RE);
+  if (!match) return findFirstDirective(directive, path);
+
+  const [, pathWithoutIndex, indexPart] = match;
+  const target = findFirstDirective(directive, pathWithoutIndex!);
+  return target?.args[Number(indexPart) - 1];
+};

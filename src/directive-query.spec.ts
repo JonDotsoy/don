@@ -14,6 +14,14 @@ const SERVER_TEXT = ""
   + "  }\n"
   + "}\n";
 
+const CONFIG_TEXT = ""
+  + "server {\n"
+  + "  port 3000\n"
+  + '  host "localhost"\n'
+  + "\n"
+  + '  route /v1/profiles {}\n'
+  + "}\n";
+
 describe("Directive#findAll", () => {
   it("returns all directives matching the path", () => {
     const directive = DON.parse(SERVER_TEXT);
@@ -175,5 +183,70 @@ describe("Directive#findAll with parameter filters", () => {
     const directive = DON.parse(SERVER_TEXT);
 
     expect(directive.findAll("/server/router[/no-existe]")).toEqual([]);
+  });
+});
+
+describe("Directive#at", () => {
+  it("behaves like findFirst when the path has no trailing index", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+
+    const server = doc.at("/server");
+
+    expect(server).toBeInstanceOf(Directive);
+    expect((server as Directive).name).toBe("server");
+  });
+
+  it("extracts the Nth positional arg when the last segment has [N]", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+    const server = doc.at("/server") as Directive;
+
+    expect(server.at("/port[1]")).toBe(3000);
+    expect(server.at("/host[1]")).toBe("localhost");
+  });
+
+  it("still returns a Directive when the last segment has no index", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+    const server = doc.at("/server") as Directive;
+
+    const route = server.at("/route");
+
+    expect(route).toBeInstanceOf(Directive);
+    expect((route as Directive).args).toEqual(["/v1/profiles"]);
+  });
+
+  it("returns undefined when the directive at the path doesn't exist", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+    const server = doc.at("/server") as Directive;
+
+    expect(server.at("/missing[1]")).toBeUndefined();
+  });
+
+  it("returns undefined when the index is out of range", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+    const server = doc.at("/server") as Directive;
+
+    expect(server.at("/port[9]")).toBeUndefined();
+  });
+});
+
+describe("Directive#reduce", () => {
+  it("passes the directive itself to fn and returns fn's result", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+    const server = doc.at("/server") as Directive;
+
+    expect(server.reduce((directive) => directive.name)).toBe("server");
+  });
+
+  it("supports the end-to-end config example from the prompt", () => {
+    const doc = DON.parse(CONFIG_TEXT);
+
+    const serverOptions = (doc.at("/server") as Directive).reduce(
+      (directive) => ({
+        port: directive.at("/port[1]") ?? 3000,
+        host: directive.at("/host[1]") ?? "localhost",
+      }),
+    );
+
+    expect(serverOptions).toEqual({ port: 3000, host: "localhost" });
   });
 });

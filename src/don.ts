@@ -3,6 +3,7 @@ import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON, wrapAsRoot } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
 import {
+  atDirective,
   findAllDirectives,
   findFirstDirective,
   ResultMatchDirectives,
@@ -53,6 +54,14 @@ export class Directive {
 
   map<R>(fn: (args: DirectiveArg[], directive: Directive) => R): R {
     return fn(this.args, this);
+  }
+
+  at(path: string): Directive | DirectiveArg | undefined {
+    return atDirective(this, path);
+  }
+
+  reduce<R>(fn: (directive: Directive) => R): R {
+    return fn(this);
   }
 
   /**
