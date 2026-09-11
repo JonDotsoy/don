@@ -277,9 +277,7 @@ export class DirectiveJSONDecoder {
     }
 
     if (isPlainObject(value)) {
-      return wrapAsRoot(
-        Object.entries(value).map(toDirectiveFromReducedEntry),
-      );
+      return wrapAsRoot(Object.entries(value).map(toDirectiveFromReducedEntry));
     }
 
     throw new Error(
