@@ -30,7 +30,7 @@ assert.equal(typeof DirectiveJSONDecoder, "function");
 // "donly/encoder"
 assert.equal(EncoderOnly, DirectiveJSONEncoder);
 const encoded = new EncoderOnly().encode(directives);
-assert.equal(encoded, '{"name":"example"}');
+assert.deepEqual(encoded, { name: "example" });
 
 // "donly/decoder"
 assert.equal(DecoderOnly, DirectiveJSONDecoder);

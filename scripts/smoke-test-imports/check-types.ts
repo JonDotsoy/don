@@ -41,15 +41,14 @@ const heredocContent: string = heredoc.content;
 
 // --- "donly": DirectiveJSONEncoder (static + instance) ---
 
-const staticJson: string = DirectiveJSONEncoder.encode(parsed);
-const staticJsonWithOptions: string = DirectiveJSONEncoder.encode(parsed, {
-  space: 2,
+const staticValue: unknown = DirectiveJSONEncoder.encode(parsed);
+const staticValueWithOptions: unknown = DirectiveJSONEncoder.encode(parsed, {
   reducer: DirectiveJSONEncoder.tupleReducer,
 });
-const staticJsonRawShape: string = DirectiveJSONEncoder.encode(parsed, {
+const staticValueRawShape: unknown = DirectiveJSONEncoder.encode(parsed, {
   reducer: null,
 });
-const instanceJson: string = new DirectiveJSONEncoder().encode(parsed);
+const instanceValue: unknown = new DirectiveJSONEncoder().encode(parsed);
 
 const tupleReducer: DirectiveReducer = DirectiveJSONEncoder.tupleReducer;
 const nestedReducer: DirectiveReducer = DirectiveJSONEncoder.nestedReducer;
@@ -60,19 +59,18 @@ const customReducer: DirectiveReducer = (accumulator, current, parent) => {
 };
 
 const encoderOptions: DirectiveJSONEncoderOptions = {
-  space: "  ",
   reducer: nestedReducer,
 };
 
 // --- "donly": DirectiveJSONDecoder (instance-only) ---
 
-const decoded: Directive[] = new DirectiveJSONDecoder().decode(staticJson);
+const decoded: Directive[] = new DirectiveJSONDecoder().decode(staticValue);
 
 // --- "donly/encoder" and "donly/decoder" re-export the same classes ---
 
 const encoderSame: boolean = EncoderOnly === DirectiveJSONEncoder;
 const decoderSame: boolean = DecoderOnly === DirectiveJSONDecoder;
-const encodedViaSubpath: string = new EncoderOnly().encode(parsed);
+const encodedViaSubpath: unknown = new EncoderOnly().encode(parsed);
 const decodedViaSubpath: Directive[] = new DecoderOnly().decode(
   encodedViaSubpath,
 );
@@ -91,9 +89,6 @@ new Directive("name", [{ bad: true }]);
 // @ts-expect-error the reducer option must be a function, null, or omitted
 DirectiveJSONEncoder.encode(parsed, { reducer: "nope" });
 
-// @ts-expect-error decode requires a string
-new DirectiveJSONDecoder().decode(123);
-
 // Silence unused-variable noise from the assertions above; nothing here runs.
 void [
   parseFn,
@@ -105,9 +100,9 @@ void [
   directiveWithHeredoc,
   heredocType,
   heredocContent,
-  staticJsonWithOptions,
-  staticJsonRawShape,
-  instanceJson,
+  staticValueWithOptions,
+  staticValueRawShape,
+  instanceValue,
   tupleReducer,
   customReducer,
   encoderOptions,

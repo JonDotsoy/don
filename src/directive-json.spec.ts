@@ -37,9 +37,9 @@ describe("DirectiveJSONEncoder.encode", () => {
   it("encodes a flat directive using the tuple reducer by default", () => {
     const directives = DON.parse('name "my-package"');
 
-    const json = DirectiveJSONEncoder.encode(directives);
+    const value = DirectiveJSONEncoder.encode(directives);
 
-    expect(JSON.parse(json)).toEqual({ name: "my-package" });
+    expect(value).toEqual({ name: "my-package" });
   });
 
   it("encodes nested directives using the tuple reducer by default", () => {
@@ -50,9 +50,9 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives);
+    const value = DirectiveJSONEncoder.encode(directives);
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: { host: "localhost", port: 8080 },
     });
   });
@@ -65,9 +65,9 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives, { reducer: null });
+    const value = DirectiveJSONEncoder.encode(directives, { reducer: null });
 
-    expect(JSON.parse(json)).toEqual([
+    expect(value).toEqual([
       {
         name: "server",
         args: [],
@@ -79,17 +79,6 @@ describe("DirectiveJSONEncoder.encode", () => {
     ]);
   });
 
-  it("accepts a space option like JSON.stringify", () => {
-    const directives = [new Directive("test", [])];
-
-    const json = DirectiveJSONEncoder.encode(directives, {
-      reducer: null,
-      space: 2,
-    });
-
-    expect(json).toBe(JSON.stringify([{ name: "test", args: [], children: [] }], null, 2));
-  });
-
   it("encodes with the tuple reducer into a keyed object", () => {
     const directives = DON.parse(""
       + "server {\n"
@@ -98,11 +87,11 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: { host: "localhost", port: 8080 },
     });
   });
@@ -115,11 +104,11 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: { port: 3000, get: ["/foo", 200, "OK"] },
     });
   });
@@ -137,11 +126,11 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: {
         port: 3000,
         get: [
@@ -155,11 +144,11 @@ describe("DirectiveJSONEncoder.encode", () => {
   it("encodes a complex server config with the tuple reducer", () => {
     const directives = DON.parse(complexServerConfig);
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: {
         port: 8080,
         host: "0.0.0.0",
@@ -197,11 +186,11 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.nestedReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: { port: 3000, get: { "/foo": { "200": "OK" } } },
     });
   });
@@ -209,11 +198,11 @@ describe("DirectiveJSONEncoder.encode", () => {
   it("encodes a complex server config with the nested reducer", () => {
     const directives = DON.parse(complexServerConfig);
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.nestedReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: {
         port: 8080,
         host: "0.0.0.0",
@@ -245,11 +234,11 @@ describe("DirectiveJSONEncoder.encode", () => {
       return acc;
     };
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: upperCaseNameReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({ NAME: ["my-package"] });
+    expect(value).toEqual({ NAME: ["my-package"] });
   });
 
   it("passes the parent directive as the reducer's 3rd argument, using the ROOT_DIRECTIVE_NAME sentinel at the top level", () => {
@@ -294,11 +283,11 @@ describe("DirectiveJSONEncoder.encode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: [
         { name: "web", port: 8080 },
         { name: "admin", port: 9090 },
@@ -331,11 +320,11 @@ describe("DirectiveJSONEncoder.encode", () => {
   it("encodes multiple root-level servers with the tuple reducer", () => {
     const directives = DON.parse(multiServerConfig);
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: [
         {
           name: "web",
@@ -358,11 +347,11 @@ describe("DirectiveJSONEncoder.encode", () => {
   it("encodes multiple root-level servers with the nested reducer", () => {
     const directives = DON.parse(multiServerConfig);
 
-    const json = DirectiveJSONEncoder.encode(directives, {
+    const value = DirectiveJSONEncoder.encode(directives, {
       reducer: DirectiveJSONEncoder.nestedReducer,
     });
 
-    expect(JSON.parse(json)).toEqual({
+    expect(value).toEqual({
       server: [
         {
           name: "web",
@@ -384,10 +373,10 @@ describe("DirectiveJSONEncoder.encode", () => {
 });
 
 describe("DirectiveJSONDecoder#decode", () => {
-  it("decodes a flat directive from JSON", () => {
-    const json = JSON.stringify([{ name: "name", args: ["my-package"], children: [] }]);
+  it("decodes a flat directive from a lossless array shape", () => {
+    const value = [{ name: "name", args: ["my-package"], children: [] }];
 
-    const directives = new DirectiveJSONDecoder().decode(json);
+    const directives = new DirectiveJSONDecoder().decode(value);
 
     expect(directives).toHaveLength(1);
     expect(directives[0]).toBeInstanceOf(Directive);
@@ -395,8 +384,8 @@ describe("DirectiveJSONDecoder#decode", () => {
     expect(directives[0]!.args).toEqual(["my-package"]);
   });
 
-  it("decodes nested directives from JSON", () => {
-    const json = JSON.stringify([
+  it("decodes nested directives from a lossless array shape", () => {
+    const value = [
       {
         name: "server",
         args: [],
@@ -405,9 +394,9 @@ describe("DirectiveJSONDecoder#decode", () => {
           { name: "port", args: [8080], children: [] },
         ],
       },
-    ]);
+    ];
 
-    const directives = new DirectiveJSONDecoder().decode(json);
+    const directives = new DirectiveJSONDecoder().decode(value);
 
     expect(directives[0]!.children).toHaveLength(2);
     expect(directives[0]!.children[0]).toBeInstanceOf(Directive);
@@ -423,8 +412,8 @@ describe("DirectiveJSONDecoder#decode", () => {
       + "}\n";
 
     const original = DON.parse(text);
-    const json = DirectiveJSONEncoder.encode(original);
-    const decoded = new DirectiveJSONDecoder().decode(json);
+    const value = DirectiveJSONEncoder.encode(original);
+    const decoded = new DirectiveJSONDecoder().decode(value);
 
     expect(decoded).toEqual(original);
   });
@@ -438,8 +427,8 @@ describe("DirectiveJSONDecoder#decode", () => {
       + "}\n";
 
     const original = DON.parse(text);
-    const json = DirectiveJSONEncoder.encode(original, { reducer: null });
-    const decoded = new DirectiveJSONDecoder().decode(json);
+    const value = DirectiveJSONEncoder.encode(original, { reducer: null });
+    const decoded = new DirectiveJSONDecoder().decode(value);
 
     expect(decoded).toEqual(original);
     expect(decoded[0]!.children[0]!.args[0]).toBeInstanceOf(HeredocValue);
@@ -453,8 +442,8 @@ describe("DirectiveJSONDecoder#decode", () => {
       + "}\n";
 
     const original = DON.parse(text);
-    const json = DirectiveJSONEncoder.encode(original);
-    const decoded = new DirectiveJSONDecoder().decode(json);
+    const value = DirectiveJSONEncoder.encode(original);
+    const decoded = new DirectiveJSONDecoder().decode(value);
 
     expect(decoded[0]!.children[0]!.args[0]).toEqual(
       new HeredocValue("HTML", "<html></html>\n"),
@@ -462,9 +451,9 @@ describe("DirectiveJSONDecoder#decode", () => {
   });
 
   it("decodes a reduced (object) JSON shape back into directives", () => {
-    const json = JSON.stringify({ server: { host: "localhost", port: 8080 } });
+    const value = { server: { host: "localhost", port: 8080 } };
 
-    const directives = new DirectiveJSONDecoder().decode(json);
+    const directives = new DirectiveJSONDecoder().decode(value);
 
     expect(directives).toHaveLength(1);
     expect(directives[0]).toBeInstanceOf(Directive);
@@ -485,10 +474,10 @@ describe("DirectiveJSONDecoder#decode", () => {
       + "}\n"
     );
 
-    const json = DirectiveJSONEncoder.encode(original, {
+    const value = DirectiveJSONEncoder.encode(original, {
       reducer: DirectiveJSONEncoder.tupleReducer,
     });
-    const decoded = new DirectiveJSONDecoder().decode(json);
+    const decoded = new DirectiveJSONDecoder().decode(value);
 
     expect(decoded).toEqual(original);
   });
@@ -510,17 +499,17 @@ describe("DirectiveJSONDecoder#decode", () => {
   });
 
   it("throws on an array value mixing objects with a reduced directive", () => {
-    const json = JSON.stringify({ server: [{ host: "localhost" }] });
+    const value = { server: [{ host: "localhost" }] };
 
-    expect(() => new DirectiveJSONDecoder().decode(json)).toThrow();
+    expect(() => new DirectiveJSONDecoder().decode(value)).toThrow();
   });
 
   it("throws on a top-level JSON value that is neither an array nor an object", () => {
-    expect(() => new DirectiveJSONDecoder().decode(JSON.stringify("nope"))).toThrow();
+    expect(() => new DirectiveJSONDecoder().decode("nope")).toThrow();
   });
 
   it("throws when a directive is missing required fields", () => {
-    expect(() => new DirectiveJSONDecoder().decode(JSON.stringify([{ args: [], children: [] }])))
+    expect(() => new DirectiveJSONDecoder().decode([{ args: [], children: [] }]))
       .toThrow();
   });
 });
