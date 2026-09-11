@@ -124,7 +124,7 @@ dependencies {
 }
 `);
 
-const result = JSON.parse(DirectiveJSONEncoder.encode(directives));
+const result = DirectiveJSONEncoder.encode(directives);
 -->
 
 ```json
@@ -175,9 +175,7 @@ server {
 }
 `);
 
-const result = JSON.parse(
-  DirectiveJSONEncoder.encode(directives, { reducer: DirectiveJSONEncoder.nestedReducer }),
-);
+const result = DirectiveJSONEncoder.encode(directives, { reducer: DirectiveJSONEncoder.nestedReducer });
 -->
 
 ```json
@@ -231,11 +229,9 @@ server {
 }
 `);
 
-const encoded = JSON.parse(
-  DirectiveJSONEncoder.encode(directives, {
-    reducer: DirectiveJSONEncoder.nestedReducer,
-  }),
-);
+const encoded = DirectiveJSONEncoder.encode(directives, {
+  reducer: DirectiveJSONEncoder.nestedReducer,
+});
 // ? const encoded = {
 //   server: {
 //     router: [

@@ -110,15 +110,15 @@ server {
 `);
 
 const encoded = DirectiveJSONEncoder.encode(directives);
-// ? const encoded = "{\"server\":[{\"host\":\"localhost\",\"port\":8080},{\"host\":\"127.0.0.1\",\"port\":9090}]}"
+// ? const encoded = { server: [{ host: "localhost", port: 8080 }, { host: "127.0.0.1", port: 9090 }] }
 ```
 
-`DirectiveJSONDecoder` reverses this back into `Directive` instances:
+`DirectiveJSONEncoder.encode` returns a plain JS value (object or array), not a JSON string — pass it to `JSON.stringify` yourself if you need text. `DirectiveJSONDecoder` reverses this back into `Directive` instances, and likewise takes a plain JS value rather than a JSON string:
 
 ```ts
 import { DON, DirectiveJSONDecoder, DirectiveJSONEncoder } from "donly";
 
-const json = DirectiveJSONEncoder.encode(
+const encoded = DirectiveJSONEncoder.encode(
   DON.parse(`
 server {
   host "localhost"
@@ -127,7 +127,7 @@ server {
 `),
 );
 
-const decoded = new DirectiveJSONDecoder().decode(json);
+const decoded = new DirectiveJSONDecoder().decode(encoded);
 // ? const decoded = [
 //   Directive {
 //     name: "server",

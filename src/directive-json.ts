@@ -184,7 +184,6 @@ export const directiveToJSON = (directive: Directive): unknown =>
   reduceDirectives([directive], tupleReducer);
 
 export interface DirectiveJSONEncoderOptions {
-  space?: string | number;
   /**
    * Defaults to `tupleReducer`. Pass `null` to get the lossless
    * {name, args, children} array shape instead of a reduced object.
@@ -199,20 +198,18 @@ export class DirectiveJSONEncoder {
   encode(
     directives: Directive[],
     options: DirectiveJSONEncoderOptions = {},
-  ): string {
-    const { space, reducer = tupleReducer } = options;
+  ): unknown {
+    const { reducer = tupleReducer } = options;
 
-    const value = reducer
+    return reducer
       ? reduceDirectives(directives, reducer)
       : directives.map(toDirectiveJSON);
-
-    return JSON.stringify(value, null, space);
   }
 
   static encode(
     directives: Directive[],
     options: DirectiveJSONEncoderOptions = {},
-  ): string {
+  ): unknown {
     return new DirectiveJSONEncoder().encode(directives, options);
   }
 }
@@ -252,9 +249,7 @@ const toDirectiveFromReducedEntry = ([name, value]: [
 };
 
 export class DirectiveJSONDecoder {
-  decode(json: string): Directive[] {
-    const value = JSON.parse(json);
-
+  decode(value: unknown): Directive[] {
     if (Array.isArray(value)) {
       return value.map(toDirective);
     }
