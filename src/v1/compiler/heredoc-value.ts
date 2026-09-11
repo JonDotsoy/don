@@ -66,7 +66,8 @@ const dedent = (content: string): string => {
   for (const line of lines) {
     if (line.trim() === "") continue;
     const leadingWhitespace = line.match(/^[ \t]*/)?.[0].length ?? 0;
-    if (margin === null || leadingWhitespace < margin) margin = leadingWhitespace;
+    if (margin === null || leadingWhitespace < margin)
+      margin = leadingWhitespace;
   }
 
   if (!margin) return content;

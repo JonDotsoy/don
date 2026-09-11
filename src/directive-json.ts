@@ -75,7 +75,11 @@ const toDirective = (value: unknown): Directive => {
     );
   }
 
-  return new Directive(name, args.map(toDirectiveArg), children.map(toDirective));
+  return new Directive(
+    name,
+    args.map(toDirectiveArg),
+    children.map(toDirective),
+  );
 };
 
 /**
