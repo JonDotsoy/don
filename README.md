@@ -45,6 +45,10 @@ console.log(database?.children.map((c) => [c.name, c.args]));
 // [["host", ["localhost"]], ["port", [5432]]]
 ```
 
+For nested lookups like this, `Directive#findFirst`/`Directive#at` (see
+[Querying Directives](#querying-directives) below) are usually more direct
+than walking `children` by hand — e.g. `root.findFirst("/database")`.
+
 Each `Directive` has:
 
 - `name: string | symbol` — the directive's identifier
@@ -83,6 +87,78 @@ server {
 ```
 
 See [`docs/specs/v1/spec.md`](./docs/specs/v1/spec.md) for the full language specification.
+
+## Querying Directives
+
+Instead of walking `children` by hand, `Directive` exposes path-based lookups — `/server/router` walks down by directive name, one segment per level:
+
+```ts
+import { DON } from "donly";
+
+const doc = DON.parse(`
+server {
+  router /users {
+    respond 200 "Ok"
+  }
+  router /user/:user_id {
+    respond 200 "Ok"
+  }
+  router /admin {
+    respond 403 "Forbidden"
+  }
+}
+`);
+
+const routers = doc.findAll("/server/router");
+console.log(routers.map(([path]) => path));
+// ["/users", "/user/:user_id", "/admin"]
+
+const firstRouter = doc.findFirst("/server/router");
+console.log(firstRouter?.args);
+// ["/users"]
+```
+
+`findAll` returns a `ResultMatchDirectives` — a plain `Array<Directive>` (`forEach`, `length`, `[0]`, `instanceof Array`, ...), except its `map` applies `fn(args, directive)` to each match (as above) instead of `fn(directive)`. `Directive#map` does the same for a single directive, and hands back the directive itself so you can keep chaining `findAll`/`findFirst`:
+
+```ts
+const responses = doc
+  .findAll("/server/router")
+  .map(([path], router) =>
+    router
+      .findAll("/respond")
+      .map(([statusCode, status]) => ({ statusCode, status })),
+  );
+// [
+//   [{ statusCode: 200, status: "Ok" }],
+//   [{ statusCode: 200, status: "Ok" }],
+//   [{ statusCode: 403, status: "Forbidden" }],
+// ]
+```
+
+A path segment can also filter by its positional `args` with `name[value, ...]` — useful to jump straight to one match:
+
+```ts
+const usersRouter = doc.findFirst("/server/router[/users]");
+console.log(usersRouter?.args);
+// ["/users"]
+```
+
+For flat configuration values, `Directive#at` behaves like `findFirst`, but a trailing `[N]` on the last segment extracts that directive's Nth argument (1-indexed) directly instead of the `Directive` itself. `Directive#reduce(fn)` (`fn(this)`) lets you pipe a located directive straight into a transform:
+
+```ts
+const config = DON.parse(`
+server {
+  port 3000
+  host "localhost"
+}
+`);
+
+const serverOptions = config.at("/server")!.reduce((directive) => ({
+  port: directive.at("/port[1]") ?? 3000,
+  host: directive.at("/host[1]") ?? "localhost",
+}));
+// { port: 3000, host: "localhost" }
+```
 
 ## JSON Serialization
 
