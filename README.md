@@ -23,7 +23,7 @@ bun add donly
 
 ## Usage
 
-Parse a DON document into an array of `Directive` objects:
+Parse a DON document into a `Directive`:
 
 ```ts
 import { DON } from "donly";
@@ -38,21 +38,30 @@ database {
 }
 `;
 
-const directives = DON.parse(text);
+const root = DON.parse(text);
 
-console.log(directives[0].name); // "name"
-console.log(directives[0].args); // ["my-app"]
-
-const database = directives.find((d) => d.name === "database");
+const database = root.children.find((d) => d.name === "database");
 console.log(database?.children.map((c) => [c.name, c.args]));
 // [["host", ["localhost"]], ["port", [5432]]]
 ```
 
 Each `Directive` has:
 
-- `name: string` — the directive's identifier
+- `name: string | symbol` — the directive's identifier
 - `args: (number | string | boolean)[]` — the directive's arguments
 - `children: Directive[]` — nested subdirectives
+
+`DON.parse()` always returns a single `Directive`:
+
+- **No top-level directives** (empty input, or only comments) → an empty
+  root `Directive` (`name: ROOT_DIRECTIVE_NAME`, `children: []`).
+- **Exactly one** top-level directive → that `Directive` itself, unwrapped
+  (e.g. `DON.parse('host "localhost"')` → `Directive{name:"host", args:["localhost"]}`).
+- **Two or more** top-level directives → wrapped in a synthetic root
+  `Directive` (`name: ROOT_DIRECTIVE_NAME`) with them as `children`, as in
+  the example above.
+
+`ROOT_DIRECTIVE_NAME` is exported from `donly` — check `directive.name === ROOT_DIRECTIVE_NAME` to detect a synthetic root.
 
 ## Example
 
@@ -82,23 +91,23 @@ See [`docs/specs/v1/spec.md`](./docs/specs/v1/spec.md) for the full language spe
 ```ts
 import { DON } from "donly";
 
-const directives = DON.parse(`
+const directive = DON.parse(`
 server {
   host "localhost"
   port 8080
 }
 `);
 
-const encoded = JSON.stringify(directives);
-// ? const encoded = "[{\"server\":{\"host\":\"localhost\",\"port\":8080}}]"
+const encoded = JSON.stringify(directive);
+// ? const encoded = "{\"server\":{\"host\":\"localhost\",\"port\":8080}}"
 ```
 
-Since `JSON.stringify` calls `toJSON()` on each array element independently, the result is one `{name: value}` object per top-level directive — it does not merge directives that share a name. For that (and for more control over the output shape — a lossless array form, or nesting args as object keys instead of `[...args, children]`), use `DirectiveJSONEncoder` directly:
+For multiple top-level directives, `DON.parse()` returns a synthetic root — `JSON.stringify` on it merges each top-level directive into one object, keyed by name (it does not merge directives that share a name; see `DirectiveJSONEncoder` below for that). For more control over the output shape (a lossless array form, or nesting args as object keys instead of `[...args, children]`), use `DirectiveJSONEncoder` directly — it accepts a single `Directive` or a `Directive[]`, so pass a `DON.parse()` result straight through (a synthetic root's `children` are merged the same way `JSON.stringify` merges them):
 
 ```ts
 import { DON, DirectiveJSONEncoder } from "donly";
 
-const directives = DON.parse(`
+const root = DON.parse(`
 server {
   host "localhost"
   port 8080
@@ -109,11 +118,21 @@ server {
 }
 `);
 
-const encoded = DirectiveJSONEncoder.encode(directives);
-// ? const encoded = { server: [{ host: "localhost", port: 8080 }, { host: "127.0.0.1", port: 9090 }] }
+const encoded = DirectiveJSONEncoder.encode(root);
+// ? const encoded = {
+//   server: [
+//     {
+//       host: "localhost",
+//       port: 8080,
+//     }, {
+//       host: "127.0.0.1",
+//       port: 9090,
+//     }
+//   ],
+// }
 ```
 
-`DirectiveJSONEncoder.encode` returns a plain JS value (object or array), not a JSON string — pass it to `JSON.stringify` yourself if you need text. `DirectiveJSONDecoder` reverses this back into `Directive` instances, and likewise takes a plain JS value rather than a JSON string:
+`DirectiveJSONEncoder.encode` returns a plain JS value (object or array), not a JSON string — pass it to `JSON.stringify` yourself if you need text. `DirectiveJSONDecoder` reverses this back into a `Directive` (following the same single/wrapped-root rule as `DON.parse()`), and likewise takes a plain JS value rather than a JSON string — so `decoder.decode(encoder.encode(x))` round-trips back to (a deep-equal copy of) `x`:
 
 ```ts
 import { DON, DirectiveJSONDecoder, DirectiveJSONEncoder } from "donly";
@@ -128,23 +147,21 @@ server {
 );
 
 const decoded = new DirectiveJSONDecoder().decode(encoded);
-// ? const decoded = [
-//   Directive {
-//     name: "server",
-//     args: [],
-//     children: [
-//       Directive {
-//         name: "host",
-//         args: [ "localhost" ],
-//         children: [],
-//       }, Directive {
-//         name: "port",
-//         args: [ 8080 ],
-//         children: [],
-//       }
-//     ],
-//   }
-// ]
+// ? const decoded = Directive {
+//   name: "server",
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "host",
+//       args: [ "localhost" ],
+//       children: [],
+//     }, Directive {
+//       name: "port",
+//       args: [ 8080 ],
+//       children: [],
+//     }
+//   ],
+// }
 ```
 
 ## Development

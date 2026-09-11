@@ -14,7 +14,10 @@ export class DocumentNode {
     const first = nodes.at(0);
     const last = nodes.at(-1);
 
-    if (!first || !last) throw new Error("nodes cannot be empty");
+    if (!first || !last) {
+      const emptyLocation = { paddingLine: 0, line: 0, column: 0 };
+      return new DocumentNode([], new Span(0, 0, emptyLocation, emptyLocation));
+    }
 
     return new DocumentNode(
       nodes,

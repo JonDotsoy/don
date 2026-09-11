@@ -19,26 +19,24 @@ import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
 
 // "donly"
-const directives = DON.parse('name "example"');
-assert.equal(directives.length, 1);
-assert.ok(directives[0] instanceof Directive);
-assert.equal(directives[0].name, "name");
-assert.deepEqual(directives[0].args, ["example"]);
+const directive = DON.parse('name "example"');
+assert.ok(directive instanceof Directive);
+assert.equal(directive.name, "name");
+assert.deepEqual(directive.args, ["example"]);
 assert.equal(typeof DirectiveJSONEncoder.encode, "function");
 assert.equal(typeof DirectiveJSONDecoder, "function");
 
 // "donly/encoder"
 assert.equal(EncoderOnly, DirectiveJSONEncoder);
-const encoded = new EncoderOnly().encode(directives);
+const encoded = new EncoderOnly().encode(directive);
 assert.deepEqual(encoded, { name: "example" });
 
 // "donly/decoder"
 assert.equal(DecoderOnly, DirectiveJSONDecoder);
 const decoded = new DecoderOnly().decode(encoded);
-assert.equal(decoded.length, 1);
-assert.ok(decoded[0] instanceof Directive);
-assert.equal(decoded[0].name, "name");
-assert.deepEqual(decoded[0].args, ["example"]);
+assert.ok(decoded instanceof Directive);
+assert.equal(decoded.name, "name");
+assert.deepEqual(decoded.args, ["example"]);
 
 console.log(
   `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder" and "donly/decoder" all resolve and work.`,

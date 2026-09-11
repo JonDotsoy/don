@@ -1,4 +1,18 @@
 import { Directive, HeredocValue } from "./don.js";
+import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
+
+export { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
+
+/**
+ * Collapses a list of top-level directives into the single-Directive shape
+ * `DON.parse()` and `DirectiveJSONDecoder#decode()` both return: the lone
+ * directive itself when there's exactly one, otherwise a synthetic root
+ * (name: ROOT_DIRECTIVE_NAME) wrapping them all as `children`.
+ */
+export const wrapAsRoot = (directives: Directive[]): Directive =>
+  directives.length === 1
+    ? directives[0]!
+    : new Directive(ROOT_DIRECTIVE_NAME, [], directives);
 
 type HeredocJSON = { delimiter: string | null; content: string };
 
@@ -84,13 +98,6 @@ const toDirective = (value: unknown): Directive => {
     children.map(toDirective),
   );
 };
-
-/**
- * Sentinel used as the synthetic parent of root-level directives, so a
- * reducer's `parent` argument is always a real Directive: check
- * `parent.name === ROOT_DIRECTIVE_NAME` to detect the top level.
- */
-export const ROOT_DIRECTIVE_NAME = Symbol("root");
 
 export type DirectiveReducer<T = Record<string, unknown>> = (
   accumulator: T,
@@ -182,9 +189,16 @@ const reduceDirectives = (
 /**
  * Reduces a single Directive to the plain JSON value `Directive#toJSON`
  * returns, using the same default (`tupleReducer`) shape as `encode()`.
+ *
+ * A directive whose `name` is `ROOT_DIRECTIVE_NAME` is itself a synthetic
+ * root (e.g. what `DON.parse()` returns for multiple top-level directives)
+ * — reduce over its `children` directly instead of wrapping it in another
+ * root, since its own (symbol) name can't be used as a JSON key.
  */
 export const directiveToJSON = (directive: Directive): unknown =>
-  reduceDirectives([directive], tupleReducer);
+  directive.name === ROOT_DIRECTIVE_NAME
+    ? reduceDirectives(directive.children, tupleReducer)
+    : reduceDirectives([directive], tupleReducer);
 
 export interface DirectiveJSONEncoderOptions {
   /**
@@ -199,18 +213,23 @@ export class DirectiveJSONEncoder {
   static readonly nestedReducer = nestedReducer;
 
   encode(
-    directives: Directive[],
+    directives: Directive | Directive[],
     options: DirectiveJSONEncoderOptions = {},
   ): unknown {
     const { reducer = tupleReducer } = options;
+    const directiveList = Array.isArray(directives)
+      ? directives
+      : directives.name === ROOT_DIRECTIVE_NAME
+        ? directives.children
+        : [directives];
 
     return reducer
-      ? reduceDirectives(directives, reducer)
-      : directives.map(toDirectiveJSON);
+      ? reduceDirectives(directiveList, reducer)
+      : directiveList.map(toDirectiveJSON);
   }
 
   static encode(
-    directives: Directive[],
+    directives: Directive | Directive[],
     options: DirectiveJSONEncoderOptions = {},
   ): unknown {
     return new DirectiveJSONEncoder().encode(directives, options);
@@ -252,19 +271,13 @@ const toDirectiveFromReducedEntry = ([name, value]: [
 };
 
 export class DirectiveJSONDecoder {
-  decode(value: unknown): Directive[] {
+  decode(value: unknown): Directive {
     if (Array.isArray(value)) {
-      return value.map(toDirective);
+      return wrapAsRoot(value.map(toDirective));
     }
 
     if (isPlainObject(value)) {
-      const root = new Directive(
-        ROOT_DIRECTIVE_NAME,
-        [],
-        Object.entries(value).map(toDirectiveFromReducedEntry),
-      );
-
-      return root.children;
+      return wrapAsRoot(Object.entries(value).map(toDirectiveFromReducedEntry));
     }
 
     throw new Error(

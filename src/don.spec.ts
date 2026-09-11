@@ -1,30 +1,43 @@
 import { describe, it, expect } from "bun:test";
 import { DON, Directive, HeredocValue } from "./don";
+import { ROOT_DIRECTIVE_NAME } from "./directive-json";
 import { donToParts } from "./index";
 
 describe("DON.parse", () => {
+  it("should return an empty root Directive for empty input", () => {
+    const result = DON.parse("");
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(result.args).toEqual([]);
+    expect(result.children).toEqual([]);
+  });
+
+  it("should return an empty root Directive for comment-only input", () => {
+    const result = DON.parse("# just a comment\n");
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(result.args).toEqual([]);
+    expect(result.children).toEqual([]);
+  });
+
   it('should parse "test" and return a Directive with name "test"', () => {
     const result = DON.parse("test");
 
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toBeInstanceOf(Directive);
-    expect(result[0]!.name).toBe("test");
+    expect(result).toBeInstanceOf(Directive);
+    expect(result.name).toBe("test");
   });
 
   it('should parse identifiers with square brackets', () => {
     const result = DON.parse("[name]");
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toBeInstanceOf(Directive);
-    expect(result[0]!.name).toBe("[name]");
+    expect(result).toBeInstanceOf(Directive);
+    expect(result.name).toBe("[name]");
   });
 
   it('should parse identifiers mixing hyphen and square brackets', () => {
     const result = DON.parse("my-[age]");
 
-    expect(result).toHaveLength(1);
-    expect(result[0]!.name).toBe("my-[age]");
+    expect(result.name).toBe("my-[age]");
   });
 
   it('should parse a bracketed identifier directive with a block', () => {
@@ -34,11 +47,10 @@ describe("DON.parse", () => {
       + "}\n"
     );
 
-    expect(result).toHaveLength(1);
-    expect(result[0]!.name).toBe("route-[id]");
-    expect(result[0]!.children).toHaveLength(1);
-    expect(result[0]!.children[0]!.name).toBe("handler");
-    expect(result[0]!.children[0]!.args).toEqual(["process"]);
+    expect(result.name).toBe("route-[id]");
+    expect(result.children).toHaveLength(1);
+    expect(result.children[0]!.name).toBe("handler");
+    expect(result.children[0]!.args).toEqual(["process"]);
   });
 
   it('should parse "foo biz true 1 {tar true}"', () => {
@@ -48,13 +60,11 @@ describe("DON.parse", () => {
       + "}\n"
     );
 
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toBeInstanceOf(Directive);
-    expect(result[0]!.name).toBe("foo");
-    expect(result[0]!.args).toEqual(["biz", true, 1]);
-    expect(result[0]!.children[0]!.name).toEqual("tar");
-    expect(result[0]!.children[0]!.args).toEqual([true]);
+    expect(result).toBeInstanceOf(Directive);
+    expect(result.name).toBe("foo");
+    expect(result.args).toEqual(["biz", true, 1]);
+    expect(result.children[0]!.name).toEqual("tar");
+    expect(result.children[0]!.args).toEqual([true]);
   });
 
   it('should parse multiple directives with strings and nested objects', () => {
@@ -65,30 +75,30 @@ describe("DON.parse", () => {
       + '  zod ">=1"\n'
       + '  react ">=5"\n'
       + '}\n';
-    
+
     const result = DON.parse(text);
-    
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(3);
-    
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(result.children).toHaveLength(3);
+
     // First directive: name "@tar"
-    expect(result[0]).toBeInstanceOf(Directive);
-    expect(result[0]!.name).toBe("name");
-    expect(result[0]!.args).toEqual(['@tar']);
-    
+    expect(result.children[0]).toBeInstanceOf(Directive);
+    expect(result.children[0]!.name).toBe("name");
+    expect(result.children[0]!.args).toEqual(['@tar']);
+
     // Second directive: describe "A simple package manager for Node.js projects"
-    expect(result[1]).toBeInstanceOf(Directive);
-    expect(result[1]!.name).toBe("describe");
-    expect(result[1]!.args).toEqual(['A simple package manager for Node.js projects']);
-    
+    expect(result.children[1]).toBeInstanceOf(Directive);
+    expect(result.children[1]!.name).toBe("describe");
+    expect(result.children[1]!.args).toEqual(['A simple package manager for Node.js projects']);
+
     // Third directive: dependencies { zod ">=1" react ">=5" }
-    expect(result[2]).toBeInstanceOf(Directive);
-    expect(result[2]!.name).toBe("dependencies");
-    expect(result[2]!.children).toHaveLength(2);
-    expect(result[2]!.children[0]!.name).toBe("zod");
-    expect(result[2]!.children[0]!.args).toEqual(['>=1']);
-    expect(result[2]!.children[1]!.name).toBe("react");
-    expect(result[2]!.children[1]!.args).toEqual(['>=5']);
+    expect(result.children[2]).toBeInstanceOf(Directive);
+    expect(result.children[2]!.name).toBe("dependencies");
+    expect(result.children[2]!.children).toHaveLength(2);
+    expect(result.children[2]!.children[0]!.name).toBe("zod");
+    expect(result.children[2]!.children[0]!.args).toEqual(['>=1']);
+    expect(result.children[2]!.children[1]!.name).toBe("react");
+    expect(result.children[2]!.children[1]!.args).toEqual(['>=5']);
   });
 
   it('should parse directives with inline comments', () => {
@@ -101,30 +111,30 @@ describe("DON.parse", () => {
       + '  host "localhost" # DB host\n'
       + '  port 5432\n'
       + '}\n';
-    
+
     const result = DON.parse(text);
-    
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(3);
-    
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(result.children).toHaveLength(3);
+
     // First directive: name "my-app"
-    expect(result[0]).toBeInstanceOf(Directive);
-    expect(result[0]!.name).toBe("name");
-    expect(result[0]!.args).toEqual(['my-app']);
-    
+    expect(result.children[0]).toBeInstanceOf(Directive);
+    expect(result.children[0]!.name).toBe("name");
+    expect(result.children[0]!.args).toEqual(['my-app']);
+
     // Second directive: port 8080
-    expect(result[1]).toBeInstanceOf(Directive);
-    expect(result[1]!.name).toBe("port");
-    expect(result[1]!.args).toEqual([8080]);
-    
+    expect(result.children[1]).toBeInstanceOf(Directive);
+    expect(result.children[1]!.name).toBe("port");
+    expect(result.children[1]!.args).toEqual([8080]);
+
     // Third directive: database { host "localhost" port 5432 }
-    expect(result[2]).toBeInstanceOf(Directive);
-    expect(result[2]!.name).toBe("database");
-    expect(result[2]!.children).toHaveLength(2);
-    expect(result[2]!.children[0]!.name).toBe("host");
-    expect(result[2]!.children[0]!.args).toEqual(['localhost']);
-    expect(result[2]!.children[1]!.name).toBe("port");
-    expect(result[2]!.children[1]!.args).toEqual([5432]);
+    expect(result.children[2]).toBeInstanceOf(Directive);
+    expect(result.children[2]!.name).toBe("database");
+    expect(result.children[2]!.children).toHaveLength(2);
+    expect(result.children[2]!.children[0]!.name).toBe("host");
+    expect(result.children[2]!.children[0]!.args).toEqual(['localhost']);
+    expect(result.children[2]!.children[1]!.name).toBe("port");
+    expect(result.children[2]!.children[1]!.args).toEqual([5432]);
   });
 
   it('should parse directives with block comments', () => {
@@ -139,25 +149,25 @@ describe("DON.parse", () => {
       + '  host "0.0.0.0" /* Listen on all interfaces */\n'
       + '  port 8080\n'
       + '}\n';
-    
+
     const result = DON.parse(text);
-    
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(2);
-    
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(result.children).toHaveLength(2);
+
     // First directive: name "my-app"
-    expect(result[0]).toBeInstanceOf(Directive);
-    expect(result[0]!.name).toBe("name");
-    expect(result[0]!.args).toEqual(['my-app']);
-    
+    expect(result.children[0]).toBeInstanceOf(Directive);
+    expect(result.children[0]!.name).toBe("name");
+    expect(result.children[0]!.args).toEqual(['my-app']);
+
     // Second directive: server { host "0.0.0.0" port 8080 }
-    expect(result[1]).toBeInstanceOf(Directive);
-    expect(result[1]!.name).toBe("server");
-    expect(result[1]!.children).toHaveLength(2);
-    expect(result[1]!.children[0]!.name).toBe("host");
-    expect(result[1]!.children[0]!.args).toEqual(['0.0.0.0']);
-    expect(result[1]!.children[1]!.name).toBe("port");
-    expect(result[1]!.children[1]!.args).toEqual([8080]);
+    expect(result.children[1]).toBeInstanceOf(Directive);
+    expect(result.children[1]!.name).toBe("server");
+    expect(result.children[1]!.children).toHaveLength(2);
+    expect(result.children[1]!.children[0]!.name).toBe("host");
+    expect(result.children[1]!.children[0]!.args).toEqual(['0.0.0.0']);
+    expect(result.children[1]!.children[1]!.name).toBe("port");
+    expect(result.children[1]!.children[1]!.args).toEqual([8080]);
   });
 
   it('should parse a heredoc argument into a HeredocValue', () => {
@@ -171,7 +181,7 @@ describe("DON.parse", () => {
       + "}\n"
     );
 
-    const response = result[0]!.children[0]!;
+    const response = result.children[0]!;
     expect(response.name).toBe("response");
     expect(response.args[0]).toBeInstanceOf(HeredocValue);
     expect(response.args[0]).toEqual(
@@ -181,7 +191,7 @@ describe("DON.parse", () => {
     // A heredoc always spans to the end of its own (dedented) line, so
     // whatever follows at the same indentation is a sibling directive,
     // not another arg of `response`.
-    const handler = result[0]!.children[1]!;
+    const handler = result.children[1]!;
     expect(handler.name).toBe("handler");
     expect(handler.args).toEqual([]);
   });
@@ -192,7 +202,7 @@ describe("DON.parse", () => {
       + "    npm ci\n"
     );
 
-    expect(result[0]!.args[0]).toEqual(new HeredocValue(null, "npm ci\n"));
+    expect(result.args[0]).toEqual(new HeredocValue(null, "npm ci\n"));
   });
 });
 
@@ -200,9 +210,9 @@ describe("JSON.stringify(DON.parse(...))", () => {
   it('serializes a flat directive using Directive#toJSON', () => {
     const result = DON.parse('name "my-package"');
 
-    expect(JSON.parse(JSON.stringify(result))).toEqual([
-      { name: "my-package" },
-    ]);
+    expect(JSON.parse(JSON.stringify(result))).toEqual({
+      name: "my-package",
+    });
   });
 
   it('serializes nested directives using Directive#toJSON', () => {
@@ -213,12 +223,12 @@ describe("JSON.stringify(DON.parse(...))", () => {
       + "}\n"
     );
 
-    expect(JSON.parse(JSON.stringify(result))).toEqual([
-      { server: { host: "localhost", port: 8080 } },
-    ]);
+    expect(JSON.parse(JSON.stringify(result))).toEqual({
+      server: { host: "localhost", port: 8080 },
+    });
   });
 
-  it('serializes multiple directives, one object per array entry', () => {
+  it('serializes multiple top-level directives into one merged object', () => {
     const result = DON.parse(""
       + 'name "@tar"\n'
       + "dependencies {\n"
@@ -226,10 +236,10 @@ describe("JSON.stringify(DON.parse(...))", () => {
       + "}\n"
     );
 
-    expect(JSON.parse(JSON.stringify(result))).toEqual([
-      { name: "@tar" },
-      { dependencies: { zod: ">=1" } },
-    ]);
+    expect(JSON.parse(JSON.stringify(result))).toEqual({
+      name: "@tar",
+      dependencies: { zod: ">=1" },
+    });
   });
 
   it('serializes a HeredocValue arg as a { delimiter, content } object', () => {
@@ -241,14 +251,12 @@ describe("JSON.stringify(DON.parse(...))", () => {
       + "}\n"
     );
 
-    expect(JSON.parse(JSON.stringify(result))).toEqual([
-      {
-        server: {
-          response: { delimiter: "HTML", content: "<html></html>\n" },
-          handler: [],
-        },
+    expect(JSON.parse(JSON.stringify(result))).toEqual({
+      server: {
+        response: { delimiter: "HTML", content: "<html></html>\n" },
+        handler: [],
       },
-    ]);
+    });
   });
 });
 
