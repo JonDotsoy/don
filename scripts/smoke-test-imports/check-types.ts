@@ -36,7 +36,7 @@ const directiveJSON: unknown = directive.toJSON();
 
 const heredoc: HeredocValue = new HeredocValue("HTML", "<div></div>\n");
 const directiveWithHeredoc: Directive = new Directive("name", [heredoc]);
-const heredocType: string = heredoc.type;
+const heredocDelimiter: string | null = heredoc.delimiter;
 const heredocContent: string = heredoc.content;
 
 // --- "donly": DirectiveJSONEncoder (static + instance) ---
@@ -98,7 +98,7 @@ void [
   directiveChildren,
   directiveJSON,
   directiveWithHeredoc,
-  heredocType,
+  heredocDelimiter,
   heredocContent,
   staticValueWithOptions,
   staticValueRawShape,

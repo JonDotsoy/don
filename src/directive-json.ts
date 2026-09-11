@@ -1,6 +1,6 @@
 import { Directive, HeredocValue } from "./don.js";
 
-type HeredocJSON = { type: string; content: string };
+type HeredocJSON = { delimiter: string | null; content: string };
 
 interface DirectiveJSON {
   name: string;
@@ -11,7 +11,8 @@ interface DirectiveJSON {
 const isHeredocJSON = (value: unknown): value is HeredocJSON =>
   typeof value === "object" &&
   value !== null &&
-  typeof (value as HeredocJSON).type === "string" &&
+  (typeof (value as HeredocJSON).delimiter === "string" ||
+    (value as HeredocJSON).delimiter === null) &&
   typeof (value as HeredocJSON).content === "string";
 
 const isDirectiveArg = (
@@ -25,7 +26,9 @@ const isDirectiveArg = (
 const toDirectiveArg = (
   value: number | string | boolean | HeredocJSON,
 ): number | string | boolean | HeredocValue =>
-  isHeredocJSON(value) ? new HeredocValue(value.type, value.content) : value;
+  isHeredocJSON(value)
+    ? new HeredocValue(value.delimiter, value.content)
+    : value;
 
 const requireStringName = (name: string | symbol): string => {
   if (typeof name !== "string") {

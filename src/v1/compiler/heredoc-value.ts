@@ -4,12 +4,12 @@ const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 // (e.g. `Bun.inspect`) print a class's own methods (`toString`,
 // `toJSON`) as if they were enumerable data properties. Returning an
 // instance of this plain, method-less view from `[inspectSymbol]`
-// keeps the inspected output to just `type`/`content` while still
+// keeps the inspected output to just `delimiter`/`content` while still
 // tagging it "HeredocValue".
 const HeredocInspectView = (() => {
   class HeredocValue {
     constructor(
-      readonly type: unknown,
+      readonly delimiter: unknown,
       readonly content: unknown,
     ) {}
   }
@@ -18,12 +18,12 @@ const HeredocInspectView = (() => {
 
 /**
  * Parsed value of a heredoc token (`<<<DELIM\n...body...`), split into
- * the opening delimiter (`type`) and the raw body that follows it
- * (`content`).
+ * the opening delimiter (`delimiter`, `null` when omitted) and the raw
+ * body that follows it (`content`).
  */
 export class HeredocValue {
   constructor(
-    readonly type: string,
+    readonly delimiter: string | null,
     readonly content: string,
   ) {}
 
@@ -32,11 +32,11 @@ export class HeredocValue {
   }
 
   toJSON() {
-    return { type: this.type, content: this.content };
+    return { delimiter: this.delimiter, content: this.content };
   }
 
   [inspectSymbol]() {
-    return new HeredocInspectView(this.type, this.content);
+    return new HeredocInspectView(this.delimiter, this.content);
   }
 
   /** Parses the raw text of a heredoc token, e.g. `<<<HTML\n<div/>\n`. */
@@ -44,10 +44,12 @@ export class HeredocValue {
     const body = raw.slice(3);
     const newlineIndex = body.indexOf("\n");
 
-    if (newlineIndex === -1) return new HeredocValue(body, "");
+    if (newlineIndex === -1) return new HeredocValue(body || null, "");
+
+    const delimiter = body.slice(0, newlineIndex);
 
     return new HeredocValue(
-      body.slice(0, newlineIndex),
+      delimiter || null,
       dedent(body.slice(newlineIndex + 1)),
     );
   }
