@@ -132,7 +132,7 @@ const encoded = DirectiveJSONEncoder.encode(root);
 // }
 ```
 
-`DirectiveJSONEncoder.encode` returns a plain JS value (object or array), not a JSON string — pass it to `JSON.stringify` yourself if you need text. `DirectiveJSONDecoder` reverses this back into `Directive[]`, and likewise takes a plain JS value rather than a JSON string:
+`DirectiveJSONEncoder.encode` returns a plain JS value (object or array), not a JSON string — pass it to `JSON.stringify` yourself if you need text. `DirectiveJSONDecoder` reverses this back into a `Directive` (following the same single/wrapped-root rule as `DON.parse()`), and likewise takes a plain JS value rather than a JSON string — so `decoder.decode(encoder.encode(x))` round-trips back to (a deep-equal copy of) `x`:
 
 ```ts
 import { DON, DirectiveJSONDecoder, DirectiveJSONEncoder } from "donly";
@@ -147,23 +147,21 @@ server {
 );
 
 const decoded = new DirectiveJSONDecoder().decode(encoded);
-// ? const decoded = [
-//   Directive {
-//     name: "server",
-//     args: [],
-//     children: [
-//       Directive {
-//         name: "host",
-//         args: [ "localhost" ],
-//         children: [],
-//       }, Directive {
-//         name: "port",
-//         args: [ 8080 ],
-//         children: [],
-//       }
-//     ],
-//   }
-// ]
+// ? const decoded = Directive {
+//   name: "server",
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "host",
+//       args: [ "localhost" ],
+//       children: [],
+//     }, Directive {
+//       name: "port",
+//       args: [ 8080 ],
+//       children: [],
+//     }
+//   ],
+// }
 ```
 
 ## Development

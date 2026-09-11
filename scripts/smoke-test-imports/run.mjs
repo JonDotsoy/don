@@ -34,10 +34,9 @@ assert.deepEqual(encoded, { name: "example" });
 // "donly/decoder"
 assert.equal(DecoderOnly, DirectiveJSONDecoder);
 const decoded = new DecoderOnly().decode(encoded);
-assert.equal(decoded.length, 1);
-assert.ok(decoded[0] instanceof Directive);
-assert.equal(decoded[0].name, "name");
-assert.deepEqual(decoded[0].args, ["example"]);
+assert.ok(decoded instanceof Directive);
+assert.equal(decoded.name, "name");
+assert.deepEqual(decoded.args, ["example"]);
 
 console.log(
   `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder" and "donly/decoder" all resolve and work.`,

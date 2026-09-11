@@ -65,14 +65,14 @@ const encoderOptions: DirectiveJSONEncoderOptions = {
 
 // --- "donly": DirectiveJSONDecoder (instance-only) ---
 
-const decoded: Directive[] = new DirectiveJSONDecoder().decode(staticValue);
+const decoded: Directive = new DirectiveJSONDecoder().decode(staticValue);
 
 // --- "donly/encoder" and "donly/decoder" re-export the same classes ---
 
 const encoderSame: boolean = EncoderOnly === DirectiveJSONEncoder;
 const decoderSame: boolean = DecoderOnly === DirectiveJSONDecoder;
 const encodedViaSubpath: unknown = new EncoderOnly().encode(parsed);
-const decodedViaSubpath: Directive[] = new DecoderOnly().decode(
+const decodedViaSubpath: Directive = new DecoderOnly().decode(
   encodedViaSubpath,
 );
 

@@ -3,6 +3,17 @@ import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 
 export { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 
+/**
+ * Collapses a list of top-level directives into the single-Directive shape
+ * `DON.parse()` and `DirectiveJSONDecoder#decode()` both return: the lone
+ * directive itself when there's exactly one, otherwise a synthetic root
+ * (name: ROOT_DIRECTIVE_NAME) wrapping them all as `children`.
+ */
+export const wrapAsRoot = (directives: Directive[]): Directive =>
+  directives.length === 1
+    ? directives[0]!
+    : new Directive(ROOT_DIRECTIVE_NAME, [], directives);
+
 type HeredocJSON = { delimiter: string | null; content: string };
 
 interface DirectiveJSON {
@@ -260,19 +271,15 @@ const toDirectiveFromReducedEntry = ([name, value]: [
 };
 
 export class DirectiveJSONDecoder {
-  decode(value: unknown): Directive[] {
+  decode(value: unknown): Directive {
     if (Array.isArray(value)) {
-      return value.map(toDirective);
+      return wrapAsRoot(value.map(toDirective));
     }
 
     if (isPlainObject(value)) {
-      const root = new Directive(
-        ROOT_DIRECTIVE_NAME,
-        [],
+      return wrapAsRoot(
         Object.entries(value).map(toDirectiveFromReducedEntry),
       );
-
-      return root.children;
     }
 
     throw new Error(

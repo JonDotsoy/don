@@ -376,12 +376,11 @@ describe("DirectiveJSONDecoder#decode", () => {
   it("decodes a flat directive from a lossless array shape", () => {
     const value = [{ name: "name", args: ["my-package"], children: [] }];
 
-    const directives = new DirectiveJSONDecoder().decode(value);
+    const directive = new DirectiveJSONDecoder().decode(value);
 
-    expect(directives).toHaveLength(1);
-    expect(directives[0]).toBeInstanceOf(Directive);
-    expect(directives[0]!.name).toBe("name");
-    expect(directives[0]!.args).toEqual(["my-package"]);
+    expect(directive).toBeInstanceOf(Directive);
+    expect(directive.name).toBe("name");
+    expect(directive.args).toEqual(["my-package"]);
   });
 
   it("decodes nested directives from a lossless array shape", () => {
@@ -396,12 +395,26 @@ describe("DirectiveJSONDecoder#decode", () => {
       },
     ];
 
-    const directives = new DirectiveJSONDecoder().decode(value);
+    const directive = new DirectiveJSONDecoder().decode(value);
 
-    expect(directives[0]!.children).toHaveLength(2);
-    expect(directives[0]!.children[0]).toBeInstanceOf(Directive);
-    expect(directives[0]!.children[0]!.name).toBe("host");
-    expect(directives[0]!.children[1]!.args).toEqual([8080]);
+    expect(directive.children).toHaveLength(2);
+    expect(directive.children[0]).toBeInstanceOf(Directive);
+    expect(directive.children[0]!.name).toBe("host");
+    expect(directive.children[1]!.args).toEqual([8080]);
+  });
+
+  it("wraps multiple lossless array entries in a ROOT_DIRECTIVE_NAME root", () => {
+    const value = [
+      { name: "name", args: ["my-package"], children: [] },
+      { name: "port", args: [8080], children: [] },
+    ];
+
+    const decoded = new DirectiveJSONDecoder().decode(value);
+
+    expect(decoded.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(decoded.children).toHaveLength(2);
+    expect(decoded.children[0]!.name).toBe("name");
+    expect(decoded.children[1]!.name).toBe("port");
   });
 
   it("round-trips through DON.parse -> encode -> decode", () => {
@@ -415,7 +428,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     const value = DirectiveJSONEncoder.encode(original);
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded).toEqual(original.children);
+    expect(decoded).toEqual(original);
   });
 
   it("round-trips a heredoc argument through DON.parse -> encode -> decode", () => {
@@ -430,9 +443,8 @@ describe("DirectiveJSONDecoder#decode", () => {
     const value = DirectiveJSONEncoder.encode(original, { reducer: null });
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded).toHaveLength(1);
-    expect(decoded[0]).toEqual(original);
-    expect(decoded[0]!.children[0]!.args[0]).toBeInstanceOf(HeredocValue);
+    expect(decoded).toEqual(original);
+    expect(decoded.children[0]!.args[0]).toBeInstanceOf(HeredocValue);
   });
 
   it("round-trips a lone heredoc argument through the reduced (tuple) JSON shape", () => {
@@ -446,25 +458,35 @@ describe("DirectiveJSONDecoder#decode", () => {
     const value = DirectiveJSONEncoder.encode(original);
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded[0]!.children[0]!.args[0]).toEqual(
+    expect(decoded.children[0]!.args[0]).toEqual(
       new HeredocValue("HTML", "<html></html>\n"),
     );
   });
 
-  it("decodes a reduced (object) JSON shape back into directives", () => {
+  it("decodes a reduced (object) JSON shape back into a directive", () => {
     const value = { server: { host: "localhost", port: 8080 } };
 
-    const directives = new DirectiveJSONDecoder().decode(value);
+    const directive = new DirectiveJSONDecoder().decode(value);
 
-    expect(directives).toHaveLength(1);
-    expect(directives[0]).toBeInstanceOf(Directive);
-    expect(directives[0]!.name).toBe("server");
-    expect(directives[0]!.args).toEqual([]);
-    expect(directives[0]!.children).toHaveLength(2);
-    expect(directives[0]!.children[0]!.name).toBe("host");
-    expect(directives[0]!.children[0]!.args).toEqual(["localhost"]);
-    expect(directives[0]!.children[1]!.name).toBe("port");
-    expect(directives[0]!.children[1]!.args).toEqual([8080]);
+    expect(directive).toBeInstanceOf(Directive);
+    expect(directive.name).toBe("server");
+    expect(directive.args).toEqual([]);
+    expect(directive.children).toHaveLength(2);
+    expect(directive.children[0]!.name).toBe("host");
+    expect(directive.children[0]!.args).toEqual(["localhost"]);
+    expect(directive.children[1]!.name).toBe("port");
+    expect(directive.children[1]!.args).toEqual([8080]);
+  });
+
+  it("wraps multiple reduced (object) entries in a ROOT_DIRECTIVE_NAME root", () => {
+    const value = { name: "my-package", port: 8080 };
+
+    const decoded = new DirectiveJSONDecoder().decode(value);
+
+    expect(decoded.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(decoded.children).toHaveLength(2);
+    expect(decoded.children[0]!.name).toBe("name");
+    expect(decoded.children[1]!.name).toBe("port");
   });
 
   it("round-trips through the tuple reducer and decode", () => {
@@ -480,8 +502,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     });
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded).toHaveLength(1);
-    expect(decoded[0]).toEqual(original);
+    expect(decoded).toEqual(original);
   });
 
   it("round-trips using both classes as instances rather than statically", () => {
@@ -497,8 +518,21 @@ describe("DirectiveJSONDecoder#decode", () => {
     });
     const decoded = new DirectiveJSONDecoder().decode(encoded);
 
-    expect(decoded).toHaveLength(1);
-    expect(decoded[0]).toEqual(original);
+    expect(decoded).toEqual(original);
+  });
+
+  it("round-trips multiple top-level directives through encode -> decode without manual wrapping", () => {
+    const original = DON.parse(""
+      + 'name "web"\n'
+      + "port 8080\n"
+    );
+
+    const decoded = new DirectiveJSONDecoder().decode(
+      DirectiveJSONEncoder.encode(original),
+    );
+
+    expect(decoded).toEqual(original);
+    expect(decoded.name).toBe(ROOT_DIRECTIVE_NAME);
   });
 
   it("throws on an array value mixing objects with a reduced directive", () => {
