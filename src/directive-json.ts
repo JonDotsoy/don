@@ -1,10 +1,31 @@
-import { Directive } from "./don.js";
+import { Directive, HeredocValue } from "./don.js";
+
+type HeredocJSON = { type: string; content: string };
 
 interface DirectiveJSON {
   name: string;
-  args: (number | string | boolean)[];
+  args: (number | string | boolean | HeredocJSON)[];
   children: DirectiveJSON[];
 }
+
+const isHeredocJSON = (value: unknown): value is HeredocJSON =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof (value as HeredocJSON).type === "string" &&
+  typeof (value as HeredocJSON).content === "string";
+
+const isDirectiveArg = (
+  value: unknown,
+): value is number | string | boolean | HeredocJSON =>
+  typeof value === "number" ||
+  typeof value === "string" ||
+  typeof value === "boolean" ||
+  isHeredocJSON(value);
+
+const toDirectiveArg = (
+  value: number | string | boolean | HeredocJSON,
+): number | string | boolean | HeredocValue =>
+  isHeredocJSON(value) ? new HeredocValue(value.type, value.content) : value;
 
 const requireStringName = (name: string | symbol): string => {
   if (typeof name !== "string") {
@@ -18,7 +39,9 @@ const requireStringName = (name: string | symbol): string => {
 
 const toDirectiveJSON = (directive: Directive): DirectiveJSON => ({
   name: requireStringName(directive.name),
-  args: directive.args,
+  args: directive.args.map((arg) =>
+    arg instanceof HeredocValue ? arg.toJSON() : arg,
+  ),
   children: directive.children.map(toDirectiveJSON),
 });
 
@@ -40,17 +63,9 @@ const toDirective = (value: unknown): Directive => {
     );
   }
 
-  if (
-    !Array.isArray(args) ||
-    args.some(
-      (arg) =>
-        typeof arg !== "number" &&
-        typeof arg !== "string" &&
-        typeof arg !== "boolean",
-    )
-  ) {
+  if (!Array.isArray(args) || !args.every(isDirectiveArg)) {
     throw new Error(
-      `Invalid directive JSON: "args" must be an array of numbers, strings or booleans, got ${JSON.stringify(args)}`,
+      `Invalid directive JSON: "args" must be an array of numbers, strings, booleans or heredoc values, got ${JSON.stringify(args)}`,
     );
   }
 
@@ -62,7 +77,7 @@ const toDirective = (value: unknown): Directive => {
 
   return new Directive(
     name,
-    args as (number | string | boolean)[],
+    args.map(toDirectiveArg),
     children.map(toDirective),
   );
 };
@@ -123,7 +138,7 @@ const tupleReducer: DirectiveReducer = (accumulator, directive, parent) =>
   assignGrouped(accumulator, directive, parent, tupleDirectiveValue(directive));
 
 const nestArgs = (
-  args: (number | string | boolean)[],
+  args: (number | string | boolean | HeredocValue)[],
   leaf: unknown,
 ): unknown => args.reduceRight((acc, arg) => ({ [String(arg)]: acc }), leaf);
 
@@ -211,6 +226,10 @@ const toDirectiveFromReducedEntry = ([name, value]: [
   string,
   unknown,
 ]): Directive => {
+  if (isHeredocJSON(value)) {
+    return new Directive(name, [toDirectiveArg(value)], []);
+  }
+
   if (isPlainObject(value)) {
     return new Directive(
       name,
@@ -220,13 +239,13 @@ const toDirectiveFromReducedEntry = ([name, value]: [
   }
 
   if (Array.isArray(value)) {
-    if (!value.every(isPrimitive)) {
+    if (!value.every(isDirectiveArg)) {
       throw new Error(
-        `Invalid directive JSON: array value for "${name}" must contain only numbers, strings or booleans, got ${JSON.stringify(value)}`,
+        `Invalid directive JSON: array value for "${name}" must contain only numbers, strings, booleans or heredoc values, got ${JSON.stringify(value)}`,
       );
     }
 
-    return new Directive(name, value, []);
+    return new Directive(name, value.map(toDirectiveArg), []);
   }
 
   return new Directive(name, isPrimitive(value) ? [value] : [], []);

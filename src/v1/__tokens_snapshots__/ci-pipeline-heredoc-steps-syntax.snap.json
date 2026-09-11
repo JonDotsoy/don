@@ -52,16 +52,16 @@
       ],
       "span": {
         "index": 28,
-        "length": 137,
+        "length": 155,
         "startLocation": {
           "line": 4,
           "column": 0,
           "paddingLine": 0
         },
         "endLocation": {
-          "line": 13,
-          "column": 6,
-          "paddingLine": 2
+          "line": 15,
+          "column": 0,
+          "paddingLine": 0
         }
       },
       "children": [
@@ -91,21 +91,24 @@
           "id": 153,
           "name": "step",
           "args": [
+            "<<<\n    npm ci\n\n",
             "step",
-            "step"
+            "<<<\n    npm run build --if-present\n\n",
+            "step",
+            "<<<\n    npm test\n"
           ],
           "span": {
             "index": 67,
-            "length": 137,
+            "length": 155,
             "startLocation": {
               "line": 7,
               "column": 2,
               "paddingLine": 2
             },
             "endLocation": {
-              "line": 13,
-              "column": 6,
-              "paddingLine": 2
+              "line": 15,
+              "column": 0,
+              "paddingLine": 0
             }
           },
           "children": []
@@ -115,16 +118,16 @@
   ],
   "span": {
     "index": 0,
-    "length": 165,
+    "length": 183,
     "startLocation": {
       "line": 0,
       "column": 0,
       "paddingLine": 0
     },
     "endLocation": {
-      "line": 13,
-      "column": 6,
-      "paddingLine": 2
+      "line": 15,
+      "column": 0,
+      "paddingLine": 0
     }
   }
 }

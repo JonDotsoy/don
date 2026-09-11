@@ -941,7 +941,12 @@ template <<<HTML
 [
   Directive {
     name: "template",
-    args: [],
+    args: [
+      HeredocValue {
+        type: "HTML",
+        content: "<div>\n  <h1>Hello</h1>\n</div>\n",
+      }
+    ],
     children: [],
   }
 ]
@@ -977,7 +982,12 @@ template <<<
 [
   Directive {
     name: "template",
-    args: [],
+    args: [
+      HeredocValue {
+        type: "",
+        content: "  foo\ntar\n",
+      }
+    ],
     children: [],
   }
 ]
@@ -1024,7 +1034,16 @@ server {
     children: [
       Directive {
         name: "response",
-        args: [ "handler" ],
+        args: [
+          HeredocValue {
+            type: "HTML",
+            content: "<html>\n  <body>Content</body>\n</html>\n",
+          }
+        ],
+        children: [],
+      }, Directive {
+        name: "handler",
+        args: [],
         children: [],
       }
     ],
@@ -1076,7 +1095,12 @@ server {
     children: [
       Directive {
         name: "content",
-        args: [],
+        args: [
+          HeredocValue {
+            type: "HTML",
+            content: "div foo\nhandler\n",
+          }
+        ],
         children: [],
       }
     ],
@@ -1387,7 +1411,21 @@ script <<<BASH
 [
   Directive {
     name: "template",
-    args: [ "script" ],
+    args: [
+      HeredocValue {
+        type: "HTML",
+        content: "<!DOCTYPE html>\n<html>\n  <head>\n    <title>My Page</title>\n  </head>\n  <body>\n    <h1>Welcome</h1>\n  </body>\n</html>\n\n",
+      }
+    ],
+    children: [],
+  }, Directive {
+    name: "script",
+    args: [
+      HeredocValue {
+        type: "BASH",
+        content: "#!/bin/bash\necho \"Deploying...\"\nnpm run build\n",
+      }
+    ],
     children: [],
   }
 ]
