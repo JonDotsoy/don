@@ -327,7 +327,7 @@ DON documents should use the `.don` file extension.
 When a media (MIME) type is required — for example, in `Content-Type` HTTP headers or editor language associations — the suggested media type is:
 
 ```
-text/donly
+application/x-donly
 ```
 
 This type has not been registered with IANA and is provided only as a convention for tooling and interoperability until (or unless) formal registration takes place.
