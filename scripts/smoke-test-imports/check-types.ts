@@ -11,6 +11,7 @@ import {
   Directive,
   DirectiveJSONEncoder,
   DirectiveJSONDecoder,
+  HeredocValue,
 } from "donly";
 import type { DirectiveReducer, DirectiveJSONEncoderOptions } from "donly";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
@@ -26,9 +27,17 @@ const parsed: Directive[] = DON.parse("name value");
 const directive: Directive = new Directive("name", ["value", 1, true], []);
 const directiveNoChildren: Directive = new Directive("name", []);
 const directiveName: string | symbol = directive.name;
-const directiveArgs: (number | string | boolean)[] = directive.args;
+const directiveArgs: (number | string | boolean | HeredocValue)[] =
+  directive.args;
 const directiveChildren: Directive[] = directive.children;
 const directiveJSON: unknown = directive.toJSON();
+
+// --- "donly": HeredocValue ---
+
+const heredoc: HeredocValue = new HeredocValue("HTML", "<div></div>\n");
+const directiveWithHeredoc: Directive = new Directive("name", [heredoc]);
+const heredocType: string = heredoc.type;
+const heredocContent: string = heredoc.content;
 
 // --- "donly": DirectiveJSONEncoder (static + instance) ---
 
@@ -93,6 +102,9 @@ void [
   directiveArgs,
   directiveChildren,
   directiveJSON,
+  directiveWithHeredoc,
+  heredocType,
+  heredocContent,
   staticJsonWithOptions,
   staticJsonRawShape,
   instanceJson,
