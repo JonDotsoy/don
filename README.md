@@ -149,10 +149,11 @@ const decoded = new DirectiveJSONDecoder().decode(encoded);
 
 ## XML Serialization
 
-`DirectiveXMLEncoder` renders parsed directives as an HTML-like XML string. Args written as `key=value` become attributes, and any remaining args become the element's text content:
+`DirectiveXMLEncoder` and `DirectiveXMLDecoder` live in the `donly/xml` subpath rather than the main module. `DirectiveXMLEncoder` renders parsed directives as an HTML-like XML string. Args written as `key=value` become attributes, and any remaining args become the element's text content:
 
 ```ts
-import { DON, DirectiveXMLEncoder } from "donly";
+import { DON } from "donly";
+import { DirectiveXMLEncoder } from "donly/xml";
 
 const directives = DON.parse(`
 div x-data=name {
@@ -182,7 +183,7 @@ DirectiveXMLEncoder.encode(directives, { indent: "    " });
 `DirectiveXMLDecoder` reverses this back into `Directive` instances, parsing element attributes into `key=value` args and text content into a trailing string arg:
 
 ```ts
-import { DirectiveXMLDecoder } from "donly";
+import { DirectiveXMLDecoder } from "donly/xml";
 
 const decoded = DirectiveXMLDecoder.decode(
   '<div x-data="name">\n  <span key="key1">hello</span>\n</div>',
