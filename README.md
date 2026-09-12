@@ -258,7 +258,7 @@ const decoded = new DirectiveJSONDecoder().decode(encoded);
 
 ## Linting
 
-`donly/lint` validates a parsed document against your own rules — DON has no built-in schema, so every check (types, required fields, cardinality, ...) is a `LintRule` you write. A rule matches directives by a `/`-separated `path` of directive names and either validates each match independently (`validate`) or all matches sharing a parent together (`validateGroup`, e.g. to cap how many times a directive may appear):
+`donly/lint` validates a parsed document against your own rules — DON has no built-in schema, so every check (types, required fields, cardinality, ...) is a `LintRule` you write. A rule matches directives by a `/`-separated `path` of directive names and either validates each match independently (`validate`) or all matches sharing a parent together (`validateGroup`, e.g. to cap how many times a directive may appear). Both return `void` for a valid directive, or a `LintViolation` (`{ message?, severity? }`, each falling back to the rule's own `message` / `severity`, then `"error"`) to report one:
 
 ```ts
 import { DON } from "donly";
@@ -281,25 +281,29 @@ const rules: LintRule[] = [
   {
     path: "/server/port",
     message: "port must be a number, not a string",
-    validate: (directive) => typeof directive.args[0] === "number",
+    validate: (directive) =>
+      typeof directive.args[0] === "number" ? undefined : {},
   },
   {
     path: "/location",
     message: "location's path must be an absolute path starting with /",
     validate: (directive) =>
-      typeof directive.args[0] === "string" &&
-      directive.args[0].startsWith("/"),
+      typeof directive.args[0] === "string" && directive.args[0].startsWith("/")
+        ? undefined
+        : {},
   },
   {
     path: "/location",
     message: "a location block must have at least one respond declaration",
     validate: (directive) =>
-      directive.children.some((child) => child.name === "respond"),
+      directive.children.some((child) => child.name === "respond")
+        ? undefined
+        : {},
   },
   {
     path: "/location/respond",
     message: "only one respond declaration is allowed per location block",
-    validateGroup: (directives) => directives.length <= 1,
+    validateGroup: (directives) => (directives.length <= 1 ? undefined : {}),
   },
 ];
 
@@ -436,23 +440,26 @@ const rules: LintRule[] = [
   {
     path: "/server/port",
     message: "port must be a number, not a string",
-    validate: (directive) => typeof directive.args[0] === "number",
+    validate: (directive) => (typeof directive.args[0] === "number" ? undefined : {}),
   },
   {
     path: "/location",
     message: "location's path must be an absolute path starting with /",
     validate: (directive) =>
-      typeof directive.args[0] === "string" && directive.args[0].startsWith("/"),
+      typeof directive.args[0] === "string" && directive.args[0].startsWith("/")
+        ? undefined
+        : {},
   },
   {
     path: "/location",
     message: "a location block must have at least one respond declaration",
-    validate: (directive) => directive.children.some((child) => child.name === "respond"),
+    validate: (directive) =>
+      directive.children.some((child) => child.name === "respond") ? undefined : {},
   },
   {
     path: "/location/respond",
     message: "only one respond declaration is allowed per location block",
-    validateGroup: (directives) => directives.length <= 1,
+    validateGroup: (directives) => (directives.length <= 1 ? undefined : {}),
   },
 ];
 
@@ -472,6 +479,35 @@ const report = issues.map(
 
 `findByPath(root, path)` and `findGroupsByPath(root, path)` — the same path resolution `lint()` uses internally — are also exported, for building custom checks directly on top of the matched directives.
 
+A violation only needs to carry what it wants to override — a bare `{}` (or, for `validateGroup`, any object) falls all the way back to the rule's `message` and `severity`; a single rule can also return a different message per failure kind, since the check that decides validity is the one that decides what to say about it:
+
+<!-- before-block
+import { DON } from "donly";
+import { lint, type LintRule } from "donly/lint";
+
+const root = DON.parse(`
+product {
+  price "9.99"
+}
+`);
+
+const productIsWellFormedRule: LintRule = {
+  path: "/product",
+  validate: (directive) => {
+    const price = directive.children.find((child) => child.name === "price")?.args[0];
+    if (typeof price !== "number") return { message: "price must be a number" };
+    if (price <= 0) return { message: "price must be positive", severity: "warning" };
+  },
+};
+
+const issues = lint(root, [productIsWellFormedRule]);
+-->
+
+```ts
+const messages = issues.map((issue) => `${issue.severity}: ${issue.message}`);
+// ? const messages = [ "error: price must be a number" ]
+```
+
 `validate` and `validateGroup` only ever see directives sharing one name (a single match, or every match under one parent) — a check spanning _different_ directive names, like a declaration order, points `path` at their common parent and reads `directive.children` directly:
 
 ```ts
@@ -487,10 +523,11 @@ const productsBeforeOrdersRule: LintRule = {
     const firstOrderIndex = directive.children.findIndex(
       (child) => child.name === "order",
     );
-    if (firstOrderIndex === -1) return true;
-    return directive.children
+    if (firstOrderIndex === -1) return undefined;
+    const hasProductAfterOrder = directive.children
       .slice(firstOrderIndex + 1)
-      .every((child) => child.name !== "product");
+      .some((child) => child.name === "product");
+    return hasProductAfterOrder ? {} : undefined;
   },
 };
 
@@ -572,6 +609,62 @@ const issues = lint(root, [productsBeforeOrdersRule]);
 //         offset: 138,
 //         line: 11,
 //         column: 16,
+//         paddingLine: 4,
+//       },
+//     },
+//   }
+// ]
+```
+
+`path` itself is optional — omit it and the rule runs against _every_ directive in the document, at any depth, instead of one specific shape:
+
+```ts
+import { DON } from "donly";
+import { lint, type LintRule } from "donly/lint";
+
+// No `path`: this scans every directive, wherever it is, for a leftover
+// placeholder — not tied to one directive name or nesting level.
+const noTodoPlaceholderRule: LintRule = {
+  message: "arguments must not contain a leftover TODO placeholder",
+  validate: (directive) =>
+    directive.args.some(
+      (arg) => typeof arg === "string" && arg.includes("TODO"),
+    )
+      ? {}
+      : undefined,
+};
+
+const root = DON.parse(`
+cart {
+  product {
+    name "Keyboard"
+    description "TODO: write a real description"
+  }
+}
+`);
+
+const issues = lint(root, [noTodoPlaceholderRule]);
+// ? const issues = [
+//   LintIssue {
+//     path: undefined,
+//     message: "arguments must not contain a leftover TODO placeholder",
+//     severity: "error",
+//     directive: Directive {
+//       name: "description",
+//       args: [ "TODO: write a real description" ],
+//       children: [],
+//     },
+//     loc: {
+//       start: {
+//         offset: 44,
+//         line: 4,
+//         column: 4,
+//         paddingLine: 4,
+//       },
+//       end: {
+//         offset: 88,
+//         line: 4,
+//         column: 48,
 //         paddingLine: 4,
 //       },
 //     },

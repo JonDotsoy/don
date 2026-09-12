@@ -5,16 +5,17 @@ import { lint, findByPath, LintIssue, type LintRule } from "./lint";
 const expectLoc = (issue: LintIssue, text: string, expected: string) => {
   expect(issue.loc).toEqual(issue.directive.loc);
   expect(issue.loc).toBeDefined();
-  expect(
-    text.slice(issue.loc!.start.offset, issue.loc!.end.offset),
-  ).toBe(expected);
+  expect(text.slice(issue.loc!.start.offset, issue.loc!.end.offset)).toBe(
+    expected,
+  );
 };
 
 describe("lint", () => {
   const argIsNumberRule: LintRule = {
     path: "/server/port",
     message: "The first argument of /server/port must be a number, not a string",
-    validate: (directive) => typeof directive.args[0] === "number",
+    validate: (directive) =>
+      typeof directive.args[0] === "number" ? undefined : {},
   };
 
   it("reports no issues when the first argument is a number", () => {
@@ -80,11 +81,69 @@ describe("lint", () => {
     expect(lint(root, [argIsNumberRule])).toEqual([]);
   });
 
+  describe("validate/validateGroup return contract", () => {
+    // Both callbacks return `void` for a valid directive, or a
+    // `LintViolation` (`{ message?, severity? }`) to report one — each
+    // field independently falls back to the rule's own `message` /
+    // `severity`, then `"error"`.
+    const root = DON.parse('port "3000"\n');
+
+    it("void means valid: no issue is reported", () => {
+      const rule: LintRule = { path: "/port", validate: () => undefined };
+
+      expect(lint(root, [rule])).toEqual([]);
+    });
+
+    it("an empty violation object falls back to the rule's message and severity", () => {
+      const rule: LintRule = {
+        path: "/port",
+        message: "rule-level message",
+        severity: "warning",
+        validate: () => ({}),
+      };
+
+      expect(lint(root, [rule])[0]).toMatchObject({
+        message: "rule-level message",
+        severity: "warning",
+      });
+    });
+
+    it("a violation's own message overrides the rule's message", () => {
+      const rule: LintRule = {
+        path: "/port",
+        message: "rule-level message",
+        validate: () => ({ message: "port must be numeric" }),
+      };
+
+      expect(lint(root, [rule])[0]).toMatchObject({
+        message: "port must be numeric",
+        severity: "error",
+      });
+    });
+
+    it("a violation's own severity overrides the rule's severity", () => {
+      const rule: LintRule = {
+        path: "/port",
+        severity: "warning",
+        validate: () => ({ severity: "error" }),
+      };
+
+      expect(lint(root, [rule])[0]).toMatchObject({ severity: "error" });
+    });
+
+    it("with neither a violation nor a rule message, a generic message names the path", () => {
+      const rule: LintRule = { path: "/port", validate: () => ({}) };
+
+      expect(lint(root, [rule])[0]!.message).toBe('Rule violated at "/port"');
+    });
+  });
+
   describe("single declaration rule", () => {
     const singleRespondRule: LintRule = {
       path: "/location/respond",
       message: "Only one respond declaration is allowed per location block",
-      validateGroup: (directives) => directives.length <= 1,
+      validateGroup: (directives) =>
+        directives.length <= 1 ? undefined : {},
     };
 
     it("reports an issue when a location has more than one respond", () => {
@@ -143,7 +202,9 @@ describe("lint", () => {
       path: "/location",
       message: "A location block must have at least one respond declaration",
       validate: (directive) =>
-        directive.children.some((child) => child.name === "respond"),
+        directive.children.some((child) => child.name === "respond")
+          ? undefined
+          : {},
     };
 
     it("reports an issue when a location has no respond", () => {
@@ -204,7 +265,9 @@ describe("lint", () => {
       message: "The first argument of /location must be an absolute path starting with /",
       validate: (directive) =>
         typeof directive.args[0] === "string" &&
-        directive.args[0].startsWith("/"),
+        directive.args[0].startsWith("/")
+          ? undefined
+          : {},
     };
 
     it("reports no issues when the location path is absolute", () => {
@@ -299,28 +362,115 @@ describe("lint", () => {
 
       expect(findByPath(root, "/name")).toHaveLength(1);
     });
+
+    it("with no path, returns every directive in the document at every depth", () => {
+      const root = DON.parse(""
+        + "server {\n"
+        + "  host \"localhost\"\n"
+        + "  port 8080\n"
+        + "}\n"
+      );
+
+      expect(findByPath(root).map((d) => d.name)).toEqual([
+        "server",
+        "host",
+        "port",
+      ]);
+    });
+  });
+
+  describe("path-less rule (scans the whole document)", () => {
+    // Omitting `path` runs the rule against every directive in the tree,
+    // regardless of name or depth — useful for a check that isn't tied to
+    // one shape, like flagging a leftover placeholder anywhere.
+    const noTodoPlaceholderRule: LintRule = {
+      message: "arguments must not contain a leftover TODO placeholder",
+      validate: (directive) =>
+        directive.args.some(
+          (arg) => typeof arg === "string" && arg.includes("TODO"),
+        )
+          ? {}
+          : undefined,
+    };
+
+    it("reports no issues when nothing contains a TODO", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "Keyboard"\n'
+        + "  }\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [noTodoPlaceholderRule])).toEqual([]);
+    });
+
+    it("finds a TODO however deeply it's nested, without a path", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "Keyboard"\n'
+        + '    description "TODO: write a real description"\n'
+        + "  }\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [noTodoPlaceholderRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]!.path).toBeUndefined();
+      expect(issues[0]!.directive.name).toBe("description");
+      expect(issues[0]!.message).toBe(
+        "arguments must not contain a leftover TODO placeholder",
+      );
+    });
+
+    it("reports one issue per offending directive, wherever they are", () => {
+      const root = DON.parse(""
+        + "name \"TODO: name this app\"\n"
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "TODO: name this product"\n'
+        + "  }\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [noTodoPlaceholderRule]);
+
+      expect(issues.map((issue) => issue.directive.name)).toEqual([
+        "name",
+        "name",
+      ]);
+    });
   });
 
   describe("shopping cart example", () => {
     // A product is well-formed when it has a string `name`, a positive
-    // numeric `price`, and a positive integer `quantity`.
+    // numeric `price`, and a positive integer `quantity` — each field
+    // checked independently, with its own message, showcasing that a
+    // violation's message doesn't have to be the same for every failure.
     const productIsWellFormedRule: LintRule = {
       path: "/cart/product",
-      message:
-        "a product must have a string name, a positive numeric price, and a positive integer quantity",
       validate: (directive) => {
         const fields = Object.fromEntries(
           directive.children.map((child) => [child.name, child.args[0]]),
         );
 
-        return (
-          typeof fields.name === "string" &&
-          typeof fields.price === "number" &&
-          fields.price > 0 &&
-          typeof fields.quantity === "number" &&
-          Number.isInteger(fields.quantity) &&
-          fields.quantity > 0
-        );
+        if (typeof fields.name !== "string") {
+          return { message: "a product must have a string name" };
+        }
+        if (typeof fields.price !== "number" || fields.price <= 0) {
+          return { message: "a product's price must be a positive number" };
+        }
+        if (
+          typeof fields.quantity !== "number" ||
+          !Number.isInteger(fields.quantity) ||
+          fields.quantity <= 0
+        ) {
+          return {
+            message: "a product's quantity must be a positive integer",
+          };
+        }
       },
     };
 
@@ -356,6 +506,7 @@ describe("lint", () => {
       const issues = lint(root, [productIsWellFormedRule]);
 
       expect(issues).toHaveLength(1);
+      expect(issues[0]!.message).toBe("a product must have a string name");
       expect(issues[0]!.directive.children.map((c) => c.name)).toEqual([
         "price",
         "quantity",
@@ -381,6 +532,9 @@ describe("lint", () => {
       const issues = lint(root, [productIsWellFormedRule]);
 
       expect(issues).toHaveLength(1);
+      expect(issues[0]!.message).toBe(
+        "a product's price must be a positive number",
+      );
       expect(
         issues[0]!.directive.children.find((c) => c.name === "price")!.args,
       ).toEqual(["19.99"]);
@@ -400,6 +554,9 @@ describe("lint", () => {
       const issues = lint(root, [productIsWellFormedRule]);
 
       expect(issues).toHaveLength(1);
+      expect(issues[0]!.message).toBe(
+        "a product's quantity must be a positive integer",
+      );
       expect(
         issues[0]!.directive.children.find((c) => c.name === "quantity")!
           .args,
@@ -440,6 +597,11 @@ describe("lint", () => {
           issue.directive.children.find((c) => c.name === "name")?.args[0],
         ),
       ).toEqual(["Mouse", undefined, "Monitor"]);
+      expect(issues.map((issue) => issue.message)).toEqual([
+        "a product's price must be a positive number",
+        "a product must have a string name",
+        "a product's quantity must be a positive integer",
+      ]);
     });
   });
 
@@ -465,14 +627,18 @@ describe("lint", () => {
       path: "/cart",
       message: "a cart must declare a shipping method",
       validate: (directive) =>
-        directive.children.some((child) => child.name === "shipping"),
+        directive.children.some((child) => child.name === "shipping")
+          ? undefined
+          : {},
     };
 
     const productRequiresSkuRule: LintRule = {
       path: "/cart/product",
       message: "a product must have a sku",
       validate: (directive) =>
-        directive.children.some((child) => child.name === "sku"),
+        directive.children.some((child) => child.name === "sku")
+          ? undefined
+          : {},
     };
 
     const productIsWellFormedRule: LintRule = {
@@ -481,18 +647,20 @@ describe("lint", () => {
         "a product must have a string name, a positive numeric price, and a positive integer quantity",
       validate: (directive) => {
         const fields = fieldsOf(directive);
-        return (
+        const isValid =
           typeof fields.name === "string" &&
           isPositiveNumber(fields.price) &&
-          isPositiveInteger(fields.quantity)
-        );
+          isPositiveInteger(fields.quantity);
+
+        return isValid ? undefined : {};
       },
     };
 
     const oneDiscountPerProductRule: LintRule = {
       path: "/cart/product/discount",
       message: "only one discount is allowed per product",
-      validateGroup: (directives) => directives.length <= 1,
+      validateGroup: (directives) =>
+        directives.length <= 1 ? undefined : {},
     };
 
     const variantIsWellFormedRule: LintRule = {
@@ -500,9 +668,10 @@ describe("lint", () => {
       message: "a variant must have a string color and a string size",
       validate: (directive) => {
         const fields = fieldsOf(directive);
-        return (
-          typeof fields.color === "string" && typeof fields.size === "string"
-        );
+        const isValid =
+          typeof fields.color === "string" && typeof fields.size === "string";
+
+        return isValid ? undefined : {};
       },
     };
 
@@ -608,11 +777,13 @@ describe("lint", () => {
           (child) => child.name === "order",
         );
 
-        if (firstOrderIndex === -1) return true;
+        if (firstOrderIndex === -1) return undefined;
 
-        return directive.children
+        const hasProductAfterOrder = directive.children
           .slice(firstOrderIndex + 1)
-          .every((child) => child.name !== "product");
+          .some((child) => child.name === "product");
+
+        return hasProductAfterOrder ? {} : undefined;
       },
     };
 
@@ -719,25 +890,31 @@ describe("lint", () => {
         {
           path: "/server/port",
           message: "The first argument of /server/port must be a number, not a string",
-          validate: (directive) => typeof directive.args[0] === "number",
+          validate: (directive) =>
+            typeof directive.args[0] === "number" ? undefined : {},
         },
         {
           path: "/location",
           message: "The first argument of /location must be an absolute path starting with /",
           validate: (directive) =>
             typeof directive.args[0] === "string" &&
-            directive.args[0].startsWith("/"),
+            directive.args[0].startsWith("/")
+              ? undefined
+              : {},
         },
         {
           path: "/location",
           message: "A location block must have at least one respond declaration",
           validate: (directive) =>
-            directive.children.some((child) => child.name === "respond"),
+            directive.children.some((child) => child.name === "respond")
+              ? undefined
+              : {},
         },
         {
           path: "/location/respond",
           message: "Only one respond declaration is allowed per location block",
-          validateGroup: (directives) => directives.length <= 1,
+          validateGroup: (directives) =>
+            directives.length <= 1 ? undefined : {},
         },
       ];
 

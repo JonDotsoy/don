@@ -35,16 +35,21 @@ documentation.
   plain object using the nested reducer shape.
 - `lint(root, rules)` (`donly/lint`) — validates a parsed DON document against
   a list of custom `LintRule`s, each matching directives by a `/`-separated
-  path (e.g. `/server/port`) and reporting an issue when `validate` returns
-  `false`.
-- `findByPath(root, path)` (`donly/lint`) — resolves a `/`-separated path of
-  directive names to the matching directives in a parsed document.
+  `path` (e.g. `/server/port`) — or, with `path` omitted, every directive in
+  the document at any depth. `validate`/`validateGroup` return `void` for a
+  valid directive, or a `LintViolation` (`{ message?, severity? }`, each
+  falling back to the rule's own `message` / `severity`, then `"error"`) to
+  report one.
+- `findByPath(root, path?)` (`donly/lint`) — resolves a `/`-separated path of
+  directive names to the matching directives in a parsed document; omitting
+  `path` returns every directive in the document instead.
 - `LintRule#validateGroup` (`donly/lint`) — validates every directive
   matching a path together, grouped by parent, for rules that constrain how
   many times a directive may appear (e.g. only one `respond` per `location`
   block).
-- `findGroupsByPath(root, path)` (`donly/lint`) — like `findByPath`, but
-  groups the matching directives by their parent.
+- `findGroupsByPath(root, path?)` (`donly/lint`) — like `findByPath`, but
+  groups the matching directives by their parent; omitting `path` groups
+  every directive in the document, at every depth.
 - `Directive#loc` — the directive's source span as `{ start, end }` points,
   each a `{ offset, line, column, paddingLine }`, set for directives produced
   by `DON.parse()` and absent for synthetic ones (e.g. the multi-root wrapper
