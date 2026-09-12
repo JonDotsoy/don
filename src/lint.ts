@@ -58,19 +58,22 @@ export const directiveLoc = (directive: Directive): LintLoc | undefined => {
 };
 
 /**
- * The `loc` of a single positional argument (`directive.args[index]`), or
- * `undefined` for a directive with no backing tokens, or an out-of-range
- * `index`.
+ * The `loc` of one positional argument (`directive.args[index]`), or of a
+ * range of them (`directive.args[startIndex..endIndex]`) when `endIndex` is
+ * given. `undefined` for a directive with no backing tokens, or for an
+ * out-of-range index.
  */
 export const argumentLoc = (
   directive: Directive,
-  index: number,
+  startIndex: number,
+  endIndex: number = startIndex,
 ): LintLoc | undefined => {
   const tokens = Directive.tokensByDirective(directive);
-  const token = tokens?.[index + 1];
-  if (!token) return undefined;
+  const start = tokens?.[startIndex + 1];
+  const end = tokens?.[endIndex + 1];
+  if (!start || !end) return undefined;
 
-  return { start: token, end: token };
+  return { start, end };
 };
 
 const traceOfToken = (payload: string, token: Token): string => {

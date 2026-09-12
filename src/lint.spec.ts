@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { DON } from "./don";
 import { argumentLoc, directiveLoc, lint, type LintRule } from "./lint";
 
 describe("lint", () => {
@@ -132,5 +133,31 @@ describe("lint", () => {
     lint("server {\n  port 3000\n}\n", [rootRule]);
 
     expect(calls).toBe(1);
+  });
+
+  describe("argumentLoc", () => {
+    it("spans a single argument by default", () => {
+      const directive = DON.parse('database host "localhost" 5432');
+
+      const loc = argumentLoc(directive, 1);
+
+      expect(loc?.start.text()).toBe("localhost");
+      expect(loc?.end.text()).toBe("localhost");
+    });
+
+    it("spans a range of arguments when given an end index", () => {
+      const directive = DON.parse('database host "localhost" 5432');
+
+      const loc = argumentLoc(directive, 1, 2);
+
+      expect(loc?.start.text()).toBe("localhost");
+      expect(loc?.end.text()).toBe("5432");
+    });
+
+    it("returns undefined for an out-of-range index", () => {
+      const directive = DON.parse('database host "localhost" 5432');
+
+      expect(argumentLoc(directive, 5)).toBeUndefined();
+    });
   });
 });

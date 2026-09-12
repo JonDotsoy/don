@@ -42,6 +42,6 @@ documentation.
   issue's `trace` (`<payload>:line:column`)
   is filled in from `loc.start`'s token when the rule sets a `loc` and no
   `trace` already. `directiveLoc(directive)` derives a `{ start, end }` `loc`
-  spanning a directive's own tokens, and `argumentLoc(directive, index)`
-  derives one for a single positional argument, when the directive has
-  backing tokens.
+  spanning a directive's own tokens, and `argumentLoc(directive, startIndex, endIndex?)`
+  derives one spanning a single positional argument or a range of them, when
+  the directive has backing tokens.
