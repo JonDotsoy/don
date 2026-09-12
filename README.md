@@ -171,29 +171,33 @@ const [token] = Directive.tokensByDirective(root) ?? [];
 // }
 ```
 
-`token.type` and `part.type` are numeric `SyntaxKind` values — the internal enum `LexerParser` and the syntax parser tag every scanned unit with, in declaration order:
+`token.type` and `part.type` are numeric `SyntaxKind` values — the internal enum `LexerParser` and the syntax parser tag every scanned unit with:
 
-| Value | Name              |
-| ----- | ----------------- |
-| 0     | `unknown`         |
-| 1     | `alphabet`        |
-| 2     | `integer`         |
-| 3     | `whitespace`      |
-| 4     | `newline`         |
-| 5     | `dot`             |
-| 6     | `underscore`      |
-| 7     | `singleQuote`     |
-| 8     | `doubleQuote`     |
-| 9     | `openCurlyBrace`  |
-| 10    | `closeCurlyBrace` |
-| 11    | `keyword`         |
-| 12    | `string`          |
-| 13    | `numeric`         |
-| 14    | `boolean`         |
-| 15    | `null`            |
-| 16    | `comment`         |
-| 17    | `indent`          |
-| 18    | `heredoc`         |
+```ts
+enum SyntaxKind {
+  unknown, // 0
+  alphabet, // 1
+  integer, // 2
+  whitespace, // 3
+  newline, // 4
+  dot, // 5
+  underscore, // 6
+  singleQuote, // 7
+  doubleQuote, // 8
+  openCurlyBrace, // 9
+  closeCurlyBrace, // 10
+
+  // token types
+  keyword, // 11
+  string, // 12
+  numeric, // 13
+  boolean, // 14
+  null, // 15
+  comment, // 16
+  indent, // 17
+  heredoc, // 18
+}
+```
 
 `SyntaxKind` itself isn't exported from `donly` — it's an implementation detail of the lexer/syntax parser, so treat these numbers as opaque unless you're working at that internal level.
 
