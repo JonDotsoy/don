@@ -258,10 +258,10 @@ const decoded = new DirectiveJSONDecoder().decode(encoded);
 
 ## Linting
 
-`donly/lint` validates a parsed document against your own rules — DON has no built-in schema, so every check (types, required fields, cardinality, ...) is a `LintRule` you write. A rule matches directives by a `/`-separated `path` of directive names and either validates each match independently (`validate`) or all matches sharing a parent together (`validateGroup`, e.g. to cap how many times a directive may appear). Both return `void` for a valid directive, or a `LintViolation` (`{ message?, severity? }`, each falling back to the rule's own `message` / `severity`, then `"error"`) to report one:
+`donly/lint` validates a parsed document against your own rules — DON has no built-in schema, so every check (types, required fields, cardinality, ...) is a `LintRule` you write. A rule matches directives by a `/`-separated `path` of directive names and either validates each match independently (`validate`) or all matches sharing a parent together (`validateGroup`, e.g. to cap how many times a directive may appear). Both return `void` for a valid directive, or a `LintViolation` (`{ message?, severity?, loc? }`, each falling back to the rule's own `message` / `severity` / the whole directive's `loc`) to report one — `loc` narrows the reported span to a specific arg's own token via `argLoc(directive, index)`, instead of the whole directive:
 
 ```ts
-import { DON } from "donly";
+import { DON, argLoc } from "donly";
 import { lint, type LintRule } from "donly/lint";
 
 const root = DON.parse(`
@@ -282,7 +282,9 @@ const rules: LintRule[] = [
     path: "/server/port",
     message: "port must be a number, not a string",
     validate: (directive) =>
-      typeof directive.args[0] === "number" ? undefined : {},
+      typeof directive.args[0] === "number"
+        ? undefined
+        : { loc: argLoc(directive, 0) },
   },
   {
     path: "/location",
@@ -320,9 +322,9 @@ const issues = lint(root, rules);
 //     },
 //     loc: {
 //       start: {
-//         offset: 12,
+//         offset: 17,
 //         line: 2,
-//         column: 2,
+//         column: 7,
 //         paddingLine: 2,
 //       },
 //       end: {
@@ -420,7 +422,7 @@ const issues = lint(root, rules);
 Each reported `LintIssue` carries the rule's `path`, `message`, `severity` (`"error"` by default), the offending `directive`, and its `loc` — the directive's own declaration (its name and args, e.g. `location 404`, not the block through its children) as `{ start, end }` points, each a `{ offset, line, column, paddingLine }` — so a consumer (a CLI, an editor integration) can point straight at the failing line and column:
 
 <!-- before-block
-import { DON } from "donly";
+import { DON, argLoc } from "donly";
 import { lint, type LintRule } from "donly/lint";
 
 const root = DON.parse(`
@@ -440,7 +442,8 @@ const rules: LintRule[] = [
   {
     path: "/server/port",
     message: "port must be a number, not a string",
-    validate: (directive) => (typeof directive.args[0] === "number" ? undefined : {}),
+    validate: (directive) =>
+      typeof directive.args[0] === "number" ? undefined : { loc: argLoc(directive, 0) },
   },
   {
     path: "/location",
@@ -471,7 +474,7 @@ const report = issues.map(
   (issue) =>
     `${issue.severity} ${issue.loc?.start.line}:${issue.loc?.start.column} ${issue.message} (${issue.path})`,
 );
-// ? const report = [ "error 2:2 port must be a number, not a string (/server/port)", "error 8:0 location's path must be an absolute path starting with / (/location)",
+// ? const report = [ "error 2:7 port must be a number, not a string (/server/port)", "error 8:0 location's path must be an absolute path starting with / (/location)",
 //   "error 8:0 a location block must have at least one respond declaration (/location)",
 //   "error 5:2 only one respond declaration is allowed per location block (/location/respond)"
 // ]

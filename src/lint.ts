@@ -9,6 +9,8 @@ export interface LintViolation {
   message?: string;
   /** Falls back to the rule's own `severity`, then `"error"`, when omitted. */
   severity?: LintSeverity;
+  /** Narrows the reported span to a specific part of the directive (e.g. `argLoc(directive, 0)`); falls back to the whole directive's `loc` when omitted. */
+  loc?: Loc;
 }
 
 export class LintIssue {
@@ -168,7 +170,7 @@ export const lint = (root: Directive, rules: LintRule[]): LintIssue[] => {
               `Rule violated${describePath(rule.path)}`,
             violation.severity ?? rule.severity ?? "error",
             group[0]!,
-            group[0]!.loc,
+            violation.loc ?? group[0]!.loc,
           ),
         );
       }
@@ -187,7 +189,7 @@ export const lint = (root: Directive, rules: LintRule[]): LintIssue[] => {
               `Rule violated${describePath(rule.path)}`,
             violation.severity ?? rule.severity ?? "error",
             directive,
-            directive.loc,
+            violation.loc ?? directive.loc,
           ),
         );
       }

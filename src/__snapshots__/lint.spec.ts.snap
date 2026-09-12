@@ -47,16 +47,16 @@ exports[`lint full lint report captures every rule kind against a realistic mult
         "paddingLine": 2,
       },
       "start": {
-        "column": 2,
+        "column": 7,
         "line": 1,
-        "offset": 11,
+        "offset": 16,
         "paddingLine": 2,
       },
     },
     "message": "The first argument of /server/port must be a number, not a string",
     "path": "/server/port",
     "severity": "error",
-    "source": "port "3000"",
+    "source": ""3000"",
   },
   {
     "directive": {

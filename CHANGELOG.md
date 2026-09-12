@@ -37,9 +37,9 @@ documentation.
   a list of custom `LintRule`s, each matching directives by a `/`-separated
   `path` (e.g. `/server/port`) — or, with `path` omitted, every directive in
   the document at any depth. `validate`/`validateGroup` return `void` for a
-  valid directive, or a `LintViolation` (`{ message?, severity? }`, each
-  falling back to the rule's own `message` / `severity`, then `"error"`) to
-  report one.
+  valid directive, or a `LintViolation` (`{ message?, severity?, loc? }`,
+  each falling back to the rule's own `message` / `severity` / the whole
+  directive's `loc`) to report one.
 - `findByPath(root, path?)` (`donly/lint`) — resolves a `/`-separated path of
   directive names to the matching directives in a parsed document; omitting
   `path` returns every directive in the document instead.
@@ -57,5 +57,9 @@ documentation.
   directives produced by `DON.parse()` and absent for synthetic ones (e.g.
   the multi-root wrapper or directives reconstructed by
   `DirectiveJSONDecoder`).
-- `LintIssue#loc` (`donly/lint`) — the reported directive's `Directive#loc`,
-  copied onto every lint issue.
+- `LintIssue#loc` (`donly/lint`) — the reported directive's `Directive#loc`
+  by default, or a `LintViolation#loc` override (e.g. `argLoc(directive, 0)`)
+  to point at a specific arg instead of the whole directive.
+- `argLoc(directive, index)` — the source span of one of a directive's own
+  args, by index, narrower than `Directive#loc`; `undefined` for an
+  out-of-range index or a directive with no `loc`.

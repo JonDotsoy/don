@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { DON, Directive, HeredocValue } from "./don";
+import { DON, Directive, HeredocValue, argLoc } from "./don";
 import { ROOT_DIRECTIVE_NAME } from "./directive-json";
 import { donToParts } from "./index";
 
@@ -245,6 +245,47 @@ describe("Directive#loc", () => {
 
     expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
     expect(result.loc).toBeUndefined();
+  });
+});
+
+describe("argLoc", () => {
+  it("spans just the requested arg's own token, not the whole directive", () => {
+    const text = "server {\n  port \"3000\"\n}\n";
+    const root = DON.parse(text);
+    const port = root.children[0]!;
+
+    const loc = argLoc(port, 0);
+
+    expect(loc).not.toEqual(port.loc);
+    expect(text.slice(loc!.start.offset, loc!.end.offset)).toBe('"3000"');
+  });
+
+  it("resolves each arg by its index", () => {
+    const text = "get /foo 200 OK\n";
+    const result = DON.parse(text);
+
+    expect(
+      text.slice(argLoc(result, 0)!.start.offset, argLoc(result, 0)!.end.offset),
+    ).toBe("/foo");
+    expect(
+      text.slice(argLoc(result, 1)!.start.offset, argLoc(result, 1)!.end.offset),
+    ).toBe("200");
+    expect(
+      text.slice(argLoc(result, 2)!.start.offset, argLoc(result, 2)!.end.offset),
+    ).toBe("OK");
+  });
+
+  it("returns undefined for an out-of-range index", () => {
+    const result = DON.parse('port 8080');
+
+    expect(argLoc(result, 5)).toBeUndefined();
+  });
+
+  it("returns undefined for a directive with no loc (e.g. a synthetic root)", () => {
+    const result = DON.parse("name \"my-app\"\nport 8080\n");
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(argLoc(result, 0)).toBeUndefined();
   });
 });
 

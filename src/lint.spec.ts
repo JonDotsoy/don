@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { DON } from "./don";
+import { DON, argLoc } from "./don";
 import { lint, findByPath, LintIssue, type LintRule } from "./lint";
 
 const expectLoc = (issue: LintIssue, text: string, expected: string) => {
@@ -15,7 +15,9 @@ describe("lint", () => {
     path: "/server/port",
     message: "The first argument of /server/port must be a number, not a string",
     validate: (directive) =>
-      typeof directive.args[0] === "number" ? undefined : {},
+      typeof directive.args[0] === "number"
+        ? undefined
+        : { loc: argLoc(directive, 0) },
   };
 
   it("reports no issues when the first argument is a number", () => {
@@ -45,7 +47,12 @@ describe("lint", () => {
       severity: "error",
     });
     expect(issues[0]!.directive.args).toEqual(["3000"]);
-    expectLoc(issues[0]!, text, 'port "3000"');
+    // The reported span is just the offending arg's own token, not the
+    // whole `port "3000"` directive.
+    expect(issues[0]!.loc).not.toEqual(issues[0]!.directive.loc);
+    expect(
+      text.slice(issues[0]!.loc!.start.offset, issues[0]!.loc!.end.offset),
+    ).toBe('"3000"');
   });
 
   it("supports a custom severity", () => {
@@ -72,7 +79,9 @@ describe("lint", () => {
 
     expect(issues).toHaveLength(1);
     expect(issues[0]!.directive.args).toEqual(["8080"]);
-    expectLoc(issues[0]!, text, 'port "8080"');
+    expect(
+      text.slice(issues[0]!.loc!.start.offset, issues[0]!.loc!.end.offset),
+    ).toBe('"8080"');
   });
 
   it("reports nothing when the path has no match", () => {
@@ -872,7 +881,9 @@ describe("lint", () => {
           path: "/server/port",
           message: "The first argument of /server/port must be a number, not a string",
           validate: (directive) =>
-            typeof directive.args[0] === "number" ? undefined : {},
+            typeof directive.args[0] === "number"
+              ? undefined
+              : { loc: argLoc(directive, 0) },
         },
         {
           path: "/location",

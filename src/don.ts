@@ -79,31 +79,50 @@ export class Directive {
   }
 }
 
+const locOfToken = (token: Token): Loc => ({
+  start: { offset: token.span.index, ...token.span.startLocation },
+  end: {
+    offset: token.span.index + token.span.length,
+    ...token.span.endLocation,
+  },
+});
+
+const locSpanningTokens = (firstToken: Token, lastToken: Token): Loc => ({
+  start: locOfToken(firstToken).start,
+  end: locOfToken(lastToken).end,
+});
+
 const toDirective = (node: DirectiveNode): Directive => {
   // The directive's own tokens (name + args, not its children's) decide
   // `loc`: it spans just the directive's own declaration (e.g. `location
   // 404`), not the full block through its last descendant token.
   const tokens = [node.name, ...node.args];
-  const firstToken = tokens[0]!;
-  const lastToken = tokens[tokens.length - 1]!;
 
   const directive = new Directive(
     node.name.text(),
     node.args.map((token) => token.toJS()),
     node.children.map((child) => toDirective(child)).flat(),
-    {
-      start: {
-        offset: firstToken.span.index,
-        ...firstToken.span.startLocation,
-      },
-      end: {
-        offset: lastToken.span.index + lastToken.span.length,
-        ...lastToken.span.endLocation,
-      },
-    },
+    locSpanningTokens(tokens[0]!, tokens[tokens.length - 1]!),
   );
   tokensByDirective.set(directive, tokens);
   return directive;
+};
+
+/**
+ * The source span of one of a directive's own args, by index (matching
+ * `directive.args`) — narrower than `directive.loc`, which covers the
+ * whole declaration. `undefined` for an out-of-range index or a directive
+ * with no `loc` (e.g. one not produced by `DON.parse()`).
+ */
+export const argLoc = (
+  directive: Directive,
+  index: number,
+): Loc | undefined => {
+  const tokens = tokensByDirective.get(directive);
+  // tokens[0] is the directive's own name; args start at index 1.
+  const token = tokens?.[index + 1];
+
+  return token && locOfToken(token);
 };
 
 const docToDirective = (node: DocumentNode): Directive =>
