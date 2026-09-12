@@ -1,0 +1,161 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`lint reports a string port as an error, with a trace naming the payload path 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 8,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 1,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 17,
+              "length": 4,
+              "startLocation": {
+                "column": 8,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "3000",
+            "type": 2,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 13,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 21,
+              "length": 1,
+              "startLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 13,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 6,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "3000",
+        "type": 12,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 8,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 1,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 17,
+              "length": 4,
+              "startLocation": {
+                "column": 8,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "3000",
+            "type": 2,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 13,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 21,
+              "length": 1,
+              "startLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 13,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 6,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "3000",
+        "type": 12,
+      },
+    },
+    "message": "port debe ser un número, no un string",
+    "severity": "error",
+    "trace": "nginx.donly:2:8",
+  },
+]
+`;

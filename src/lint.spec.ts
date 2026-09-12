@@ -68,6 +68,11 @@ describe("lint", () => {
     expect(issues[0]!.severity).toBe("error");
     expect(issues[0]!.message).toBe("port debe ser un número, no un string");
     expect(issues[0]!.trace).toBe("nginx.donly:2:8");
+    // Snapshotted through a JSON round-trip: `Token`/`Part` carry a
+    // process-global `id` counter that a raw-object snapshot would print
+    // and that shifts with unrelated parses elsewhere in the test run,
+    // but `toJSON()` (invoked by `JSON.stringify`) omits it.
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
   it("does not report a numeric port", () => {
