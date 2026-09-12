@@ -174,6 +174,72 @@ describe("lint", () => {
     });
   });
 
+  describe("location path rule", () => {
+    const locationPathRule: LintRule = {
+      path: "/location",
+      message: "The first argument of /location must be an absolute path starting with /",
+      validate: (directive) =>
+        typeof directive.args[0] === "string" &&
+        directive.args[0].startsWith("/"),
+    };
+
+    it("reports no issues when the location path is absolute", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [locationPathRule])).toEqual([]);
+    });
+
+    it("reports an issue when the location path is not a string", () => {
+      const root = DON.parse(""
+        + "location 404 {\n"
+        + "  respond 200\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [locationPathRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({
+        path: "/location",
+        message: "The first argument of /location must be an absolute path starting with /",
+        severity: "error",
+      });
+    });
+
+    it("reports an issue when the location path doesn't start with /", () => {
+      const root = DON.parse(""
+        + "location home {\n"
+        + "  respond 200\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [locationPathRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]!.directive.args).toEqual(["home"]);
+    });
+
+    it("checks each location independently", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "}\n"
+        + "location about {\n"
+        + "  respond 200\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [locationPathRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]!.directive.args).toEqual(["about"]);
+    });
+  });
+
   describe("findByPath", () => {
     it("resolves a nested path to the matching directives", () => {
       const root = DON.parse(""
