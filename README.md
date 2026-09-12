@@ -110,7 +110,19 @@ const lines = walk(DON.parse(text)).join("\n");
 // ? const lines = "Symbol(root) []\n  name [\"my-app\"]\n  port [8080]\n  database []\n    host [\"localhost\"]\n    port [5432]"
 ```
 
-If you need lower-level access to the parse — tokens, spans, or source locations — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
+A `Directive`'s own fields never include its source `Token`s or `span` — that data is dropped while building the tree so the public shape stays plain and JSON-serializable. When a `Directive` comes from `DON.parse()`, though, its name and args `Token`s are still reachable via `Directive.tokensByDirective()`, keyed by the `Directive` instance itself:
+
+```ts
+import { DON, Directive } from "donly";
+
+const root = DON.parse('host "localhost"');
+const tokens = Directive.tokensByDirective(root)?.map((token) => token.raw());
+// ? const tokens = [ "host", "\"localhost\"" ]
+```
+
+`tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
+
+If you need lower-level access to the parse — spans, source locations, or the full token stream including directives you don't hold a reference to — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
 
 ## Lexer (`LexerParser`)
 
