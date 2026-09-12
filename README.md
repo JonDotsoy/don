@@ -173,40 +173,71 @@ const [token] = Directive.tokensByDirective(root) ?? [];
 
 `token.type` and `part.type` are numeric `SyntaxKind` values — the internal enum `LexerParser` and the syntax parser tag every scanned unit with:
 
-<!-- before-block
-import { SyntaxKind as RealSyntaxKind } from "./src/v1/utils/syntax-kind.ts";
--->
-
 ```ts
-enum SyntaxKind {
-  unknown, // 0
-  alphabet, // 1
-  integer, // 2
-  whitespace, // 3
-  newline, // 4
-  dot, // 5
-  underscore, // 6
-  singleQuote, // 7
-  doubleQuote, // 8
-  openCurlyBrace, // 9
-  closeCurlyBrace, // 10
-
-  // token types
-  keyword, // 11
-  string, // 12
-  numeric, // 13
-  boolean, // 14
-  null, // 15
-  comment, // 16
-  indent, // 17
-  heredoc, // 18
-}
-
-const matchesSource = Object.keys(SyntaxKind)
-  .filter((key) => Number.isNaN(Number(key)))
-  .every((key) => (SyntaxKind as any)[key] === (RealSyntaxKind as any)[key]);
-// ? const matchesSource = true
+import { SyntaxKind as kindsyntax } from "./src/v1/utils/syntax-kind.ts";
+// ? const kindsyntax = {
+//   "0": "unknown",
+//   "1": "alphabet",
+//   "2": "integer",
+//   "3": "whitespace",
+//   "4": "newline",
+//   "5": "dot",
+//   "6": "underscore",
+//   "7": "singleQuote",
+//   "8": "doubleQuote",
+//   "9": "openCurlyBrace",
+//   "10": "closeCurlyBrace",
+//   "11": "keyword",
+//   "12": "string",
+//   "13": "numeric",
+//   "14": "boolean",
+//   "15": "null",
+//   "16": "comment",
+//   "17": "indent",
+//   "18": "heredoc",
+//   unknown: 0,
+//   alphabet: 1,
+//   integer: 2,
+//   whitespace: 3,
+//   newline: 4,
+//   dot: 5,
+//   underscore: 6,
+//   singleQuote: 7,
+//   doubleQuote: 8,
+//   openCurlyBrace: 9,
+//   closeCurlyBrace: 10,
+//   keyword: 11,
+//   string: 12,
+//   numeric: 13,
+//   boolean: 14,
+//   null: 15,
+//   comment: 16,
+//   indent: 17,
+//   heredoc: 18,
+// }
 ```
+
+| Value | Name              | Description                                                                                           |
+| ----- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| 0     | `unknown`         | Fallback kind for input the lexer couldn't classify into anything below.                              |
+| 1     | `alphabet`        | A letter, while scanning a bare word (an identifier, keyword, or the `true`/`false`/`null` literals). |
+| 2     | `integer`         | A digit, while scanning a number literal.                                                             |
+| 3     | `whitespace`      | A space or tab between tokens.                                                                        |
+| 4     | `newline`         | A line break, which separates directives from each other.                                             |
+| 5     | `dot`             | The `.` character, joining the integer parts of a decimal number.                                     |
+| 6     | `underscore`      | The `_` character, allowed inside identifiers.                                                        |
+| 7     | `singleQuote`     | The `'` character opening/closing a quoted string.                                                    |
+| 8     | `doubleQuote`     | The `"` character opening/closing a quoted string.                                                    |
+| 9     | `openCurlyBrace`  | The `{` character, opening a block of nested subdirectives.                                           |
+| 10    | `closeCurlyBrace` | The `}` character, closing a block of nested subdirectives.                                           |
+| 11    | `keyword`         | A resolved directive name or bare-word argument token.                                                |
+| 12    | `string`          | A resolved quoted-string argument token.                                                              |
+| 13    | `numeric`         | A resolved number argument token.                                                                     |
+| 14    | `boolean`         | A resolved `true`/`false` argument token.                                                             |
+| 15    | `null`            | A resolved `null` argument token.                                                                     |
+| 16    | `comment`         | A line (`#`) or block (`/* ... */`) comment token.                                                    |
+| 17    | `indent`          | Leading whitespace on a line, recognized as indentation.                                              |
+| 18    | `heredoc`         | A heredoc block token (multi-line content between `<<` markers).                                      |
 
 `SyntaxKind` itself isn't exported from `donly` — it's an implementation detail of the lexer/syntax parser, so treat these numbers as opaque unless you're working at that internal level.
 
