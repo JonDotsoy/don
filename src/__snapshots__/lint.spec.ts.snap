@@ -1,5 +1,35 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
+exports[`lint complex order example captures every violation in a mixed order, one issue per rule 1`] = `
+[
+  {
+    "message": "a cart must declare a shipping method",
+    "path": "/cart",
+    "source": "cart",
+  },
+  {
+    "message": "a product must have a sku",
+    "path": "/cart/product",
+    "source": "product",
+  },
+  {
+    "message": "a product must have a string name, a positive numeric price, and a positive integer quantity",
+    "path": "/cart/product",
+    "source": "product",
+  },
+  {
+    "message": "only one discount is allowed per product",
+    "path": "/cart/product/discount",
+    "source": "discount 5",
+  },
+  {
+    "message": "a variant must have a string color and a string size",
+    "path": "/cart/product/variant",
+    "source": "variant",
+  },
+]
+`;
+
 exports[`lint full lint report captures every rule kind against a realistic multi-block config 1`] = `
 [
   {
@@ -37,10 +67,10 @@ exports[`lint full lint report captures every rule kind against a realistic mult
     },
     "loc": {
       "end": {
-        "column": 17,
-        "line": 8,
-        "offset": 104,
-        "paddingLine": 2,
+        "column": 12,
+        "line": 7,
+        "offset": 84,
+        "paddingLine": 0,
       },
       "start": {
         "column": 0,
@@ -52,10 +82,7 @@ exports[`lint full lint report captures every rule kind against a realistic mult
     "message": "The first argument of /location must be an absolute path starting with /",
     "path": "/location",
     "severity": "error",
-    "source": 
-"location 404 {
-  root "/var/www""
-,
+    "source": "location 404",
   },
   {
     "directive": {
@@ -66,10 +93,10 @@ exports[`lint full lint report captures every rule kind against a realistic mult
     },
     "loc": {
       "end": {
-        "column": 17,
-        "line": 8,
-        "offset": 104,
-        "paddingLine": 2,
+        "column": 12,
+        "line": 7,
+        "offset": 84,
+        "paddingLine": 0,
       },
       "start": {
         "column": 0,
@@ -81,10 +108,7 @@ exports[`lint full lint report captures every rule kind against a realistic mult
     "message": "A location block must have at least one respond declaration",
     "path": "/location",
     "severity": "error",
-    "source": 
-"location 404 {
-  root "/var/www""
-,
+    "source": "location 404",
   },
   {
     "directive": {
@@ -111,85 +135,6 @@ exports[`lint full lint report captures every rule kind against a realistic mult
     "path": "/location/respond",
     "severity": "error",
     "source": "respond 200",
-  },
-]
-`;
-
-exports[`lint complex order example captures every violation in a mixed order, one issue per rule 1`] = `
-[
-  {
-    "message": "a cart must declare a shipping method",
-    "path": "/cart",
-    "source": 
-"cart {
-  customer {
-    email "alice@example.com"
-    vip true
-  }
-  product {
-    sku "KB-100"
-    name "Mechanical Keyboard"
-    price 49.99
-    quantity 2
-    variant {
-      color "black"
-      size "full"
-    }
-    discount 10
-  }
-  product {
-    sku "MS-200"
-    name "Wireless Mouse"
-    price "19.99"
-    quantity 0
-    discount 5
-    discount 15
-  }
-  product {
-    name "Monitor"
-    price 199.99
-    quantity 1
-    variant {
-      color 42"
-,
-  },
-  {
-    "message": "a product must have a sku",
-    "path": "/cart/product",
-    "source": 
-"product {
-    name "Monitor"
-    price 199.99
-    quantity 1
-    variant {
-      color 42"
-,
-  },
-  {
-    "message": "a product must have a string name, a positive numeric price, and a positive integer quantity",
-    "path": "/cart/product",
-    "source": 
-"product {
-    sku "MS-200"
-    name "Wireless Mouse"
-    price "19.99"
-    quantity 0
-    discount 5
-    discount 15"
-,
-  },
-  {
-    "message": "only one discount is allowed per product",
-    "path": "/cart/product/discount",
-    "source": "discount 5",
-  },
-  {
-    "message": "a variant must have a string color and a string size",
-    "path": "/cart/product/variant",
-    "source": 
-"variant {
-      color 42"
-,
   },
 ]
 `;

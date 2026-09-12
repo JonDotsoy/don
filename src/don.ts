@@ -80,17 +80,29 @@ export class Directive {
 }
 
 const toDirective = (node: DirectiveNode): Directive => {
+  // The directive's own tokens (name + args, not its children's) decide
+  // `loc`: it spans just the directive's own declaration (e.g. `location
+  // 404`), not the full block through its last descendant token.
+  const tokens = [node.name, ...node.args];
+  const firstToken = tokens[0]!;
+  const lastToken = tokens[tokens.length - 1]!;
+
   const directive = new Directive(
     node.name.text(),
     node.args.map((token) => token.toJS()),
     node.children.map((child) => toDirective(child)).flat(),
-    // `DirectiveNode#span.length` is already an absolute end offset, not a length.
     {
-      start: { offset: node.span.index, ...node.span.startLocation },
-      end: { offset: node.span.length, ...node.span.endLocation },
+      start: {
+        offset: firstToken.span.index,
+        ...firstToken.span.startLocation,
+      },
+      end: {
+        offset: lastToken.span.index + lastToken.span.length,
+        ...lastToken.span.endLocation,
+      },
     },
   );
-  tokensByDirective.set(directive, [node.name, ...node.args]);
+  tokensByDirective.set(directive, tokens);
   return directive;
 };
 

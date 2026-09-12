@@ -222,10 +222,7 @@ describe("lint", () => {
         message: "A location block must have at least one respond declaration",
         severity: "error",
       });
-      expectLoc(issues[0]!, text, ""
-        + "location /home {\n"
-        + '  root "/var/www"'
-      );
+      expectLoc(issues[0]!, text, "location /home");
     });
 
     it("reports no issues when a location has a respond", () => {
@@ -252,10 +249,7 @@ describe("lint", () => {
 
       expect(issues).toHaveLength(1);
       expect(issues[0]!.directive.args).toEqual(["/about"]);
-      expectLoc(issues[0]!, text, ""
-        + "location /about {\n"
-        + '  root "/var/www"'
-      );
+      expectLoc(issues[0]!, text, "location /about");
     });
   });
 
@@ -295,10 +289,7 @@ describe("lint", () => {
         message: "The first argument of /location must be an absolute path starting with /",
         severity: "error",
       });
-      expectLoc(issues[0]!, text, ""
-        + "location 404 {\n"
-        + "  respond 200"
-      );
+      expectLoc(issues[0]!, text, "location 404");
     });
 
     it("reports an issue when the location path doesn't start with /", () => {
@@ -312,10 +303,7 @@ describe("lint", () => {
 
       expect(issues).toHaveLength(1);
       expect(issues[0]!.directive.args).toEqual(["home"]);
-      expectLoc(issues[0]!, text, ""
-        + "location home {\n"
-        + "  respond 200"
-      );
+      expectLoc(issues[0]!, text, "location home");
     });
 
     it("checks each location independently", () => {
@@ -332,10 +320,7 @@ describe("lint", () => {
 
       expect(issues).toHaveLength(1);
       expect(issues[0]!.directive.args).toEqual(["about"]);
-      expectLoc(issues[0]!, text, ""
-        + "location about {\n"
-        + "  respond 200"
-      );
+      expectLoc(issues[0]!, text, "location about");
     });
   });
 
@@ -511,11 +496,7 @@ describe("lint", () => {
         "price",
         "quantity",
       ]);
-      expectLoc(issues[0]!, text, ""
-        + "product {\n"
-        + "    price 9.99\n"
-        + "    quantity 5"
-      );
+      expectLoc(issues[0]!, text, "product");
     });
 
     it("reports an issue when price is a string instead of a number", () => {

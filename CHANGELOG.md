@@ -50,9 +50,12 @@ documentation.
 - `findGroupsByPath(root, path?)` (`donly/lint`) — like `findByPath`, but
   groups the matching directives by their parent; omitting `path` groups
   every directive in the document, at every depth.
-- `Directive#loc` — the directive's source span as `{ start, end }` points,
-  each a `{ offset, line, column, paddingLine }`, set for directives produced
-  by `DON.parse()` and absent for synthetic ones (e.g. the multi-root wrapper
-  or directives reconstructed by `DirectiveJSONDecoder`).
+- `Directive#loc` — the span of the directive's own declaration (its name and
+  args, e.g. `location 404`, not the block through its children), as
+  `{ start, end }` points, each a `{ offset, line, column, paddingLine }`,
+  derived from its own tokens (see `Directive.tokensByDirective`). Set for
+  directives produced by `DON.parse()` and absent for synthetic ones (e.g.
+  the multi-root wrapper or directives reconstructed by
+  `DirectiveJSONDecoder`).
 - `LintIssue#loc` (`donly/lint`) — the reported directive's `Directive#loc`,
   copied onto every lint issue.

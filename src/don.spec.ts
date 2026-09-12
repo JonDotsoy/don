@@ -206,6 +206,48 @@ describe("DON.parse", () => {
   });
 });
 
+describe("Directive#loc", () => {
+  it("spans only the directive's own name, for a directive with no args", () => {
+    const text = "server {\n  port 8080\n}\n";
+    const result = DON.parse(text);
+
+    expect(text.slice(result.loc!.start.offset, result.loc!.end.offset)).toBe(
+      "server",
+    );
+  });
+
+  it("spans the directive's own name and args, not its children's block", () => {
+    const text = "location 404 {\n  root \"/var/www\"\n}\n";
+    const result = DON.parse(text);
+
+    expect(text.slice(result.loc!.start.offset, result.loc!.end.offset)).toBe(
+      "location 404",
+    );
+  });
+
+  it("matches the span of Directive.tokensByDirective's first and last token", () => {
+    const text = "get /foo 200 OK\n";
+    const result = DON.parse(text);
+    const tokens = Directive.tokensByDirective(result)!;
+
+    expect(text.slice(result.loc!.start.offset, result.loc!.end.offset)).toBe(
+      "get /foo 200 OK",
+    );
+    expect(result.loc!.start.offset).toBe(tokens[0]!.span.index);
+    const lastToken = tokens[tokens.length - 1]!;
+    expect(result.loc!.end.offset).toBe(
+      lastToken.span.index + lastToken.span.length,
+    );
+  });
+
+  it("is undefined for a synthetic root Directive", () => {
+    const result = DON.parse("name \"my-app\"\nport 8080\n");
+
+    expect(result.name).toBe(ROOT_DIRECTIVE_NAME);
+    expect(result.loc).toBeUndefined();
+  });
+});
+
 describe("JSON.stringify(DON.parse(...))", () => {
   it('serializes a flat directive using Directive#toJSON', () => {
     const result = DON.parse('name "my-package"');

@@ -355,10 +355,10 @@ const issues = lint(root, rules);
 //         paddingLine: 0,
 //       },
 //       end: {
-//         offset: 105,
-//         line: 9,
-//         column: 17,
-//         paddingLine: 2,
+//         offset: 85,
+//         line: 8,
+//         column: 12,
+//         paddingLine: 0,
 //       },
 //     },
 //   }, LintIssue {
@@ -384,10 +384,10 @@ const issues = lint(root, rules);
 //         paddingLine: 0,
 //       },
 //       end: {
-//         offset: 105,
-//         line: 9,
-//         column: 17,
-//         paddingLine: 2,
+//         offset: 85,
+//         line: 8,
+//         column: 12,
+//         paddingLine: 0,
 //       },
 //     },
 //   }, LintIssue {
@@ -417,7 +417,7 @@ const issues = lint(root, rules);
 // ]
 ```
 
-Each reported `LintIssue` carries the rule's `path`, `message`, `severity` (`"error"` by default), the offending `directive`, and its `loc` — the directive's source span as `{ start, end }` points, each a `{ offset, line, column, paddingLine }` — so a consumer (a CLI, an editor integration) can point straight at the failing line and column:
+Each reported `LintIssue` carries the rule's `path`, `message`, `severity` (`"error"` by default), the offending `directive`, and its `loc` — the directive's own declaration (its name and args, e.g. `location 404`, not the block through its children) as `{ start, end }` points, each a `{ offset, line, column, paddingLine }` — so a consumer (a CLI, an editor integration) can point straight at the failing line and column:
 
 <!-- before-block
 import { DON } from "donly";
@@ -606,10 +606,10 @@ const issues = lint(root, [productsBeforeOrdersRule]);
 //         paddingLine: 0,
 //       },
 //       end: {
-//         offset: 138,
-//         line: 11,
-//         column: 16,
-//         paddingLine: 4,
+//         offset: 5,
+//         line: 1,
+//         column: 4,
+//         paddingLine: 0,
 //       },
 //     },
 //   }
