@@ -41,8 +41,10 @@ database {
 const root = DON.parse(text);
 
 const database = root.children.find((d) => d.name === "database");
-console.log(database?.children.map((c) => [c.name, c.args]));
-// [["host", ["localhost"]], ["port", [5432]]]
+const result = database?.children.map((c) => [c.name, c.args]);
+// ? const result = [
+//   [ "host", [ "localhost" ] ], [ "port", [ 5432 ] ]
+// ]
 ```
 
 Each `Directive` has:
