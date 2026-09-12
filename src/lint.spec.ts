@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { Directive } from "./don";
-import { lint, directiveLoc, type LintRule } from "./lint";
+import { argumentLoc, directiveLoc, lint, type LintRule } from "./lint";
 
 describe("lint", () => {
   const portMustBeNumber: LintRule = {
@@ -9,13 +8,11 @@ describe("lint", () => {
       const value = directive.args[0];
       if (typeof value === "number") return [];
 
-      const argToken = Directive.tokensByDirective(directive)?.[1];
-
       return [
         {
           message: "port debe ser un número, no un string",
           severity: "error",
-          loc: argToken ? { start: argToken, end: argToken } : undefined,
+          loc: argumentLoc(directive, 0),
         },
       ];
     },
