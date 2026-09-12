@@ -171,10 +171,10 @@ const [token] = Directive.tokensByDirective(root) ?? [];
 // }
 ```
 
-`token.type` and `part.type` are numeric `SyntaxKind` values — the internal enum `LexerParser` and the syntax parser tag every scanned unit with:
+`token.type` and `part.type` are numeric `SyntaxKind` values — the enum `LexerParser` and the syntax parser tag every scanned unit with:
 
 ```ts
-import { SyntaxKind as kindsyntax } from "./src/v1/utils/syntax-kind.ts";
+import { SyntaxKind as kindsyntax } from "donly";
 // ? const kindsyntax = {
 //   "0": "unknown",
 //   "1": "alphabet",
@@ -239,7 +239,7 @@ import { SyntaxKind as kindsyntax } from "./src/v1/utils/syntax-kind.ts";
 | 17    | `indent`          | Leading whitespace on a line, recognized as indentation.                                              |
 | 18    | `heredoc`         | A heredoc block token (multi-line content between `<<` markers).                                      |
 
-`SyntaxKind` itself isn't exported from `donly` — it's an implementation detail of the lexer/syntax parser, so treat these numbers as opaque unless you're working at that internal level.
+`SyntaxKind` is exported from `donly`, but its numeric values are considered internal — treat them as opaque unless you're working at the lexer/syntax-parser level.
 
 `tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
 
