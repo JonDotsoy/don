@@ -13,6 +13,12 @@ const tokensByDirective = new WeakMap<Directive, Token[]>();
 
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
+/** A directive's source span, as absolute character offsets into the parsed text. */
+export interface Loc {
+  start: number;
+  end: number;
+}
+
 // A plain data-only view used only for inspection: returning an
 // instance of it from `[inspectSymbol]` (instead of a pre-formatted
 // string) lets the engine's own inspector recurse into it — and
@@ -36,6 +42,8 @@ export class Directive {
     readonly name: string | symbol,
     readonly args: (number | string | boolean | HeredocValue)[],
     readonly children: Directive[] = [],
+    /** Absent for synthetic directives (e.g. the multi-root wrapper). */
+    readonly loc?: Loc,
   ) {}
 
   toJSON(): unknown {
@@ -69,6 +77,8 @@ const toDirective = (node: DirectiveNode): Directive => {
     node.name.text(),
     node.args.map((token) => token.toJS()),
     node.children.map((child) => toDirective(child)).flat(),
+    // `DirectiveNode#span.length` is already an absolute end offset, not a length.
+    { start: node.span.index, end: node.span.length },
   );
   tokensByDirective.set(directive, [node.name, ...node.args]);
   return directive;

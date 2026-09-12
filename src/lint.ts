@@ -1,4 +1,4 @@
-import { Directive } from "./don.js";
+import { Directive, type Loc } from "./don.js";
 import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 
 export type LintSeverity = "error" | "warning";
@@ -9,6 +9,8 @@ export interface LintIssue {
   message: string;
   severity: LintSeverity;
   directive: Directive;
+  /** The reported directive's source span, absent for synthetic directives. */
+  loc: Loc | undefined;
 }
 
 export interface LintRuleContext {
@@ -112,6 +114,7 @@ export const lint = (root: Directive, rules: LintRule[]): LintIssue[] => {
             message: rule.message ?? `Rule violated at "${rule.path}"`,
             severity: rule.severity ?? "error",
             directive: group[0]!,
+            loc: group[0]!.loc,
           });
         }
       }
@@ -125,6 +128,7 @@ export const lint = (root: Directive, rules: LintRule[]): LintIssue[] => {
             message: rule.message ?? `Rule violated at "${rule.path}"`,
             severity: rule.severity ?? "error",
             directive,
+            loc: directive.loc,
           });
         }
       }

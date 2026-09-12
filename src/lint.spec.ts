@@ -20,11 +20,11 @@ describe("lint", () => {
   });
 
   it("reports an issue when the first argument is a string", () => {
-    const root = DON.parse(""
+    const text = ""
       + "server {\n"
       + '  port "3000"\n'
-      + "}\n"
-    );
+      + "}\n";
+    const root = DON.parse(text);
 
     const issues = lint(root, [argIsNumberRule]);
 
@@ -35,6 +35,11 @@ describe("lint", () => {
       severity: "error",
     });
     expect(issues[0]!.directive.args).toEqual(["3000"]);
+    expect(issues[0]!.loc).toEqual(issues[0]!.directive.loc);
+    expect(issues[0]!.loc).toBeDefined();
+    expect(text.slice(issues[0]!.loc!.start, issues[0]!.loc!.end)).toBe(
+      'port "3000"',
+    );
   });
 
   it("supports a custom severity", () => {
@@ -77,12 +82,12 @@ describe("lint", () => {
     };
 
     it("reports an issue when a location has more than one respond", () => {
-      const root = DON.parse(""
+      const text = ""
         + "location /home {\n"
         + "  respond 200\n"
         + "  respond 404\n"
-        + "}\n"
-      );
+        + "}\n";
+      const root = DON.parse(text);
 
       const issues = lint(root, [singleRespondRule]);
 
@@ -92,6 +97,10 @@ describe("lint", () => {
         message: "Only one respond declaration is allowed per location block",
         severity: "error",
       });
+      expect(issues[0]!.loc).toEqual(issues[0]!.directive.loc);
+      expect(text.slice(issues[0]!.loc!.start, issues[0]!.loc!.end)).toBe(
+        "respond 200",
+      );
     });
 
     it("reports no issues when a location has a single respond", () => {

@@ -4,6 +4,12 @@ import { DirectiveJSONEncoder, DirectiveJSONDecoder } from "./directive-json";
 import { ROOT_DIRECTIVE_NAME } from "./directive-json";
 import type { DirectiveReducer } from "./directive-json";
 
+// `decode()` reconstructs directives from plain JSON, which carries no
+// source spans, so a round-trip through it never has `loc`. Strip it from
+// the parsed original before comparing so these tests check structure only.
+const stripLoc = (directive: Directive): Directive =>
+  new Directive(directive.name, directive.args, directive.children.map(stripLoc));
+
 const complexServerConfig = ""
   + "server {\n"
   + "  port 8080\n"
@@ -428,7 +434,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     const value = DirectiveJSONEncoder.encode(original);
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded).toEqual(original);
+    expect(decoded).toEqual(stripLoc(original));
   });
 
   it("round-trips a heredoc argument through DON.parse -> encode -> decode", () => {
@@ -443,7 +449,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     const value = DirectiveJSONEncoder.encode(original, { reducer: null });
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded).toEqual(original);
+    expect(decoded).toEqual(stripLoc(original));
     expect(decoded.children[0]!.args[0]).toBeInstanceOf(HeredocValue);
   });
 
@@ -502,7 +508,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     });
     const decoded = new DirectiveJSONDecoder().decode(value);
 
-    expect(decoded).toEqual(original);
+    expect(decoded).toEqual(stripLoc(original));
   });
 
   it("round-trips using both classes as instances rather than statically", () => {
@@ -518,7 +524,7 @@ describe("DirectiveJSONDecoder#decode", () => {
     });
     const decoded = new DirectiveJSONDecoder().decode(encoded);
 
-    expect(decoded).toEqual(original);
+    expect(decoded).toEqual(stripLoc(original));
   });
 
   it("round-trips multiple top-level directives through encode -> decode without manual wrapping", () => {
@@ -531,7 +537,7 @@ describe("DirectiveJSONDecoder#decode", () => {
       DirectiveJSONEncoder.encode(original),
     );
 
-    expect(decoded).toEqual(original);
+    expect(decoded).toEqual(stripLoc(original));
     expect(decoded.name).toBe(ROOT_DIRECTIVE_NAME);
   });
 
