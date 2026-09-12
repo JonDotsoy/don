@@ -110,12 +110,12 @@ server {
 `);
 
 const routers = doc.findAll("/server/router");
-console.log(routers.map(([path]) => path));
-// ["/users", "/user/:user_id", "/admin"]
+const routerPaths = routers.map(([path]) => path);
+// ? const routerPaths = [ "/users", "/user/:user_id", "/admin" ]
 
 const firstRouter = doc.findFirst("/server/router");
-console.log(firstRouter?.args);
-// ["/users"]
+const firstRouterArgs = firstRouter?.args;
+// ? const firstRouterArgs = [ "/users" ]
 ```
 
 `findAll` returns a `ResultMatchDirectives` — a plain `Array<Directive>` (`forEach`, `length`, `[0]`, `instanceof Array`, ...), except its `map` applies `fn(args, directive)` to each match (as above) instead of `fn(directive)`. `Directive#map` does the same for a single directive, and hands back the directive itself so you can keep chaining `findAll`/`findFirst`:
@@ -128,10 +128,23 @@ const responses = doc
       .findAll("/respond")
       .map(([statusCode, status]) => ({ statusCode, status })),
   );
-// [
-//   [{ statusCode: 200, status: "Ok" }],
-//   [{ statusCode: 200, status: "Ok" }],
-//   [{ statusCode: 403, status: "Forbidden" }],
+// ? const responses = [
+//   [
+//     {
+//       statusCode: 200,
+//       status: "Ok",
+//     }
+//   ], [
+//     {
+//       statusCode: 200,
+//       status: "Ok",
+//     }
+//   ], [
+//     {
+//       statusCode: 403,
+//       status: "Forbidden",
+//     }
+//   ]
 // ]
 ```
 
@@ -139,8 +152,8 @@ A path segment can also filter by its positional `args` with `name[value, ...]` 
 
 ```ts
 const usersRouter = doc.findFirst("/server/router[/users]");
-console.log(usersRouter?.args);
-// ["/users"]
+const usersRouterArgs = usersRouter?.args;
+// ? const usersRouterArgs = [ "/users" ]
 ```
 
 For flat configuration values, `Directive#at` behaves like `findFirst`, but a trailing `[N]` on the last segment extracts that directive's Nth argument (1-indexed) directly instead of the `Directive` itself. `Directive#reduce(fn)` (`fn(this)`) lets you pipe a located directive straight into a transform:
@@ -157,7 +170,10 @@ const serverOptions = config.at("/server")!.reduce((directive) => ({
   port: directive.at("/port[1]") ?? 3000,
   host: directive.at("/host[1]") ?? "localhost",
 }));
-// { port: 3000, host: "localhost" }
+// ? const serverOptions = {
+//   port: 3000,
+//   host: "localhost",
+// }
 ```
 
 ## JSON Serialization
