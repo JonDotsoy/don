@@ -55,18 +55,18 @@ describe("lint", () => {
     },
   };
 
-  it("reports a string port as an error, with a trace pointing at the value", () => {
+  it("reports a string port as an error, with a trace naming the payload path", () => {
     const text = ""
       + "server {\n"
       + '  port "3000"\n'
       + "}\n";
 
-    const issues = lint(text, [portMustBeNumber]);
+    const issues = lint(text, [portMustBeNumber], { payload: "nginx.donly" });
 
     expect(issues).toHaveLength(1);
     expect(issues[0]!.severity).toBe("error");
     expect(issues[0]!.message).toBe("port debe ser un número, no un string");
-    expect(issues[0]!.trace).toBe("<input>:2:3");
+    expect(issues[0]!.trace).toBe("nginx.donly:2:3");
   });
 
   it("does not report a numeric port", () => {
@@ -115,17 +115,6 @@ describe("lint", () => {
     expect(issues[0]!.severity).toBe("error");
     expect(issues[0]!.message).toBe("solo puede existir un location /home");
     expect(issues[0]!.trace).toBe("<input>:7:1");
-  });
-
-  it("uses a custom payload name in the trace", () => {
-    const text = ""
-      + "server {\n"
-      + '  port "3000"\n'
-      + "}\n";
-
-    const issues = lint(text, [portMustBeNumber], { payload: "nginx.donly" });
-
-    expect(issues[0]!.trace).toBe("nginx.donly:2:3");
   });
 
   it("runs a path-less rule once against the document root", () => {
