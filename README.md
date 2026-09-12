@@ -169,34 +169,6 @@ const [token] = Directive.tokensByDirective(root) ?? [];
 //   json: [Function: json],
 //   toJSON: [Function: toJSON],
 // }
-console.log(token?.raw());
-// ? "host"
-
-const parts = token.parts;
-// ? const parts = [
-//   Part {
-//     type: 1,
-//     buffer: [ 104, 111, 115, 116 ],
-//     span: Span {
-//       index: 0,
-//       length: 4,
-//       startLocation: {
-//         line: 0,
-//         column: 0,
-//         paddingLine: 0,
-//       },
-//       endLocation: {
-//         line: 0,
-//         column: 4,
-//         paddingLine: 0,
-//       },
-//     },
-//     id: 0,
-//     toUint8Array: [Function: toUint8Array],
-//     toText: [Function: toText],
-//     toJSON: [Function: toJSON],
-//   }
-// ]
 ```
 
 `tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
