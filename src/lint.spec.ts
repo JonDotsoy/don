@@ -6,7 +6,7 @@ describe("lint", () => {
     path: "/server/port",
     evaluation({ directive }) {
       const value = directive.args[0];
-      if (typeof value !== "string") return [];
+      if (typeof value === "number") return [];
 
       return [
         {
