@@ -256,6 +256,222 @@ const decoded = new DirectiveJSONDecoder().decode(encoded);
 // }
 ```
 
+## Linting
+
+`donly/lint` validates a parsed document against your own rules — DON has no built-in schema, so every check (types, required fields, cardinality, ...) is a `LintRule` you write. A rule matches directives by a `/`-separated `path` of directive names and either validates each match independently (`validate`) or all matches sharing a parent together (`validateGroup`, e.g. to cap how many times a directive may appear):
+
+```ts
+import { DON } from "donly";
+import { lint, type LintRule } from "donly/lint";
+
+const root = DON.parse(`
+server {
+  port "3000"
+}
+location /home {
+  respond 200
+  respond 404
+}
+location 404 {
+  root "/var/www"
+}
+`);
+
+const rules: LintRule[] = [
+  {
+    path: "/server/port",
+    message: "port must be a number, not a string",
+    validate: (directive) => typeof directive.args[0] === "number",
+  },
+  {
+    path: "/location",
+    message: "location's path must be an absolute path starting with /",
+    validate: (directive) =>
+      typeof directive.args[0] === "string" &&
+      directive.args[0].startsWith("/"),
+  },
+  {
+    path: "/location",
+    message: "a location block must have at least one respond declaration",
+    validate: (directive) =>
+      directive.children.some((child) => child.name === "respond"),
+  },
+  {
+    path: "/location/respond",
+    message: "only one respond declaration is allowed per location block",
+    validateGroup: (directives) => directives.length <= 1,
+  },
+];
+
+const issues = lint(root, rules);
+// ? const issues = [
+//   LintIssue {
+//     path: "/server/port",
+//     message: "port must be a number, not a string",
+//     severity: "error",
+//     directive: Directive {
+//       name: "port",
+//       args: [ "3000" ],
+//       children: [],
+//     },
+//     loc: {
+//       start: {
+//         offset: 12,
+//         line: 2,
+//         column: 2,
+//         paddingLine: 2,
+//       },
+//       end: {
+//         offset: 23,
+//         line: 2,
+//         column: 13,
+//         paddingLine: 2,
+//       },
+//     },
+//   }, LintIssue {
+//     path: "/location",
+//     message: "location's path must be an absolute path starting with /",
+//     severity: "error",
+//     directive: Directive {
+//       name: "location",
+//       args: [ 404 ],
+//       children: [
+//         Directive {
+//           name: "root",
+//           args: [ "/var/www" ],
+//           children: [],
+//         }
+//       ],
+//     },
+//     loc: {
+//       start: {
+//         offset: 73,
+//         line: 8,
+//         column: 0,
+//         paddingLine: 0,
+//       },
+//       end: {
+//         offset: 105,
+//         line: 9,
+//         column: 17,
+//         paddingLine: 2,
+//       },
+//     },
+//   }, LintIssue {
+//     path: "/location",
+//     message: "a location block must have at least one respond declaration",
+//     severity: "error",
+//     directive: Directive {
+//       name: "location",
+//       args: [ 404 ],
+//       children: [
+//         Directive {
+//           name: "root",
+//           args: [ "/var/www" ],
+//           children: [],
+//         }
+//       ],
+//     },
+//     loc: {
+//       start: {
+//         offset: 73,
+//         line: 8,
+//         column: 0,
+//         paddingLine: 0,
+//       },
+//       end: {
+//         offset: 105,
+//         line: 9,
+//         column: 17,
+//         paddingLine: 2,
+//       },
+//     },
+//   }, LintIssue {
+//     path: "/location/respond",
+//     message: "only one respond declaration is allowed per location block",
+//     severity: "error",
+//     directive: Directive {
+//       name: "respond",
+//       args: [ 200 ],
+//       children: [],
+//     },
+//     loc: {
+//       start: {
+//         offset: 45,
+//         line: 5,
+//         column: 2,
+//         paddingLine: 2,
+//       },
+//       end: {
+//         offset: 56,
+//         line: 5,
+//         column: 13,
+//         paddingLine: 2,
+//       },
+//     },
+//   }
+// ]
+```
+
+Each reported `LintIssue` carries the rule's `path`, `message`, `severity` (`"error"` by default), the offending `directive`, and its `loc` — the directive's source span as `{ start, end }` points, each a `{ offset, line, column, paddingLine }` — so a consumer (a CLI, an editor integration) can point straight at the failing line and column:
+
+<!-- before-block
+import { DON } from "donly";
+import { lint, type LintRule } from "donly/lint";
+
+const root = DON.parse(`
+server {
+  port "3000"
+}
+location /home {
+  respond 200
+  respond 404
+}
+location 404 {
+  root "/var/www"
+}
+`);
+
+const rules: LintRule[] = [
+  {
+    path: "/server/port",
+    message: "port must be a number, not a string",
+    validate: (directive) => typeof directive.args[0] === "number",
+  },
+  {
+    path: "/location",
+    message: "location's path must be an absolute path starting with /",
+    validate: (directive) =>
+      typeof directive.args[0] === "string" && directive.args[0].startsWith("/"),
+  },
+  {
+    path: "/location",
+    message: "a location block must have at least one respond declaration",
+    validate: (directive) => directive.children.some((child) => child.name === "respond"),
+  },
+  {
+    path: "/location/respond",
+    message: "only one respond declaration is allowed per location block",
+    validateGroup: (directives) => directives.length <= 1,
+  },
+];
+
+const issues = lint(root, rules);
+-->
+
+```ts
+const report = issues.map(
+  (issue) =>
+    `${issue.severity} ${issue.loc?.start.line}:${issue.loc?.start.column} ${issue.message} (${issue.path})`,
+);
+// ? const report = [ "error 2:2 port must be a number, not a string (/server/port)", "error 8:0 location's path must be an absolute path starting with / (/location)",
+//   "error 8:0 a location block must have at least one respond declaration (/location)",
+//   "error 5:2 only one respond declaration is allowed per location block (/location/respond)"
+// ]
+```
+
+`findByPath(root, path)` and `findGroupsByPath(root, path)` — the same path resolution `lint()` uses internally — are also exported, for building custom checks directly on top of the matched directives.
+
 ## Development
 
 This project uses [Bun](https://bun.sh):
