@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { DON } from "./don";
-import { lint, findByPath, type LintIssue, type LintRule } from "./lint";
+import { lint, findByPath, LintIssue, type LintRule } from "./lint";
 
 const expectLoc = (issue: LintIssue, text: string, expected: string) => {
   expect(issue.loc).toEqual(issue.directive.loc);
@@ -37,6 +37,7 @@ describe("lint", () => {
     const issues = lint(root, [argIsNumberRule]);
 
     expect(issues).toHaveLength(1);
+    expect(issues[0]).toBeInstanceOf(LintIssue);
     expect(issues[0]).toMatchObject({
       path: "/server/port",
       message: "The first argument of /server/port must be a number, not a string",

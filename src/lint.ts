@@ -3,14 +3,16 @@ import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 
 export type LintSeverity = "error" | "warning";
 
-export interface LintIssue {
-  /** The rule's path, e.g. `/server/port`. */
-  path: string;
-  message: string;
-  severity: LintSeverity;
-  directive: Directive;
-  /** The reported directive's source span, absent for synthetic directives. */
-  loc: Loc | undefined;
+export class LintIssue {
+  constructor(
+    /** The rule's path, e.g. `/server/port`. */
+    readonly path: string,
+    readonly message: string,
+    readonly severity: LintSeverity,
+    readonly directive: Directive,
+    /** The reported directive's source span, absent for synthetic directives. */
+    readonly loc: Loc | undefined,
+  ) {}
 }
 
 export interface LintRuleContext {
@@ -109,13 +111,15 @@ export const lint = (root: Directive, rules: LintRule[]): LintIssue[] => {
     if (rule.validateGroup) {
       for (const group of findGroupsByPath(root, rule.path)) {
         if (rule.validateGroup(group, context) === false) {
-          issues.push({
-            path: rule.path,
-            message: rule.message ?? `Rule violated at "${rule.path}"`,
-            severity: rule.severity ?? "error",
-            directive: group[0]!,
-            loc: group[0]!.loc,
-          });
+          issues.push(
+            new LintIssue(
+              rule.path,
+              rule.message ?? `Rule violated at "${rule.path}"`,
+              rule.severity ?? "error",
+              group[0]!,
+              group[0]!.loc,
+            ),
+          );
         }
       }
     }
@@ -123,13 +127,15 @@ export const lint = (root: Directive, rules: LintRule[]): LintIssue[] => {
     if (rule.validate) {
       for (const directive of findByPath(root, rule.path)) {
         if (rule.validate(directive, context) === false) {
-          issues.push({
-            path: rule.path,
-            message: rule.message ?? `Rule violated at "${rule.path}"`,
-            severity: rule.severity ?? "error",
-            directive,
-            loc: directive.loc,
-          });
+          issues.push(
+            new LintIssue(
+              rule.path,
+              rule.message ?? `Rule violated at "${rule.path}"`,
+              rule.severity ?? "error",
+              directive,
+              directive.loc,
+            ),
+          );
         }
       }
     }

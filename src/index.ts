@@ -15,13 +15,8 @@ export type {
   DirectiveReducer,
   DirectiveJSONEncoderOptions,
 } from "./directive-json.js";
-export { lint, findByPath, findGroupsByPath } from "./lint.js";
-export type {
-  LintRule,
-  LintIssue,
-  LintSeverity,
-  LintRuleContext,
-} from "./lint.js";
+export { lint, findByPath, findGroupsByPath, LintIssue } from "./lint.js";
+export type { LintRule, LintSeverity, LintRuleContext } from "./lint.js";
 
 const typeStrings: Partial<Record<SyntaxKind, string>> = {
   [SyntaxKind.keyword]: "keyword",
