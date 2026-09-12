@@ -118,7 +118,128 @@ import { DON, Directive } from "donly";
 const root = DON.parse('host "localhost"');
 const tokens = Directive.tokensByDirective(root)?.map((token) => token.raw());
 // ? const tokens = [ "host", "\"localhost\"" ]
+
+const [token] = Directive.tokensByDirective(root) ?? [];
+// ? const token = Token {
+//   type: 11,
+//   parts: [
+//     Part {
+//       type: 1,
+//       buffer: [ 104, 111, 115, 116 ],
+//       span: Span {
+//         index: 0,
+//         length: 4,
+//         startLocation: {
+//           line: 0,
+//           column: 0,
+//           paddingLine: 0,
+//         },
+//         endLocation: {
+//           line: 0,
+//           column: 4,
+//           paddingLine: 0,
+//         },
+//       },
+//       id: 0,
+//       toUint8Array: [Function: toUint8Array],
+//       toText: [Function: toText],
+//       toJSON: [Function: toJSON],
+//     }
+//   ],
+//   span: Span {
+//     index: 0,
+//     length: 4,
+//     startLocation: {
+//       line: 0,
+//       column: 0,
+//       paddingLine: 0,
+//     },
+//     endLocation: {
+//       line: 0,
+//       column: 4,
+//       paddingLine: 0,
+//     },
+//   },
+//   describeError: [Function: describeError],
+//   getErrors: [Function: getErrors],
+//   arrayBuffer: [Function: arrayBuffer],
+//   text: [Function: text],
+//   raw: [Function: raw],
+//   toJS: [Function: toJS],
+//   json: [Function: json],
+//   toJSON: [Function: toJSON],
+// }
 ```
+
+`token.type` and `part.type` are numeric `SyntaxKind` values — the enum `LexerParser` and the syntax parser tag every scanned unit with:
+
+```ts
+import { SyntaxKind as kindsyntax } from "donly";
+// ? const kindsyntax = {
+//   "0": "unknown",
+//   "1": "alphabet",
+//   "2": "integer",
+//   "3": "whitespace",
+//   "4": "newline",
+//   "5": "dot",
+//   "6": "underscore",
+//   "7": "singleQuote",
+//   "8": "doubleQuote",
+//   "9": "openCurlyBrace",
+//   "10": "closeCurlyBrace",
+//   "11": "keyword",
+//   "12": "string",
+//   "13": "numeric",
+//   "14": "boolean",
+//   "15": "null",
+//   "16": "comment",
+//   "17": "indent",
+//   "18": "heredoc",
+//   unknown: 0,
+//   alphabet: 1,
+//   integer: 2,
+//   whitespace: 3,
+//   newline: 4,
+//   dot: 5,
+//   underscore: 6,
+//   singleQuote: 7,
+//   doubleQuote: 8,
+//   openCurlyBrace: 9,
+//   closeCurlyBrace: 10,
+//   keyword: 11,
+//   string: 12,
+//   numeric: 13,
+//   boolean: 14,
+//   null: 15,
+//   comment: 16,
+//   indent: 17,
+//   heredoc: 18,
+// }
+```
+
+| Value | Name              | Description                                                                                           |
+| ----- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| 0     | `unknown`         | Fallback kind for input the lexer couldn't classify into anything below.                              |
+| 1     | `alphabet`        | A letter, while scanning a bare word (an identifier, keyword, or the `true`/`false`/`null` literals). |
+| 2     | `integer`         | A digit, while scanning a number literal.                                                             |
+| 3     | `whitespace`      | A space or tab between tokens.                                                                        |
+| 4     | `newline`         | A line break, which separates directives from each other.                                             |
+| 5     | `dot`             | The `.` character, joining the integer parts of a decimal number.                                     |
+| 6     | `underscore`      | The `_` character, allowed inside identifiers.                                                        |
+| 7     | `singleQuote`     | The `'` character opening/closing a quoted string.                                                    |
+| 8     | `doubleQuote`     | The `"` character opening/closing a quoted string.                                                    |
+| 9     | `openCurlyBrace`  | The `{` character, opening a block of nested subdirectives.                                           |
+| 10    | `closeCurlyBrace` | The `}` character, closing a block of nested subdirectives.                                           |
+| 11    | `keyword`         | A resolved directive name or bare-word argument token.                                                |
+| 12    | `string`          | A resolved quoted-string argument token.                                                              |
+| 13    | `numeric`         | A resolved number argument token.                                                                     |
+| 14    | `boolean`         | A resolved `true`/`false` argument token.                                                             |
+| 15    | `null`            | A resolved `null` argument token.                                                                     |
+| 16    | `comment`         | A line (`#`) or block (`/* ... */`) comment token.                                                    |
+| 17    | `indent`          | Leading whitespace on a line, recognized as indentation.                                              |
+| 18    | `heredoc`         | A heredoc block token (multi-line content between `<<` markers).                                      |
+
+`SyntaxKind` is exported from `donly`, but its numeric values are considered internal — treat them as opaque unless you're working at the lexer/syntax-parser level.
 
 `tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
 
