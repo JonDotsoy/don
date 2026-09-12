@@ -297,4 +297,64 @@ describe("lint", () => {
       expect(findByPath(root, "/name")).toHaveLength(1);
     });
   });
+
+  describe("full lint report", () => {
+    it("captures every rule kind against a realistic multi-block config", () => {
+      const text = ""
+        + "server {\n"
+        + '  port "3000"\n'
+        + "}\n"
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "  respond 404\n"
+        + "}\n"
+        + "location 404 {\n"
+        + '  root "/var/www"\n'
+        + "}\n"
+        + "location /about {\n"
+        + "  respond 200\n"
+        + "}\n";
+      const root = DON.parse(text);
+
+      const rules: LintRule[] = [
+        {
+          path: "/server/port",
+          message: "The first argument of /server/port must be a number, not a string",
+          validate: (directive) => typeof directive.args[0] === "number",
+        },
+        {
+          path: "/location",
+          message: "The first argument of /location must be an absolute path starting with /",
+          validate: (directive) =>
+            typeof directive.args[0] === "string" &&
+            directive.args[0].startsWith("/"),
+        },
+        {
+          path: "/location",
+          message: "A location block must have at least one respond declaration",
+          validate: (directive) =>
+            directive.children.some((child) => child.name === "respond"),
+        },
+        {
+          path: "/location/respond",
+          message: "Only one respond declaration is allowed per location block",
+          validateGroup: (directives) => directives.length <= 1,
+        },
+      ];
+
+      const issues = lint(root, rules);
+
+      // /about is fully valid and contributes nothing, proving the report
+      // only surfaces genuine violations rather than one entry per match.
+      const report = issues.map((issue) => ({
+        path: issue.path,
+        message: issue.message,
+        severity: issue.severity,
+        source: text.slice(issue.loc!.start, issue.loc!.end),
+        directive: { name: issue.directive.name, args: issue.directive.args },
+      }));
+
+      expect(report).toMatchSnapshot();
+    });
+  });
 });

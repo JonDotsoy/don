@@ -1,0 +1,60 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`lint full lint report captures every rule kind against a realistic multi-block config 1`] = `
+[
+  {
+    "directive": {
+      "args": [
+        "3000",
+      ],
+      "name": "port",
+    },
+    "message": "The first argument of /server/port must be a number, not a string",
+    "path": "/server/port",
+    "severity": "error",
+    "source": "port "3000"",
+  },
+  {
+    "directive": {
+      "args": [
+        404,
+      ],
+      "name": "location",
+    },
+    "message": "The first argument of /location must be an absolute path starting with /",
+    "path": "/location",
+    "severity": "error",
+    "source": 
+"location 404 {
+  root "/var/www""
+,
+  },
+  {
+    "directive": {
+      "args": [
+        404,
+      ],
+      "name": "location",
+    },
+    "message": "A location block must have at least one respond declaration",
+    "path": "/location",
+    "severity": "error",
+    "source": 
+"location 404 {
+  root "/var/www""
+,
+  },
+  {
+    "directive": {
+      "args": [
+        200,
+      ],
+      "name": "respond",
+    },
+    "message": "Only one respond declaration is allowed per location block",
+    "path": "/location/respond",
+    "severity": "error",
+    "source": "respond 200",
+  },
+]
+`;
