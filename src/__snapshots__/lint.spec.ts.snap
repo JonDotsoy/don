@@ -10,8 +10,18 @@ exports[`lint full lint report captures every rule kind against a realistic mult
       "name": "port",
     },
     "loc": {
-      "end": 22,
-      "start": 11,
+      "end": {
+        "column": 13,
+        "line": 1,
+        "offset": 22,
+        "paddingLine": 2,
+      },
+      "start": {
+        "column": 2,
+        "line": 1,
+        "offset": 11,
+        "paddingLine": 2,
+      },
     },
     "message": "The first argument of /server/port must be a number, not a string",
     "path": "/server/port",
@@ -26,8 +36,18 @@ exports[`lint full lint report captures every rule kind against a realistic mult
       "name": "location",
     },
     "loc": {
-      "end": 104,
-      "start": 72,
+      "end": {
+        "column": 17,
+        "line": 8,
+        "offset": 104,
+        "paddingLine": 2,
+      },
+      "start": {
+        "column": 0,
+        "line": 7,
+        "offset": 72,
+        "paddingLine": 0,
+      },
     },
     "message": "The first argument of /location must be an absolute path starting with /",
     "path": "/location",
@@ -45,8 +65,18 @@ exports[`lint full lint report captures every rule kind against a realistic mult
       "name": "location",
     },
     "loc": {
-      "end": 104,
-      "start": 72,
+      "end": {
+        "column": 17,
+        "line": 8,
+        "offset": 104,
+        "paddingLine": 2,
+      },
+      "start": {
+        "column": 0,
+        "line": 7,
+        "offset": 72,
+        "paddingLine": 0,
+      },
     },
     "message": "A location block must have at least one respond declaration",
     "path": "/location",
@@ -64,8 +94,18 @@ exports[`lint full lint report captures every rule kind against a realistic mult
       "name": "respond",
     },
     "loc": {
-      "end": 55,
-      "start": 44,
+      "end": {
+        "column": 13,
+        "line": 4,
+        "offset": 55,
+        "paddingLine": 2,
+      },
+      "start": {
+        "column": 2,
+        "line": 4,
+        "offset": 44,
+        "paddingLine": 2,
+      },
     },
     "message": "Only one respond declaration is allowed per location block",
     "path": "/location/respond",

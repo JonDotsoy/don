@@ -5,7 +5,9 @@ import { lint, findByPath, type LintIssue, type LintRule } from "./lint";
 const expectLoc = (issue: LintIssue, text: string, expected: string) => {
   expect(issue.loc).toEqual(issue.directive.loc);
   expect(issue.loc).toBeDefined();
-  expect(text.slice(issue.loc!.start, issue.loc!.end)).toBe(expected);
+  expect(
+    text.slice(issue.loc!.start.offset, issue.loc!.end.offset),
+  ).toBe(expected);
 };
 
 describe("lint", () => {
@@ -129,7 +131,7 @@ describe("lint", () => {
       expect(issues).toHaveLength(1);
       expect(issues[0]!.directive.args).toEqual([200]);
       expectLoc(issues[0]!, text, "respond 200");
-      expect(issues[0]!.loc!.start).toBe(
+      expect(issues[0]!.loc!.start.offset).toBe(
         text.indexOf("respond 200", text.indexOf("/about")),
       );
     });
@@ -286,9 +288,9 @@ describe("lint", () => {
       expect(matches).toHaveLength(1);
       expect(matches[0]).toMatchObject({ name: "port", args: [3000] });
       expect(matches[0]!.loc).toBeDefined();
-      expect(text.slice(matches[0]!.loc!.start, matches[0]!.loc!.end)).toBe(
-        "port 3000",
-      );
+      expect(
+        text.slice(matches[0]!.loc!.start.offset, matches[0]!.loc!.end.offset),
+      ).toBe("port 3000");
     });
 
     it("resolves a single top-level directive with an empty child path", () => {
@@ -351,7 +353,7 @@ describe("lint", () => {
         message: issue.message,
         severity: issue.severity,
         loc: issue.loc,
-        source: text.slice(issue.loc!.start, issue.loc!.end),
+        source: text.slice(issue.loc!.start.offset, issue.loc!.end.offset),
         directive: { name: issue.directive.name, args: issue.directive.args },
       }));
 

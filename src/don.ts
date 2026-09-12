@@ -3,8 +3,10 @@ import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON, wrapAsRoot } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
 import type { Token } from "./v1/compiler/token.js";
+import type { Location } from "./v1/types/location.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
+export type { Location } from "./v1/types/location.js";
 
 // Keyed by the Directive instance so the tokens don't leak into its
 // public shape (name/args/children) or get carried over JSON/decoder
@@ -13,10 +15,15 @@ const tokensByDirective = new WeakMap<Directive, Token[]>();
 
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
-/** A directive's source span, as absolute character offsets into the parsed text. */
+/** One end of a directive's source span: the character offset plus its line/column. */
+export interface LocPoint extends Location {
+  offset: number;
+}
+
+/** A directive's source span. */
 export interface Loc {
-  start: number;
-  end: number;
+  start: LocPoint;
+  end: LocPoint;
 }
 
 // A plain data-only view used only for inspection: returning an
@@ -78,7 +85,10 @@ const toDirective = (node: DirectiveNode): Directive => {
     node.args.map((token) => token.toJS()),
     node.children.map((child) => toDirective(child)).flat(),
     // `DirectiveNode#span.length` is already an absolute end offset, not a length.
-    { start: node.span.index, end: node.span.length },
+    {
+      start: { offset: node.span.index, ...node.span.startLocation },
+      end: { offset: node.span.length, ...node.span.endLocation },
+    },
   );
   tokensByDirective.set(directive, [node.name, ...node.args]);
   return directive;
