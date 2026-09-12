@@ -89,12 +89,25 @@ Each node carries just three fields, with no parent pointer or source-position d
 Because the shape is uniform (every node, root or leaf, is a `Directive`), you can write a single recursive function to walk it:
 
 ```ts
-function walk(node: Directive, depth = 0): void {
-  console.log("  ".repeat(depth) + String(node.name), node.args);
-  for (const child of node.children) walk(child, depth + 1);
+import { DON, type Directive } from "donly";
+
+function walk(node: Directive, depth = 0): string[] {
+  const line = `${"  ".repeat(depth)}${String(node.name)} ${JSON.stringify(node.args)}`;
+  return [line, ...node.children.flatMap((child) => walk(child, depth + 1))];
 }
 
-walk(DON.parse(text));
+const text = `
+name "my-app"
+port 8080
+
+database {
+  host "localhost"
+  port 5432
+}
+`;
+
+const lines = walk(DON.parse(text)).join("\n");
+// ? const lines = "Symbol(root) []\n  name [\"my-app\"]\n  port [8080]\n  database []\n    host [\"localhost\"]\n    port [5432]"
 ```
 
 If you need lower-level access to the parse — tokens, spans, or source locations — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
@@ -107,12 +120,10 @@ If you need lower-level access to the parse — tokens, spans, or source locatio
 import { LexerParser } from "donly";
 
 const { tokens } = new LexerParser().parse('host "localhost"');
-
-for (const token of tokens) {
-  console.log(token.type, token.text());
-}
-// keyword "host"
-// string  "localhost"
+const summary = tokens.map((token) => [token.type, token.text()]);
+// ? const summary = [
+//   [ 11, "host" ], [ 12, "localhost" ]
+// ]
 ```
 
 `new LexerParser(options?)` takes:
