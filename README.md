@@ -118,6 +118,11 @@ import { DON, Directive } from "donly";
 const root = DON.parse('host "localhost"');
 const tokens = Directive.tokensByDirective(root)?.map((token) => token.raw());
 // ? const tokens = [ "host", "\"localhost\"" ]
+
+const [token] = Directive.tokensByDirective(root) ?? [];
+// ? const token = Token { type: "identifier", parts: [...], span: {...} }
+console.log(token?.raw());
+// ? "host"
 ```
 
 `tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
