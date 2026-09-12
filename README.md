@@ -472,6 +472,113 @@ const report = issues.map(
 
 `findByPath(root, path)` and `findGroupsByPath(root, path)` — the same path resolution `lint()` uses internally — are also exported, for building custom checks directly on top of the matched directives.
 
+`validate` and `validateGroup` only ever see directives sharing one name (a single match, or every match under one parent) — a check spanning _different_ directive names, like a declaration order, points `path` at their common parent and reads `directive.children` directly:
+
+```ts
+import { DON } from "donly";
+import { lint, type LintRule } from "donly/lint";
+
+// `order` references products by sku, so a product declared after (or with
+// no order at all before it) the order that depends on it is invalid.
+const productsBeforeOrdersRule: LintRule = {
+  path: "/cart",
+  message: "every product must be declared before any order that references it",
+  validate: (directive) => {
+    const firstOrderIndex = directive.children.findIndex(
+      (child) => child.name === "order",
+    );
+    if (firstOrderIndex === -1) return true;
+    return directive.children
+      .slice(firstOrderIndex + 1)
+      .every((child) => child.name !== "product");
+  },
+};
+
+const root = DON.parse(`
+cart {
+  product {
+    sku "KB-100"
+    name "Keyboard"
+  }
+  order {
+    item "KB-100"
+  }
+  product {
+    sku "MS-200"
+    name "Mouse"
+  }
+}
+`);
+
+const issues = lint(root, [productsBeforeOrdersRule]);
+// ? const issues = [
+//   LintIssue {
+//     path: "/cart",
+//     message: "every product must be declared before any order that references it",
+//     severity: "error",
+//     directive: Directive {
+//       name: "cart",
+//       args: [],
+//       children: [
+//         Directive {
+//           name: "product",
+//           args: [],
+//           children: [
+//             Directive {
+//               name: "sku",
+//               args: [ "KB-100" ],
+//               children: [],
+//             }, Directive {
+//               name: "name",
+//               args: [ "Keyboard" ],
+//               children: [],
+//             }
+//           ],
+//         }, Directive {
+//           name: "order",
+//           args: [],
+//           children: [
+//             Directive {
+//               name: "item",
+//               args: [ "KB-100" ],
+//               children: [],
+//             }
+//           ],
+//         }, Directive {
+//           name: "product",
+//           args: [],
+//           children: [
+//             Directive {
+//               name: "sku",
+//               args: [ "MS-200" ],
+//               children: [],
+//             }, Directive {
+//               name: "name",
+//               args: [ "Mouse" ],
+//               children: [],
+//             }
+//           ],
+//         }
+//       ],
+//     },
+//     loc: {
+//       start: {
+//         offset: 1,
+//         line: 1,
+//         column: 0,
+//         paddingLine: 0,
+//       },
+//       end: {
+//         offset: 138,
+//         line: 11,
+//         column: 16,
+//         paddingLine: 4,
+//       },
+//     },
+//   }
+// ]
+```
+
 ## Development
 
 This project uses [Bun](https://bun.sh):
