@@ -350,6 +350,7 @@ describe("lint", () => {
         path: issue.path,
         message: issue.message,
         severity: issue.severity,
+        loc: issue.loc,
         source: text.slice(issue.loc!.start, issue.loc!.end),
         directive: { name: issue.directive.name, args: issue.directive.args },
       }));

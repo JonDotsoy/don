@@ -9,6 +9,10 @@ exports[`lint full lint report captures every rule kind against a realistic mult
       ],
       "name": "port",
     },
+    "loc": {
+      "end": 22,
+      "start": 11,
+    },
     "message": "The first argument of /server/port must be a number, not a string",
     "path": "/server/port",
     "severity": "error",
@@ -20,6 +24,10 @@ exports[`lint full lint report captures every rule kind against a realistic mult
         404,
       ],
       "name": "location",
+    },
+    "loc": {
+      "end": 104,
+      "start": 72,
     },
     "message": "The first argument of /location must be an absolute path starting with /",
     "path": "/location",
@@ -36,6 +44,10 @@ exports[`lint full lint report captures every rule kind against a realistic mult
       ],
       "name": "location",
     },
+    "loc": {
+      "end": 104,
+      "start": 72,
+    },
     "message": "A location block must have at least one respond declaration",
     "path": "/location",
     "severity": "error",
@@ -50,6 +62,10 @@ exports[`lint full lint report captures every rule kind against a realistic mult
         200,
       ],
       "name": "respond",
+    },
+    "loc": {
+      "end": 55,
+      "start": 44,
     },
     "message": "Only one respond declaration is allowed per location block",
     "path": "/location/respond",
