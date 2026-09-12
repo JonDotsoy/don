@@ -2,8 +2,16 @@ import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON, wrapAsRoot } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
+import {
+  atDirective,
+  findAllDirectives,
+  findFirstDirective,
+  ResultMatchDirectives,
+} from "./directive-query.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
+
+export type DirectiveArg = number | string | boolean | HeredocValue;
 
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
@@ -28,12 +36,32 @@ const DirectiveInspectView = (() => {
 export class Directive {
   constructor(
     readonly name: string | symbol,
-    readonly args: (number | string | boolean | HeredocValue)[],
+    readonly args: DirectiveArg[],
     readonly children: Directive[] = [],
   ) {}
 
   toJSON(): unknown {
     return directiveToJSON(this);
+  }
+
+  findAll(path: string): ResultMatchDirectives {
+    return findAllDirectives(this, path);
+  }
+
+  findFirst(path: string): Directive | undefined {
+    return findFirstDirective(this, path);
+  }
+
+  map<R>(fn: (args: DirectiveArg[], directive: Directive) => R): R {
+    return fn(this.args, this);
+  }
+
+  at(path: string): Directive | DirectiveArg | undefined {
+    return atDirective(this, path);
+  }
+
+  reduce<R>(fn: (directive: Directive) => R): R {
+    return fn(this);
   }
 
   /**
