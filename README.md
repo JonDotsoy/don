@@ -97,7 +97,40 @@ function walk(node: Directive, depth = 0): void {
 walk(DON.parse(text));
 ```
 
-If you need lower-level access to the parse — tokens, spans, or source locations — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
+If you need lower-level access to the parse — tokens, spans, or source locations — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
+
+## Lexer (`LexerParser`)
+
+`LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.
+
+```ts
+import { LexerParser } from "donly";
+
+const { tokens } = new LexerParser().parse('host "localhost"');
+
+for (const token of tokens) {
+  console.log(token.type, token.text());
+}
+// keyword "host"
+// string  "localhost"
+```
+
+`new LexerParser(options?)` takes:
+
+- `debug?: boolean` — also emit "invisible" tokens (whitespace, newlines, comments) that are dropped by default, so the token list mirrors the source exactly
+- `allowDebugDocument?: boolean` — retain the original input alongside the result, retrievable via `Lexema.debugGetDocument()`
+
+`parse(input: string | Uint8Array | Iterable<number> | PartSet)` accepts source as text or bytes and returns a `Lexema`, whose only public member is `tokens: Token[]`.
+
+Each `Token` exposes:
+
+- `type: SyntaxKind` — the token kind (`keyword`, `string`, `numeric`, `boolean`, `null`, `heredoc`, `comment`, `openCurlyBrace`, `closeCurlyBrace`, …)
+- `text()` — the decoded value (e.g. a quoted string's contents without the surrounding quotes)
+- `raw()` — the exact source slice the token was scanned from, quotes and all
+- `toJS()` — the token's value already coerced to a JS type (`number`/`bigint` for `numeric`, `boolean` for `boolean`, `null` for `null`, a `HeredocValue` for `heredoc`), the same conversion `DON.parse()` uses to build a `Directive`'s `args`
+- `span` — the token's position (byte offset, length, start/end line & column) in the source
+
+By default, whitespace, newlines, and comments are scanned but discarded (`invisible` tokens); pass `{ debug: true }` to keep them, which is how the internal `donToParts` helper reproduces the full token stream for snapshot tests.
 
 ## Example
 
