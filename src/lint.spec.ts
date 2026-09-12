@@ -301,6 +301,148 @@ describe("lint", () => {
     });
   });
 
+  describe("shopping cart example", () => {
+    // A product is well-formed when it has a string `name`, a positive
+    // numeric `price`, and a positive integer `quantity`.
+    const productIsWellFormedRule: LintRule = {
+      path: "/cart/product",
+      message:
+        "a product must have a string name, a positive numeric price, and a positive integer quantity",
+      validate: (directive) => {
+        const fields = Object.fromEntries(
+          directive.children.map((child) => [child.name, child.args[0]]),
+        );
+
+        return (
+          typeof fields.name === "string" &&
+          typeof fields.price === "number" &&
+          fields.price > 0 &&
+          typeof fields.quantity === "number" &&
+          Number.isInteger(fields.quantity) &&
+          fields.quantity > 0
+        );
+      },
+    };
+
+    it("reports no issues when every product in the cart is well-formed", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "Keyboard"\n'
+        + "    price 49.99\n"
+        + "    quantity 2\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    name "Mouse"\n'
+        + "    price 19.99\n"
+        + "    quantity 1\n"
+        + "  }\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [productIsWellFormedRule])).toEqual([]);
+    });
+
+    it("reports an issue for a product missing its name", () => {
+      const text = ""
+        + "cart {\n"
+        + "  product {\n"
+        + "    price 9.99\n"
+        + "    quantity 5\n"
+        + "  }\n"
+        + "}\n";
+      const root = DON.parse(text);
+
+      const issues = lint(root, [productIsWellFormedRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]!.directive.children.map((c) => c.name)).toEqual([
+        "price",
+        "quantity",
+      ]);
+      expectLoc(issues[0]!, text, ""
+        + "product {\n"
+        + "    price 9.99\n"
+        + "    quantity 5"
+      );
+    });
+
+    it("reports an issue when price is a string instead of a number", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "Mouse"\n'
+        + '    price "19.99"\n'
+        + "    quantity 1\n"
+        + "  }\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [productIsWellFormedRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(
+        issues[0]!.directive.children.find((c) => c.name === "price")!.args,
+      ).toEqual(["19.99"]);
+    });
+
+    it("reports an issue when quantity is zero or not an integer", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "Monitor"\n'
+        + "    price 199.99\n"
+        + "    quantity 0\n"
+        + "  }\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [productIsWellFormedRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(
+        issues[0]!.directive.children.find((c) => c.name === "quantity")!
+          .args,
+      ).toEqual([0]);
+    });
+
+    it("checks every product in the cart independently", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    name "Keyboard"\n'
+        + "    price 49.99\n"
+        + "    quantity 2\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    name "Mouse"\n'
+        + '    price "19.99"\n'
+        + "    quantity 1\n"
+        + "  }\n"
+        + "  product {\n"
+        + "    price 9.99\n"
+        + "    quantity 5\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    name "Monitor"\n'
+        + "    price 199.99\n"
+        + "    quantity 0\n"
+        + "  }\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [productIsWellFormedRule]);
+
+      // The first product (Keyboard) is well-formed and contributes nothing.
+      expect(issues).toHaveLength(3);
+      expect(
+        issues.map((issue) =>
+          issue.directive.children.find((c) => c.name === "name")?.args[0],
+        ),
+      ).toEqual(["Mouse", undefined, "Monitor"]);
+    });
+  });
+
   describe("full lint report", () => {
     it("captures every rule kind against a realistic multi-block config", () => {
       const text = ""
