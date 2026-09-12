@@ -65,6 +65,40 @@ Each `Directive` has:
 
 `ROOT_DIRECTIVE_NAME` is exported from `donly` — check `directive.name === ROOT_DIRECTIVE_NAME` to detect a synthetic root.
 
+## AST
+
+`DON.parse()` compiles the source text into a lexer/syntax tree internally, then hands you back a plain tree of `Directive` nodes — this `Directive` tree **is** the AST that `donly` exposes publicly. There is no separate "AST" type to import: every directive in the document, from the root down to the deepest subdirective, is a `Directive` instance, and traversing `children` recursively walks the whole tree.
+
+For the example in [Usage](#usage):
+
+```
+Directive (name: ROOT_DIRECTIVE_NAME)          # synthetic root, 2+ top-level directives
+├── Directive (name: "name", args: ["my-app"])
+├── Directive (name: "port", args: [8080])
+└── Directive (name: "database", args: [])
+    ├── Directive (name: "host", args: ["localhost"])
+    └── Directive (name: "port", args: [5432])
+```
+
+Each node carries just three fields, with no parent pointer or source-position data:
+
+- `name: string | symbol` — the directive's identifier (or `ROOT_DIRECTIVE_NAME` for a synthetic root)
+- `args: (number | string | boolean | HeredocValue)[]` — the directive's arguments, already decoded to JS values
+- `children: Directive[]` — nested subdirectives, in source order
+
+Because the shape is uniform (every node, root or leaf, is a `Directive`), you can write a single recursive function to walk it:
+
+```ts
+function walk(node: Directive, depth = 0): void {
+  console.log("  ".repeat(depth) + String(node.name), node.args);
+  for (const child of node.children) walk(child, depth + 1);
+}
+
+walk(DON.parse(text));
+```
+
+If you need lower-level access to the parse — tokens, spans, or source locations — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
+
 ## Example
 
 ```don
