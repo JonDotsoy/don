@@ -443,6 +443,156 @@ describe("lint", () => {
     });
   });
 
+  describe("complex order example", () => {
+    // A richer cart: products nest a `variant` block and can repeat
+    // `discount`, and the cart itself requires a `shipping` block —
+    // exercising all three path depths (/cart, /cart/product,
+    // /cart/product/variant and /cart/product/discount) and both
+    // `validate` and `validateGroup` together.
+    const isPositiveNumber = (value: unknown): value is number =>
+      typeof value === "number" && value > 0;
+    const isPositiveInteger = (value: unknown): value is number =>
+      isPositiveNumber(value) && Number.isInteger(value);
+
+    const fieldsOf = (directive: {
+      children: { name: string | symbol; args: unknown[] }[];
+    }) =>
+      Object.fromEntries(
+        directive.children.map((child) => [child.name, child.args[0]]),
+      ) as Record<string, unknown>;
+
+    const cartRequiresShippingRule: LintRule = {
+      path: "/cart",
+      message: "a cart must declare a shipping method",
+      validate: (directive) =>
+        directive.children.some((child) => child.name === "shipping"),
+    };
+
+    const productRequiresSkuRule: LintRule = {
+      path: "/cart/product",
+      message: "a product must have a sku",
+      validate: (directive) =>
+        directive.children.some((child) => child.name === "sku"),
+    };
+
+    const productIsWellFormedRule: LintRule = {
+      path: "/cart/product",
+      message:
+        "a product must have a string name, a positive numeric price, and a positive integer quantity",
+      validate: (directive) => {
+        const fields = fieldsOf(directive);
+        return (
+          typeof fields.name === "string" &&
+          isPositiveNumber(fields.price) &&
+          isPositiveInteger(fields.quantity)
+        );
+      },
+    };
+
+    const oneDiscountPerProductRule: LintRule = {
+      path: "/cart/product/discount",
+      message: "only one discount is allowed per product",
+      validateGroup: (directives) => directives.length <= 1,
+    };
+
+    const variantIsWellFormedRule: LintRule = {
+      path: "/cart/product/variant",
+      message: "a variant must have a string color and a string size",
+      validate: (directive) => {
+        const fields = fieldsOf(directive);
+        return (
+          typeof fields.color === "string" && typeof fields.size === "string"
+        );
+      },
+    };
+
+    const rules: LintRule[] = [
+      cartRequiresShippingRule,
+      productRequiresSkuRule,
+      productIsWellFormedRule,
+      oneDiscountPerProductRule,
+      variantIsWellFormedRule,
+    ];
+
+    it("reports no issues for a fully valid order", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  customer {\n"
+        + '    email "alice@example.com"\n'
+        + "    vip true\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    sku "KB-100"\n'
+        + '    name "Mechanical Keyboard"\n'
+        + "    price 49.99\n"
+        + "    quantity 2\n"
+        + "    variant {\n"
+        + '      color "black"\n'
+        + '      size "full"\n'
+        + "    }\n"
+        + "    discount 10\n"
+        + "  }\n"
+        + "  shipping {\n"
+        + '    method "express"\n'
+        + "    cost 12.5\n"
+        + "  }\n"
+        + "}\n"
+      );
+
+      expect(lint(root, rules)).toEqual([]);
+    });
+
+    it("captures every violation in a mixed order, one issue per rule", () => {
+      const text = ""
+        + "cart {\n"
+        + "  customer {\n"
+        + '    email "alice@example.com"\n'
+        + "    vip true\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    sku "KB-100"\n'
+        + '    name "Mechanical Keyboard"\n'
+        + "    price 49.99\n"
+        + "    quantity 2\n"
+        + "    variant {\n"
+        + '      color "black"\n'
+        + '      size "full"\n'
+        + "    }\n"
+        + "    discount 10\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    sku "MS-200"\n'
+        + '    name "Wireless Mouse"\n'
+        + '    price "19.99"\n'
+        + "    quantity 0\n"
+        + "    discount 5\n"
+        + "    discount 15\n"
+        + "  }\n"
+        + "  product {\n"
+        + '    name "Monitor"\n'
+        + "    price 199.99\n"
+        + "    quantity 1\n"
+        + "    variant {\n"
+        + "      color 42\n"
+        + "    }\n"
+        + "  }\n"
+        + "}\n";
+      const root = DON.parse(text);
+
+      const issues = lint(root, rules);
+
+      // The Keyboard product (first) is fully valid, including its
+      // variant and single discount, and contributes nothing.
+      const report = issues.map((issue) => ({
+        path: issue.path,
+        message: issue.message,
+        source: text.slice(issue.loc!.start.offset, issue.loc!.end.offset),
+      }));
+
+      expect(report).toMatchSnapshot();
+    });
+  });
+
   describe("full lint report", () => {
     it("captures every rule kind against a realistic multi-block config", () => {
       const text = ""

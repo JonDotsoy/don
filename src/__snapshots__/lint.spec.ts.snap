@@ -114,3 +114,82 @@ exports[`lint full lint report captures every rule kind against a realistic mult
   },
 ]
 `;
+
+exports[`lint complex order example captures every violation in a mixed order, one issue per rule 1`] = `
+[
+  {
+    "message": "a cart must declare a shipping method",
+    "path": "/cart",
+    "source": 
+"cart {
+  customer {
+    email "alice@example.com"
+    vip true
+  }
+  product {
+    sku "KB-100"
+    name "Mechanical Keyboard"
+    price 49.99
+    quantity 2
+    variant {
+      color "black"
+      size "full"
+    }
+    discount 10
+  }
+  product {
+    sku "MS-200"
+    name "Wireless Mouse"
+    price "19.99"
+    quantity 0
+    discount 5
+    discount 15
+  }
+  product {
+    name "Monitor"
+    price 199.99
+    quantity 1
+    variant {
+      color 42"
+,
+  },
+  {
+    "message": "a product must have a sku",
+    "path": "/cart/product",
+    "source": 
+"product {
+    name "Monitor"
+    price 199.99
+    quantity 1
+    variant {
+      color 42"
+,
+  },
+  {
+    "message": "a product must have a string name, a positive numeric price, and a positive integer quantity",
+    "path": "/cart/product",
+    "source": 
+"product {
+    sku "MS-200"
+    name "Wireless Mouse"
+    price "19.99"
+    quantity 0
+    discount 5
+    discount 15"
+,
+  },
+  {
+    "message": "only one discount is allowed per product",
+    "path": "/cart/product/discount",
+    "source": "discount 5",
+  },
+  {
+    "message": "a variant must have a string color and a string size",
+    "path": "/cart/product/variant",
+    "source": 
+"variant {
+      color 42"
+,
+  },
+]
+`;
