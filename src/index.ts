@@ -14,7 +14,7 @@ export type {
   DirectiveReducer,
   DirectiveJSONEncoderOptions,
 } from "./directive-json.js";
-export { lint, findByPath } from "./lint.js";
+export { lint, findByPath, findGroupsByPath } from "./lint.js";
 export type {
   LintRule,
   LintIssue,

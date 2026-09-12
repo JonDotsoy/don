@@ -39,3 +39,9 @@ documentation.
   `false`.
 - `findByPath(root, path)` (`donly/lint`) — resolves a `/`-separated path of
   directive names to the matching directives in a parsed document.
+- `LintRule#validateGroup` (`donly/lint`) — validates every directive
+  matching a path together, grouped by parent, for rules that constrain how
+  many times a directive may appear (e.g. only one `respond` per `location`
+  block).
+- `findGroupsByPath(root, path)` (`donly/lint`) — like `findByPath`, but
+  groups the matching directives by their parent.

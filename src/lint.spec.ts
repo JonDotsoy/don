@@ -69,6 +69,59 @@ describe("lint", () => {
     expect(lint(root, [argIsNumberRule])).toEqual([]);
   });
 
+  describe("single declaration rule", () => {
+    const singleRespondRule: LintRule = {
+      path: "/location/respond",
+      message: "Only one respond declaration is allowed per location block",
+      validateGroup: (directives) => directives.length <= 1,
+    };
+
+    it("reports an issue when a location has more than one respond", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "  respond 404\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [singleRespondRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({
+        path: "/location/respond",
+        message: "Only one respond declaration is allowed per location block",
+        severity: "error",
+      });
+    });
+
+    it("reports no issues when a location has a single respond", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [singleRespondRule])).toEqual([]);
+    });
+
+    it("checks each location independently", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "}\n"
+        + "location /about {\n"
+        + "  respond 200\n"
+        + "  respond 404\n"
+        + "}\n"
+      );
+
+      const issues = lint(root, [singleRespondRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]!.directive.args).toEqual([200]);
+    });
+  });
+
   describe("findByPath", () => {
     it("resolves a nested path to the matching directives", () => {
       const root = DON.parse(""
