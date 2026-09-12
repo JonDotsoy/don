@@ -33,3 +33,9 @@ documentation.
 - `donToParts(text)` — utility to break a DON document into typed lexical parts.
 - `load(filePath)` (`donly/load`) — reads a `.donly` file and parses it into a
   plain object using the nested reducer shape.
+- `lint(root, rules)` (`donly/lint`) — validates a parsed DON document against
+  a list of custom `LintRule`s, each matching directives by a `/`-separated
+  path (e.g. `/server/port`) and reporting an issue when `validate` returns
+  `false`.
+- `findByPath(root, path)` (`donly/lint`) — resolves a `/`-separated path of
+  directive names to the matching directives in a parsed document.

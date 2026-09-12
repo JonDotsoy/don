@@ -1,0 +1,92 @@
+import { describe, it, expect } from "bun:test";
+import { DON } from "./don";
+import { lint, findByPath, type LintRule } from "./lint";
+
+describe("lint", () => {
+  const argIsNumberRule: LintRule = {
+    path: "/server/port",
+    message: "The first argument of /server/port must be a number, not a string",
+    validate: (directive) => typeof directive.args[0] === "number",
+  };
+
+  it("reports no issues when the first argument is a number", () => {
+    const root = DON.parse(""
+      + "server {\n"
+      + "  port 3000\n"
+      + "}\n"
+    );
+
+    expect(lint(root, [argIsNumberRule])).toEqual([]);
+  });
+
+  it("reports an issue when the first argument is a string", () => {
+    const root = DON.parse(""
+      + "server {\n"
+      + '  port "3000"\n'
+      + "}\n"
+    );
+
+    const issues = lint(root, [argIsNumberRule]);
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({
+      path: "/server/port",
+      message: "The first argument of /server/port must be a number, not a string",
+      severity: "error",
+    });
+    expect(issues[0]!.directive.args).toEqual(["3000"]);
+  });
+
+  it("supports a custom severity", () => {
+    const root = DON.parse(""
+      + "server {\n"
+      + '  port "3000"\n'
+      + "}\n"
+    );
+
+    const warningRule: LintRule = { ...argIsNumberRule, severity: "warning" };
+
+    expect(lint(root, [warningRule])[0]).toMatchObject({ severity: "warning" });
+  });
+
+  it("validates every directive matching the path, not just the first", () => {
+    const root = DON.parse(""
+      + "server {\n"
+      + "  port 3000\n"
+      + '  port "8080"\n'
+      + "}\n"
+    );
+
+    const issues = lint(root, [argIsNumberRule]);
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.directive.args).toEqual(["8080"]);
+  });
+
+  it("reports nothing when the path has no match", () => {
+    const root = DON.parse("name \"my-app\"\n");
+
+    expect(lint(root, [argIsNumberRule])).toEqual([]);
+  });
+
+  describe("findByPath", () => {
+    it("resolves a nested path to the matching directives", () => {
+      const root = DON.parse(""
+        + "server {\n"
+        + "  port 3000\n"
+        + "}\n"
+      );
+
+      const matches = findByPath(root, "/server/port");
+
+      expect(matches).toHaveLength(1);
+      expect(matches[0]).toMatchObject({ name: "port", args: [3000] });
+    });
+
+    it("resolves a single top-level directive with an empty child path", () => {
+      const root = DON.parse("name \"my-app\"\n");
+
+      expect(findByPath(root, "/name")).toHaveLength(1);
+    });
+  });
+});

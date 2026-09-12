@@ -47,6 +47,10 @@
     "./load": {
       "types": "./lib/esm/load.d.ts",
       "import": "./lib/esm/load.js"
+    },
+    "./lint": {
+      "types": "./lib/esm/lint.d.ts",
+      "import": "./lib/esm/lint.js"
     }
   },
   "files": [
