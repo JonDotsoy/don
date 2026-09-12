@@ -33,3 +33,12 @@ documentation.
 - `donToParts(text)` — utility to break a DON document into typed lexical parts.
 - `load(filePath)` (`donly/load`) — reads a `.donly` file and parses it into a
   plain object using the nested reducer shape.
+- `lint(input, rules, options?)` (`donly/lint`) — runs `LintRule`s against a
+  DON document (text or a parsed `Directive`) and returns the `LintIssue`s
+  they report. A rule's `path` (e.g. `"server.location"`) scopes its
+  `evaluation` to directives whose name, preceded by their ancestors' names,
+  matches that dot-separated chain; omitting `path` runs `evaluation` once
+  against the document root. Each returned issue's `trace` (`<payload>:line:column`)
+  is filled in from `loc.start`'s token when the rule sets a `loc` and no
+  `trace` already. `directiveLoc(directive)` derives a `{ start, end }` `loc`
+  from a directive's own tokens, when it has any.
