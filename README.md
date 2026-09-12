@@ -65,6 +65,96 @@ Each `Directive` has:
 
 `ROOT_DIRECTIVE_NAME` is exported from `donly` — check `directive.name === ROOT_DIRECTIVE_NAME` to detect a synthetic root.
 
+## AST
+
+`DON.parse()` compiles the source text into a lexer/syntax tree internally, then hands you back a plain tree of `Directive` nodes — this `Directive` tree **is** the AST that `donly` exposes publicly. There is no separate "AST" type to import: every directive in the document, from the root down to the deepest subdirective, is a `Directive` instance, and traversing `children` recursively walks the whole tree.
+
+For the example in [Usage](#usage):
+
+```
+Directive (name: ROOT_DIRECTIVE_NAME)          # synthetic root, 2+ top-level directives
+├── Directive (name: "name", args: ["my-app"])
+├── Directive (name: "port", args: [8080])
+└── Directive (name: "database", args: [])
+    ├── Directive (name: "host", args: ["localhost"])
+    └── Directive (name: "port", args: [5432])
+```
+
+Each node carries just three fields, with no parent pointer or source-position data:
+
+- `name: string | symbol` — the directive's identifier (or `ROOT_DIRECTIVE_NAME` for a synthetic root)
+- `args: (number | string | boolean | HeredocValue)[]` — the directive's arguments, already decoded to JS values
+- `children: Directive[]` — nested subdirectives, in source order
+
+Because the shape is uniform (every node, root or leaf, is a `Directive`), you can write a single recursive function to walk it:
+
+```ts
+import { DON, type Directive } from "donly";
+
+function walk(node: Directive, depth = 0): string[] {
+  const line = `${"  ".repeat(depth)}${String(node.name)} ${JSON.stringify(node.args)}`;
+  return [line, ...node.children.flatMap((child) => walk(child, depth + 1))];
+}
+
+const text = `
+name "my-app"
+port 8080
+
+database {
+  host "localhost"
+  port 5432
+}
+`;
+
+const lines = walk(DON.parse(text)).join("\n");
+// ? const lines = "Symbol(root) []\n  name [\"my-app\"]\n  port [8080]\n  database []\n    host [\"localhost\"]\n    port [5432]"
+```
+
+A `Directive`'s own fields never include its source `Token`s or `span` — that data is dropped while building the tree so the public shape stays plain and JSON-serializable. When a `Directive` comes from `DON.parse()`, though, its name and args `Token`s are still reachable via `Directive.tokensByDirective()`, keyed by the `Directive` instance itself:
+
+```ts
+import { DON, Directive } from "donly";
+
+const root = DON.parse('host "localhost"');
+const tokens = Directive.tokensByDirective(root)?.map((token) => token.raw());
+// ? const tokens = [ "host", "\"localhost\"" ]
+```
+
+`tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
+
+If you need lower-level access to the parse — spans, source locations, or the full token stream including directives you don't hold a reference to — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
+
+## Lexer (`LexerParser`)
+
+`LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.
+
+```ts
+import { LexerParser } from "donly";
+
+const { tokens } = new LexerParser().parse('host "localhost"');
+const summary = tokens.map((token) => [token.type, token.text()]);
+// ? const summary = [
+//   [ 11, "host" ], [ 12, "localhost" ]
+// ]
+```
+
+`new LexerParser(options?)` takes:
+
+- `debug?: boolean` — also emit "invisible" tokens (whitespace, newlines, comments) that are dropped by default, so the token list mirrors the source exactly
+- `allowDebugDocument?: boolean` — retain the original input alongside the result, retrievable via `Lexema.debugGetDocument()`
+
+`parse(input: string | Uint8Array | Iterable<number> | PartSet)` accepts source as text or bytes and returns a `Lexema`, whose only public member is `tokens: Token[]`.
+
+Each `Token` exposes:
+
+- `type: SyntaxKind` — the token kind (`keyword`, `string`, `numeric`, `boolean`, `null`, `heredoc`, `comment`, `openCurlyBrace`, `closeCurlyBrace`, …)
+- `text()` — the decoded value (e.g. a quoted string's contents without the surrounding quotes)
+- `raw()` — the exact source slice the token was scanned from, quotes and all
+- `toJS()` — the token's value already coerced to a JS type (`number`/`bigint` for `numeric`, `boolean` for `boolean`, `null` for `null`, a `HeredocValue` for `heredoc`), the same conversion `DON.parse()` uses to build a `Directive`'s `args`
+- `span` — the token's position (byte offset, length, start/end line & column) in the source
+
+By default, whitespace, newlines, and comments are scanned but discarded (`invisible` tokens); pass `{ debug: true }` to keep them, which is how the internal `donToParts` helper reproduces the full token stream for snapshot tests.
+
 ## Example
 
 ```don

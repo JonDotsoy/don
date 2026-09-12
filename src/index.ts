@@ -3,6 +3,7 @@ import { SyntaxKind } from "./v1/utils/syntax-kind.js";
 
 export { SyntaxParser as SyntaxEncode } from "./v1/compiler/syntax-encode.js";
 export { LexerParser } from "./v1/compiler/lexema-encode.js";
+export type { Token } from "./v1/compiler/token.js";
 export { DON, Directive, HeredocValue } from "./don.js";
 export {
   DirectiveJSONEncoder,

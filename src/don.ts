@@ -2,8 +2,14 @@ import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON, wrapAsRoot } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
+import type { Token } from "./v1/compiler/token.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
+
+// Keyed by the Directive instance so the tokens don't leak into its
+// public shape (name/args/children) or get carried over JSON/decoder
+// round-trips, and are garbage-collected along with the Directive.
+const tokensByDirective = new WeakMap<Directive, Token[]>();
 
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
@@ -46,14 +52,26 @@ export class Directive {
   [inspectSymbol]() {
     return new DirectiveInspectView(this.name, this.args, this.children);
   }
+
+  /**
+   * The `Token`s (the directive's own name and args, not its children's)
+   * that a `Directive` returned by `DON.parse()` was built from, or
+   * `undefined` for a `Directive` not produced by the parser (e.g. one
+   * built by hand or by `DirectiveJSONDecoder`).
+   */
+  static tokensByDirective(directive: Directive): Token[] | undefined {
+    return tokensByDirective.get(directive);
+  }
 }
 
 const toDirective = (node: DirectiveNode): Directive => {
-  return new Directive(
+  const directive = new Directive(
     node.name.text(),
     node.args.map((token) => token.toJS()),
     node.children.map((child) => toDirective(child)).flat(),
   );
+  tokensByDirective.set(directive, [node.name, ...node.args]);
+  return directive;
 };
 
 const docToDirective = (node: DocumentNode): Directive =>
