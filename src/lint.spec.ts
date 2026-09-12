@@ -122,6 +122,58 @@ describe("lint", () => {
     });
   });
 
+  describe("required child rule", () => {
+    const requireRespondRule: LintRule = {
+      path: "/location",
+      message: "A location block must have at least one respond declaration",
+      validate: (directive) =>
+        directive.children.some((child) => child.name === "respond"),
+    };
+
+    it("reports an issue when a location has no respond", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + '  root "/var/www"\n'
+        + "}\n"
+      );
+
+      const issues = lint(root, [requireRespondRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({
+        path: "/location",
+        message: "A location block must have at least one respond declaration",
+        severity: "error",
+      });
+    });
+
+    it("reports no issues when a location has a respond", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [requireRespondRule])).toEqual([]);
+    });
+
+    it("checks each location independently", () => {
+      const root = DON.parse(""
+        + "location /home {\n"
+        + "  respond 200\n"
+        + "}\n"
+        + "location /about {\n"
+        + '  root "/var/www"\n'
+        + "}\n"
+      );
+
+      const issues = lint(root, [requireRespondRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]!.directive.args).toEqual(["/about"]);
+    });
+  });
+
   describe("findByPath", () => {
     it("resolves a nested path to the matching directives", () => {
       const root = DON.parse(""
