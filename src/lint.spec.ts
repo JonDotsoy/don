@@ -593,6 +593,110 @@ describe("lint", () => {
     });
   });
 
+  describe("declaration order rule", () => {
+    // `order` references products by sku, so every `product` must be
+    // declared before the first `order` that could depend on it. This
+    // reads sibling *position* within /cart's children directly — a
+    // shape `validate`/`validateGroup` (which only ever see directives
+    // sharing one name) can't express, since the check spans two
+    // different directive names.
+    const productsBeforeOrdersRule: LintRule = {
+      path: "/cart",
+      message: "every product must be declared before any order that references it",
+      validate: (directive) => {
+        const firstOrderIndex = directive.children.findIndex(
+          (child) => child.name === "order",
+        );
+
+        if (firstOrderIndex === -1) return true;
+
+        return directive.children
+          .slice(firstOrderIndex + 1)
+          .every((child) => child.name !== "product");
+      },
+    };
+
+    it("reports no issues when every product comes before the order", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    sku "KB-100"\n'
+        + '    name "Keyboard"\n'
+        + "  }\n"
+        + "  product {\n"
+        + '    sku "MS-200"\n'
+        + '    name "Mouse"\n'
+        + "  }\n"
+        + "  order {\n"
+        + '    item "KB-100"\n'
+        + '    item "MS-200"\n'
+        + "  }\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [productsBeforeOrdersRule])).toEqual([]);
+    });
+
+    it("reports no issues when there is no order at all", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  product {\n"
+        + '    sku "KB-100"\n'
+        + '    name "Keyboard"\n'
+        + "  }\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [productsBeforeOrdersRule])).toEqual([]);
+    });
+
+    it("reports an issue when a product is declared after the order", () => {
+      const text = ""
+        + "cart {\n"
+        + "  product {\n"
+        + '    sku "KB-100"\n'
+        + '    name "Keyboard"\n'
+        + "  }\n"
+        + "  order {\n"
+        + '    item "KB-100"\n'
+        + "  }\n"
+        + "  product {\n"
+        + '    sku "MS-200"\n'
+        + '    name "Mouse"\n'
+        + "  }\n"
+        + "}\n";
+      const root = DON.parse(text);
+
+      const issues = lint(root, [productsBeforeOrdersRule]);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({
+        path: "/cart",
+        message: "every product must be declared before any order that references it",
+        severity: "error",
+      });
+      // The reported span is the whole cart block: the violation isn't
+      // any single directive but their relative position.
+      expect(issues[0]!.directive.name).toBe("cart");
+    });
+
+    it("reports an issue when the order comes first with no products before it", () => {
+      const root = DON.parse(""
+        + "cart {\n"
+        + "  order {\n"
+        + '    item "KB-100"\n'
+        + "  }\n"
+        + "  product {\n"
+        + '    sku "KB-100"\n'
+        + '    name "Keyboard"\n'
+        + "  }\n"
+        + "}\n"
+      );
+
+      expect(lint(root, [productsBeforeOrdersRule])).toHaveLength(1);
+    });
+  });
+
   describe("full lint report", () => {
     it("captures every rule kind against a realistic multi-block config", () => {
       const text = ""
