@@ -171,6 +171,32 @@ const [token] = Directive.tokensByDirective(root) ?? [];
 // }
 ```
 
+`token.type` and `part.type` are numeric `SyntaxKind` values — the internal enum `LexerParser` and the syntax parser tag every scanned unit with, in declaration order:
+
+| Value | Name              |
+| ----- | ----------------- |
+| 0     | `unknown`         |
+| 1     | `alphabet`        |
+| 2     | `integer`         |
+| 3     | `whitespace`      |
+| 4     | `newline`         |
+| 5     | `dot`             |
+| 6     | `underscore`      |
+| 7     | `singleQuote`     |
+| 8     | `doubleQuote`     |
+| 9     | `openCurlyBrace`  |
+| 10    | `closeCurlyBrace` |
+| 11    | `keyword`         |
+| 12    | `string`          |
+| 13    | `numeric`         |
+| 14    | `boolean`         |
+| 15    | `null`            |
+| 16    | `comment`         |
+| 17    | `indent`          |
+| 18    | `heredoc`         |
+
+`SyntaxKind` itself isn't exported from `donly` — it's an implementation detail of the lexer/syntax parser, so treat these numbers as opaque unless you're working at that internal level.
+
 `tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
 
 If you need lower-level access to the parse — spans, source locations, or the full token stream including directives you don't hold a reference to — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
