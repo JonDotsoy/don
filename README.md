@@ -173,6 +173,10 @@ const [token] = Directive.tokensByDirective(root) ?? [];
 
 `token.type` and `part.type` are numeric `SyntaxKind` values — the internal enum `LexerParser` and the syntax parser tag every scanned unit with:
 
+<!-- before-block
+import { SyntaxKind as RealSyntaxKind } from "./src/v1/utils/syntax-kind.ts";
+-->
+
 ```ts
 enum SyntaxKind {
   unknown, // 0
@@ -197,6 +201,11 @@ enum SyntaxKind {
   indent, // 17
   heredoc, // 18
 }
+
+const matchesSource = Object.keys(SyntaxKind)
+  .filter((key) => Number.isNaN(Number(key)))
+  .every((key) => (SyntaxKind as any)[key] === (RealSyntaxKind as any)[key]);
+// ? const matchesSource = true
 ```
 
 `SyntaxKind` itself isn't exported from `donly` — it's an implementation detail of the lexer/syntax parser, so treat these numbers as opaque unless you're working at that internal level.
