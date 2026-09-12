@@ -3,7 +3,7 @@ import { lint, directiveLoc, type LintRule } from "./lint";
 
 describe("lint", () => {
   const portMustBeNumber: LintRule = {
-    path: "server.port",
+    path: "/server/port",
     evaluation({ directive }) {
       const value = directive.args[0];
       if (typeof value !== "string") return [];
@@ -19,7 +19,7 @@ describe("lint", () => {
   };
 
   const oneRespondPerLocation: LintRule = {
-    path: "location",
+    path: "/location",
     evaluation({ directive }) {
       const responds = directive.children.filter(
         (child) => child.name === "respond",
@@ -36,7 +36,7 @@ describe("lint", () => {
   };
 
   const uniqueLocationPath: LintRule = {
-    path: "server.location",
+    path: "/server/location",
     evaluation({ directive, parent }) {
       if (!parent) return [];
 

@@ -27,10 +27,11 @@ export interface LintContext {
 
 export interface LintRule {
   /**
-   * Dot-separated chain of directive names (e.g. `"server.location"`) this
-   * rule is scoped to. `evaluation` runs once for every directive in the
-   * document whose own name, preceded by its ancestors' names, ends with
-   * this chain. Omit to run `evaluation` once against the document root.
+   * Absolute, `/`-separated chain of directive names from the document root
+   * (e.g. `"/server/location"`) this rule is scoped to. `evaluation` runs
+   * once for every directive whose own name, preceded by its ancestors' names
+   * up to the document root, matches this chain exactly. Omit to run
+   * `evaluation` once against the document root.
    */
   path?: string;
   evaluation: (context: LintContext) => LintIssue[];
@@ -93,11 +94,13 @@ const collectNodes = (root: Directive): Match[] => {
   return matches;
 };
 
-const matchesPath = (namePath: string[], components: string[]): boolean => {
-  if (components.length > namePath.length) return false;
-  const offset = namePath.length - components.length;
-  return components.every((name, index) => namePath[offset + index] === name);
-};
+/** Splits an absolute `/server/location` path into `["server", "location"]`. */
+const pathComponents = (path: string): string[] =>
+  path.split("/").filter((component) => component.length > 0);
+
+const matchesPath = (namePath: string[], components: string[]): boolean =>
+  components.length === namePath.length &&
+  components.every((name, index) => namePath[index] === name);
 
 /**
  * Runs a set of `LintRule`s against a DON document and returns every issue
@@ -116,7 +119,7 @@ export const lint = (
   for (const rule of rules) {
     const targets = rule.path
       ? collectNodes(root).filter((match) =>
-          matchesPath(match.namePath, rule.path!.split(".")),
+          matchesPath(match.namePath, pathComponents(rule.path!)),
         )
       : [{ directive: root, parent: null, namePath: [] as string[] }];
 
