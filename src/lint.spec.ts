@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { Directive } from "./don";
 import { lint, directiveLoc, type LintRule } from "./lint";
 
 describe("lint", () => {
@@ -8,11 +9,13 @@ describe("lint", () => {
       const value = directive.args[0];
       if (typeof value === "number") return [];
 
+      const argToken = Directive.tokensByDirective(directive)?.[1];
+
       return [
         {
           message: "port debe ser un número, no un string",
           severity: "error",
-          loc: directiveLoc(directive),
+          loc: argToken ? { start: argToken, end: argToken } : undefined,
         },
       ];
     },
@@ -66,7 +69,7 @@ describe("lint", () => {
     expect(issues).toHaveLength(1);
     expect(issues[0]!.severity).toBe("error");
     expect(issues[0]!.message).toBe("port debe ser un número, no un string");
-    expect(issues[0]!.trace).toBe("nginx.donly:2:3");
+    expect(issues[0]!.trace).toBe("nginx.donly:2:8");
   });
 
   it("does not report a numeric port", () => {
