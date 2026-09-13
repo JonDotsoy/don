@@ -67,10 +67,10 @@
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
-    "update:docs": "npm run build && tmd README.md && tmd docs/specs/v1/spec.md --cwd ."
+    "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md --cwd ."
   },
   "devDependencies": {
-    "@jondotsoy/tmd": "^0.0.4",
+    "@jondotsoy/tmd": "^0.0.5",
     "@types/bun": "latest",
     "prettier": "3.7.4"
   },
