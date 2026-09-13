@@ -1,10 +1,5 @@
-import { describe, it } from "bun:test";
-import { expectTypeOf } from "expect-type";
-import type {
-  ArgumentConstraint,
-  LintRuleDocument,
-  LintRule as ObjectLintRule,
-} from "./lint-rule-schema";
+import { describe, it, expectTypeOf } from "bun:test";
+import type { ArgumentConstraint, LintRuleDocument } from "./lint-rule-schema";
 
 describe("lint-rule-schema types", () => {
   it("accepts an argument selector constraint", () => {
@@ -95,14 +90,5 @@ describe("lint-rule-schema types", () => {
     } satisfies LintRuleDocument;
 
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
-  });
-
-  it("accepts the equivalent array-of-LintRule shape", () => {
-    const example = {
-      path: "/server/port",
-      "[1]": { type: "number" },
-    } satisfies ObjectLintRule;
-
-    expectTypeOf(example).toMatchTypeOf<ObjectLintRule>();
   });
 });

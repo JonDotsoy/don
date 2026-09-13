@@ -78,7 +78,6 @@
   "devDependencies": {
     "@jondotsoy/tmd": "^0.0.5",
     "@types/bun": "latest",
-    "expect-type": "^1.4.0",
     "prettier": "3.7.4"
   },
   "peerDependencies": {
