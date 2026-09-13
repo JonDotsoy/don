@@ -140,9 +140,10 @@ describe("lint", () => {
       },
     };
 
-    lint("server {\n  port 3000\n}\n", [rootRule]);
+    const issues = lint("server {\n  port 3000\n}\n", [rootRule]);
 
     expect(calls).toBe(1);
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
   describe("argumentLoc", () => {
