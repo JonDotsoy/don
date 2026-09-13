@@ -800,6 +800,7 @@ This project uses [Bun](https://bun.sh):
 ```sh
 bun install
 bun test
+bun run test:types
 bun run lint
 bun run build
 ```
