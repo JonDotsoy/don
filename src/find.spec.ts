@@ -6,8 +6,9 @@ describe("find", () => {
   const text = ""
     + "server {\n"
     + "  route /home\n"
-    + '  route * /api/user\n'
-    + '  route /admin /api/user\n'
+    + "  route GET /api/user\n"
+    + "  route POST /api/user\n"
+    + "  route /admin /api/user\n"
     + "}\n";
 
   const root = DON.parse(text);
@@ -26,7 +27,7 @@ describe("find", () => {
   it("returns every child directive matching a two-segment path", () => {
     const directives = findAllDirectives(root, "/server/route");
 
-    expect(directives).toHaveLength(3);
+    expect(directives).toHaveLength(4);
     expect(directives.every((directive) => directive.name === "route")).toBe(
       true,
     );
@@ -41,9 +42,10 @@ describe("find", () => {
   it("filters with a wildcard first argument and an exact second argument", () => {
     const directives = findAllDirectives(root, "/server/route(* /api/user)");
 
-    expect(directives).toHaveLength(2);
+    expect(directives).toHaveLength(3);
     expect(directives.map((directive) => directive.args)).toEqual([
-      ["*", "/api/user"],
+      ["GET", "/api/user"],
+      ["POST", "/api/user"],
       ["/admin", "/api/user"],
     ]);
   });
