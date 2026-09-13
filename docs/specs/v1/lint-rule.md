@@ -39,6 +39,10 @@ For numeric arguments, a constraint also accepts range checks: `gte`
 and `lt` (less than). They apply only once the argument's type has already
 been checked as `number`, and can be combined to express a range.
 
+A constraint also accepts `enum`: an array of literal values the argument
+must match exactly (one of them). It is independent of `type` — when both
+are set, the argument must satisfy `type` and be one of `enum`'s values.
+
 ## JSON example: argument at position 1 must be a number
 
 ```json
@@ -110,5 +114,28 @@ and `lt` are the inclusive-lower/exclusive-upper counterparts, e.g.:
 ```don
 server {
   port 8080
+}
+```
+
+## JSON example: `enum` (choice among fixed values)
+
+```json
+{
+  "path": "/server/strategy",
+  "args": {
+    "1": {
+      "enum": ["rolling", "recreate", "blue-green"],
+      "message": "strategy debe ser uno de: rolling, recreate, blue-green"
+    }
+  }
+}
+```
+
+This rule requires the argument at position `1` to be exactly one of
+`"rolling"`, `"recreate"`, or `"blue-green"`, e.g.:
+
+```don
+server {
+  strategy "rolling"
 }
 ```
