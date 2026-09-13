@@ -311,6 +311,56 @@ The path syntax:
 
 `find` returns the first match (or `undefined`), `findAll` returns every match. `findDirective`/`findAllDirectives` are also exported from `donly/find` for the same lookup against any `Directive`, not just as instance methods.
 
+`at(path)` resolves the same path syntax, but a path ending in `[N]` returns that directive's `N`th argument instead of the directive itself:
+
+```ts
+const respond = root.at("/server/route(GET /api)/respond");
+// ? const respond = Directive { name: "respond", args: [200], children: [] }
+
+const status = root.at("/server/route(GET /api)/respond[0]");
+// ? const status = 200
+```
+
+`atDirective` is also exported from `donly/find` for the same lookup against any `Directive`. `at`'s return type is narrowed for string-literal paths — see [TypeScript](#typescript).
+
+## TypeScript
+
+`donly` is written in TypeScript and ships its own `.d.ts` files — no `@types/donly` needed.
+
+`Directive#at`/`atDirective` are generic over the path you pass them, so a string-literal path narrows the return type without a manual type assertion:
+
+```ts
+import { DON, type Directive } from "donly";
+
+const root = DON.parse(`
+server {
+  route GET /api { respond 200 }
+}
+`);
+
+// A path with no trailing "[N]" types as Directive | undefined.
+const respond = root.at("/server/route(GET /api)/respond");
+respond?.args; // Directive["args"]
+
+// A path ending in "[N]" types as the argument value, not a Directive.
+const status = root.at("/server/route(GET /api)/respond[0]");
+//    ^? const status: string | number | boolean | HeredocValue | undefined
+
+// @ts-expect-error a "[N]"-suffixed path never resolves to a Directive.
+const notADirective: Directive = root.at("/server/route(GET /api)/respond[0]");
+```
+
+This only works when `path` is a string literal (or a literal type, e.g. from a `const` binding without a wider annotation) — TypeScript needs the exact string to check whether it ends in `[N]`. A path built at runtime (e.g. a `string` variable, or a template literal with a non-literal interpolation) can't be checked at compile time, so it types as the union of both possibilities:
+
+```ts
+declare const dynamicPath: string;
+
+const value = root.at(dynamicPath);
+//    ^? const value: string | number | boolean | HeredocValue | Directive | undefined
+```
+
+The conditional type behind this, `AtPathResult<P>`, is exported from `donly/find` if you need to reuse it (e.g. to type a helper that wraps `at`).
+
 ## Lexer (`LexerParser`)
 
 `LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.
@@ -750,6 +800,7 @@ This project uses [Bun](https://bun.sh):
 ```sh
 bun install
 bun test
+bun run test:types
 bun run lint
 bun run build
 ```

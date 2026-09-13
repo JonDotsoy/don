@@ -67,6 +67,7 @@
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
+    "test:types": "tsc -p tsconfig.types.json --noEmit",
     "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md --cwd ."
   },
   "devDependencies": {

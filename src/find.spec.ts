@@ -1,6 +1,42 @@
-import { describe, it, expect } from "bun:test";
-import { DON } from "./don";
-import { findAllDirectives, findDirective } from "./find";
+import { describe, it, expect, mock } from "bun:test";
+import { DON, HeredocValue, type Directive } from "./don";
+import { atDirective, findAllDirectives, findDirective } from "./find";
+
+// Compile-time only: never executed, just checked by `tsc`. Confirms
+// `at`/`atDirective` narrow their return type based on whether the path
+// literal ends in `[N]` (an argument value) or not (a Directive).
+function typeAssertions(directive: Directive) {
+  const argType: string | number | boolean | HeredocValue | undefined =
+    directive.at("/server/route(/home)[0]");
+  const directiveType: Directive | undefined = directive.at(
+    "/server/route(/home)",
+  );
+  const dynamicPath: string = "/server/route(/home)";
+  const dynamicType: string | number | boolean | HeredocValue | Directive | undefined =
+    directive.at(dynamicPath);
+
+  const fnArgType: string | number | boolean | HeredocValue | undefined =
+    atDirective(directive, "/server/route(/home)[0]");
+  const fnDirectiveType: Directive | undefined = atDirective(
+    directive,
+    "/server/route(/home)",
+  );
+
+  // @ts-expect-error a `[N]`-suffixed path never resolves to a Directive.
+  const notADirective: Directive = directive.at("/server/route(/home)[0]");
+
+  // @ts-expect-error a plain path never resolves to a raw argument value.
+  const notAnArg: string = directive.at("/server/route(/home)");
+
+  void argType;
+  void directiveType;
+  void dynamicType;
+  void fnArgType;
+  void fnDirectiveType;
+  void notADirective;
+  void notAnArg;
+}
+void typeAssertions;
 
 describe("find", () => {
   const text = ""
@@ -69,6 +105,89 @@ describe("find", () => {
       expect(root.findAll("/server/route(* /api/user)")).toEqual(
         findAllDirectives(root, "/server/route(* /api/user)"),
       );
+    });
+  });
+
+  describe("atDirective / Directive#at", () => {
+    it("returns the directive when the path has no trailing index", () => {
+      expect(atDirective(root, "/server/route(/home)")).toEqual(
+        findDirective(root, "/server/route(/home)"),
+      );
+    });
+
+    it("returns the Nth argument when the path ends with [N]", () => {
+      expect(atDirective(root, "/server/route(* /api/user)[0]")).toBe("GET");
+      expect(atDirective(root, "/server/route(* /api/user)[1]")).toBe(
+        "/api/user",
+      );
+    });
+
+    it("returns undefined when the directive isn't found", () => {
+      expect(atDirective(root, "/server/missing[0]")).toBeUndefined();
+    });
+
+    it("returns undefined when the argument index is out of range", () => {
+      expect(atDirective(root, "/server/route(/home)[5]")).toBeUndefined();
+    });
+
+    it("Directive#at mirrors atDirective, using `this` as the root", () => {
+      expect(root.at("/server/route(/home)")).toEqual(
+        atDirective(root, "/server/route(/home)"),
+      );
+      expect(root.at("/server/route(* /api/user)[0]")).toBe(
+        atDirective(root, "/server/route(* /api/user)[0]"),
+      );
+    });
+  });
+
+  describe("usage: registering routes on a mock server", () => {
+    it("drives server.listen from route/header directives using findAll + at", () => {
+      const routesText = ""
+        + "server {\n"
+        + "  route GET /home {\n"
+        + "    header Content-Type text/html\n"
+        + "  }\n"
+        + "  route POST /api/user {\n"
+        + "    header Authorization Bearer-token\n"
+        + "    header Content-Type application/json\n"
+        + "  }\n"
+        + "}\n";
+
+      const root = DON.parse(routesText);
+      const server = {
+        listen: mock(
+          (_call: {
+            method: unknown;
+            path: unknown;
+            headers: Record<string, unknown>;
+          }) => {},
+        ),
+      };
+
+      root.findAll("/server/route").map((route) => {
+        const method = route.at("[0]");
+        const path = route.at("[1]");
+        const headers = Object.fromEntries(
+          route.findAll("/route/header").map((h) => [h.at("[0]"), h.at("[1]")]),
+        );
+
+        server.listen({ method, path, headers });
+      });
+
+      expect(server.listen).toHaveBeenCalledTimes(2);
+      expect(server.listen).toHaveBeenNthCalledWith(1, {
+        method: "GET",
+        path: "/home",
+        headers: { "Content-Type": "text/html" },
+      });
+      expect(server.listen).toHaveBeenNthCalledWith(2, {
+        method: "POST",
+        path: "/api/user",
+        headers: {
+          Authorization: "Bearer-token",
+          "Content-Type": "application/json",
+        },
+      });
     });
   });
 });

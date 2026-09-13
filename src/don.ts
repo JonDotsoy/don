@@ -2,7 +2,12 @@ import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON, wrapAsRoot } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
-import { findAllDirectives, findDirective } from "./find.js";
+import {
+  atDirective,
+  findAllDirectives,
+  findDirective,
+  type AtPathResult,
+} from "./find.js";
 import type { Token } from "./v1/compiler/token.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
@@ -80,6 +85,17 @@ export class Directive {
    */
   findAll(path: string): Directive[] {
     return findAllDirectives(this, path);
+  }
+
+  /**
+   * Resolves an absolute path from `this` directive (treated as the
+   * document root); see `findAllDirectives` for the path syntax. A path
+   * ending in `[N]` (e.g. `"/server/route(/home)[0]"`) returns that
+   * directive's `N`th argument instead of the directive itself — reflected
+   * in the return type for a string-literal path.
+   */
+  at<P extends string>(path: P): AtPathResult<P> {
+    return atDirective(this, path);
   }
 }
 

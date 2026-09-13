@@ -134,3 +134,43 @@ export const findDirective = (
   root: Directive,
   path: string,
 ): Directive | undefined => findAllDirectives(root, path)[0];
+
+const trailingArgIndexPattern = /\[(\d+)\]$/;
+
+/**
+ * The value type an argument resolves to at runtime: `string`, `number`,
+ * `boolean`, `null`, a `HeredocValue`, or `undefined` for an out-of-range
+ * index.
+ */
+type DirectiveArgValue = Directive["args"][number] | undefined;
+
+/**
+ * The static return type of `at(path)`/`atDirective(root, path)` for a given
+ * path: a path ending in `[N]` (a literal segment, so this can only narrow
+ * for a string literal type) resolves to the argument's value, otherwise to
+ * the matched `Directive`. A non-literal `string` path can't be checked at
+ * compile time, so it types as the union of both possibilities.
+ */
+export type AtPathResult<P extends string> = string extends P
+  ? Directive | DirectiveArgValue
+  : P extends `${string}[${number}]`
+    ? DirectiveArgValue
+    : Directive | undefined;
+
+/**
+ * Resolves an absolute path (see `findAllDirectives` for the path syntax),
+ * optionally suffixed with `[N]` on the final segment (e.g.
+ * `"/server/route(/home)[0]"`) to return that directive's `N`th argument
+ * instead of the directive itself. Returns `undefined` when the directive
+ * isn't found, or when the argument index is out of range.
+ */
+export const atDirective = <P extends string>(
+  root: Directive,
+  path: P,
+): AtPathResult<P> => {
+  const match = trailingArgIndexPattern.exec(path);
+  if (!match) return findDirective(root, path) as AtPathResult<P>;
+
+  const directive = findDirective(root, path.slice(0, match.index));
+  return directive?.args[Number(match[1])] as AtPathResult<P>;
+};
