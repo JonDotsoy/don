@@ -311,6 +311,18 @@ The path syntax:
 
 `find` returns the first match (or `undefined`), `findAll` returns every match. `findDirective`/`findAllDirectives` are also exported from `donly/find` for the same lookup against any `Directive`, not just as instance methods.
 
+`at(path)` resolves the same path syntax, but a path ending in `[N]` returns that directive's `N`th argument instead of the directive itself:
+
+```ts
+const respond = root.at("/server/route(GET /api)/respond");
+// ? const respond = Directive { name: "respond", args: [200], children: [] }
+
+const status = root.at("/server/route(GET /api)/respond[0]");
+// ? const status = 200
+```
+
+`atDirective` is also exported from `donly/find` for the same lookup against any `Directive`.
+
 ## Lexer (`LexerParser`)
 
 `LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.

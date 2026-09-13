@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { DON } from "./don";
-import { findAllDirectives, findDirective } from "./find";
+import { atDirective, findAllDirectives, findDirective } from "./find";
 
 describe("find", () => {
   const text = ""
@@ -68,6 +68,38 @@ describe("find", () => {
       );
       expect(root.findAll("/server/route(* /api/user)")).toEqual(
         findAllDirectives(root, "/server/route(* /api/user)"),
+      );
+    });
+  });
+
+  describe("atDirective / Directive#at", () => {
+    it("returns the directive when the path has no trailing index", () => {
+      expect(atDirective(root, "/server/route(/home)")).toEqual(
+        findDirective(root, "/server/route(/home)"),
+      );
+    });
+
+    it("returns the Nth argument when the path ends with [N]", () => {
+      expect(atDirective(root, "/server/route(* /api/user)[0]")).toBe("GET");
+      expect(atDirective(root, "/server/route(* /api/user)[1]")).toBe(
+        "/api/user",
+      );
+    });
+
+    it("returns undefined when the directive isn't found", () => {
+      expect(atDirective(root, "/server/missing[0]")).toBeUndefined();
+    });
+
+    it("returns undefined when the argument index is out of range", () => {
+      expect(atDirective(root, "/server/route(/home)[5]")).toBeUndefined();
+    });
+
+    it("Directive#at mirrors atDirective, using `this` as the root", () => {
+      expect(root.at("/server/route(/home)")).toEqual(
+        atDirective(root, "/server/route(/home)"),
+      );
+      expect(root.at("/server/route(* /api/user)[0]")).toBe(
+        atDirective(root, "/server/route(* /api/user)[0]"),
       );
     });
   });

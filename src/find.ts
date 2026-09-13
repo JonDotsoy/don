@@ -134,3 +134,23 @@ export const findDirective = (
   root: Directive,
   path: string,
 ): Directive | undefined => findAllDirectives(root, path)[0];
+
+const trailingArgIndexPattern = /\[(\d+)\]$/;
+
+/**
+ * Resolves an absolute path (see `findAllDirectives` for the path syntax),
+ * optionally suffixed with `[N]` on the final segment (e.g.
+ * `"/server/route(/home)[0]"`) to return that directive's `N`th argument
+ * instead of the directive itself. Returns `undefined` when the directive
+ * isn't found, or when the argument index is out of range.
+ */
+export const atDirective = (
+  root: Directive,
+  path: string,
+): Directive | Directive["args"][number] | undefined => {
+  const match = trailingArgIndexPattern.exec(path);
+  if (!match) return findDirective(root, path);
+
+  const directive = findDirective(root, path.slice(0, match.index));
+  return directive?.args[Number(match[1])];
+};
