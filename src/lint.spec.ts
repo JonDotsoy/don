@@ -99,6 +99,7 @@ describe("lint", () => {
       "solo puede existir un respond en un location",
     );
     expect(issues[0]!.trace).toBe("<input>:3:3");
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
   it("reports a duplicate location path under the same server", () => {
@@ -121,6 +122,7 @@ describe("lint", () => {
     expect(issues[0]!.severity).toBe("error");
     expect(issues[0]!.message).toBe("solo puede existir un location /home");
     expect(issues[0]!.trace).toBe("<input>:7:1");
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
   it("runs a path-less rule once against the document root", () => {

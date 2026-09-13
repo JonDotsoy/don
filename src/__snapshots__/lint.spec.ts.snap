@@ -159,3 +159,197 @@ exports[`lint reports a string port as an error, with a trace naming the payload
   },
 ]
 `;
+
+exports[`lint reports the second respond in a location as an error 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 13,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 41,
+              "length": 3,
+              "startLocation": {
+                "column": 10,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": "400",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 13,
+            "line": 2,
+            "paddingLine": 2,
+          },
+          "index": 41,
+          "length": 3,
+          "startLocation": {
+            "column": 10,
+            "line": 2,
+            "paddingLine": 2,
+          },
+        },
+        "text": "400",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 9,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 33,
+              "length": 7,
+              "startLocation": {
+                "column": 2,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": "respond",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 9,
+            "line": 2,
+            "paddingLine": 2,
+          },
+          "index": 33,
+          "length": 7,
+          "startLocation": {
+            "column": 2,
+            "line": 2,
+            "paddingLine": 2,
+          },
+        },
+        "text": "respond",
+        "type": 11,
+      },
+    },
+    "message": "solo puede existir un respond en un location",
+    "severity": "error",
+    "trace": "<input>:3:3",
+  },
+]
+`;
+
+exports[`lint reports a duplicate location path under the same server 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 10,
+                "line": 6,
+                "paddingLine": 0,
+              },
+              "index": 53,
+              "length": 1,
+              "startLocation": {
+                "column": 9,
+                "line": 6,
+                "paddingLine": 0,
+              },
+            },
+            "text": "/",
+            "type": 0,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 14,
+                "line": 6,
+                "paddingLine": 0,
+              },
+              "index": 54,
+              "length": 4,
+              "startLocation": {
+                "column": 10,
+                "line": 6,
+                "paddingLine": 0,
+              },
+            },
+            "text": "home",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 14,
+            "line": 6,
+            "paddingLine": 0,
+          },
+          "index": 53,
+          "length": 5,
+          "startLocation": {
+            "column": 9,
+            "line": 6,
+            "paddingLine": 0,
+          },
+        },
+        "text": "/home",
+        "type": 11,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 8,
+                "line": 6,
+                "paddingLine": 0,
+              },
+              "index": 44,
+              "length": 8,
+              "startLocation": {
+                "column": 0,
+                "line": 6,
+                "paddingLine": 0,
+              },
+            },
+            "text": "location",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 8,
+            "line": 6,
+            "paddingLine": 0,
+          },
+          "index": 44,
+          "length": 8,
+          "startLocation": {
+            "column": 0,
+            "line": 6,
+            "paddingLine": 0,
+          },
+        },
+        "text": "location",
+        "type": 11,
+      },
+    },
+    "message": "solo puede existir un location /home",
+    "severity": "error",
+    "trace": "<input>:7:1",
+  },
+]
+`;
