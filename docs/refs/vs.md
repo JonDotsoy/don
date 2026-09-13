@@ -8,19 +8,19 @@ lang: en
 
 Unlike most DSLs, which are bound to a single domain (HTTP routing, container builds, IaC), DON is a general-purpose DSL: its directive-based grammar carries no built-in schema, so it can be customized with any set of directive names and arguments to fit any kind of project. This document compares it against other domain-specific languages (DSLs) commonly used for configuration, infrastructure, and routing, to highlight where DON's design choices overlap or differ.
 
-| DSL | Domain | Structure model | Positional arguments | Repeated keys at same level | General-purpose (any domain) |
-| --- | --- | --- | --- | --- | --- |
-| **DON** | Configuration, infrastructure annotations, routing | Directives + nested blocks (`name arg1 arg2 { ... }`) | Yes | Yes | Yes |
-| **Nginx config** | HTTP server / reverse proxy | Directives + nested blocks (`location /api { ... }`) | Yes | Yes | No (HTTP only) |
-| **Caddyfile** | HTTP server / reverse proxy | Directives + nested blocks | Yes | Yes | No (HTTP only) |
-| **HCL** (Terraform) | Infrastructure as code | Blocks with labels + key-value attributes | Partial (block labels only) | Yes (block labels) | No (IaC only) |
-| **YAML** | General data serialization | Nested key-value maps and lists | No | No (requires arrays) | Yes |
-| **JSON** | General data serialization | Nested key-value objects and arrays | No | No (requires arrays) | Yes |
-| **Dockerfile** | Container image build steps | Sequential instructions (`INSTRUCTION args`) | Yes | Yes | No (builds only) |
-| **Kubernetes manifest** (YAML-based) | Container orchestration | Nested key-value maps | No | No (requires arrays) | No (k8s schema only) |
-| **CSS** | Styling | Selectors + property-value blocks | No | Yes (repeated selectors) | No (styling only) |
-| **SQL** | Data querying | Statement clauses (`SELECT ... WHERE ...`) | Yes (clause arguments) | No | No (querying only) |
-| **Gradle/Groovy DSL** | Build configuration | Method calls / closures (host language) | Yes (method args) | Yes | No (JVM builds only) |
+| DSL                                  | Domain                                             | Structure model                                       | Positional arguments        | Repeated keys at same level | General-purpose (any domain) |
+| ------------------------------------ | -------------------------------------------------- | ----------------------------------------------------- | --------------------------- | --------------------------- | ---------------------------- |
+| **DON**                              | Configuration, infrastructure annotations, routing | Directives + nested blocks (`name arg1 arg2 { ... }`) | Yes                         | Yes                         | Yes                          |
+| **Nginx config**                     | HTTP server / reverse proxy                        | Directives + nested blocks (`location /api { ... }`)  | Yes                         | Yes                         | No (HTTP only)               |
+| **Caddyfile**                        | HTTP server / reverse proxy                        | Directives + nested blocks                            | Yes                         | Yes                         | No (HTTP only)               |
+| **HCL** (Terraform)                  | Infrastructure as code                             | Blocks with labels + key-value attributes             | Partial (block labels only) | Yes (block labels)          | No (IaC only)                |
+| **YAML**                             | General data serialization                         | Nested key-value maps and lists                       | No                          | No (requires arrays)        | Yes                          |
+| **JSON**                             | General data serialization                         | Nested key-value objects and arrays                   | No                          | No (requires arrays)        | Yes                          |
+| **Dockerfile**                       | Container image build steps                        | Sequential instructions (`INSTRUCTION args`)          | Yes                         | Yes                         | No (builds only)             |
+| **Kubernetes manifest** (YAML-based) | Container orchestration                            | Nested key-value maps                                 | No                          | No (requires arrays)        | No (k8s schema only)         |
+| **CSS**                              | Styling                                            | Selectors + property-value blocks                     | No                          | Yes (repeated selectors)    | No (styling only)            |
+| **SQL**                              | Data querying                                      | Statement clauses (`SELECT ... WHERE ...`)            | Yes (clause arguments)      | No                          | No (querying only)           |
+| **Gradle/Groovy DSL**                | Build configuration                                | Method calls / closures (host language)               | Yes (method args)           | Yes                         | No (JVM builds only)         |
 
 ## Key takeaways
 
