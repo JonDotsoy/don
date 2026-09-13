@@ -747,6 +747,49 @@ server {
 }
 ```
 
+## JSON example: `/respond` required only when `/route` exists, `/server` itself optional
+
+`min` on a sub-path already only applies "once its parent has already
+matched" (see [above](#proposed-properties-max-and-min-occurrence-constraints-on-a-sub-path)),
+so a requirement that's conditional on an ancestor's existence needs no new
+property — nesting `min` under that ancestor is enough:
+
+```json
+{
+  "/server": {
+    "/route": {
+      "/respond": {
+        "min": 1,
+        "message": "respond es obligatorio dentro de un route"
+      }
+    }
+  }
+}
+```
+
+Neither `/server` nor `/route` carries `required`, so both are optional —
+`server` without any `route` inside it, or no `server` at all, is fine.
+It's only once `route` shows up that its own `respond` becomes required.
+Valid — `route` exists and declares `respond`:
+
+```don
+server {
+  route /health {
+    respond 200 "Ok"
+  }
+}
+```
+
+but invalid — `route` exists (nested in `server`) without a `respond`:
+
+```don
+server {
+  route /health {
+    handler "ping"
+  }
+}
+```
+
 ## `and` at the rule level: composing full rules
 
 `and` isn't limited to constraints on an argument selector — a rule body
