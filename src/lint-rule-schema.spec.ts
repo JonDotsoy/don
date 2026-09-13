@@ -91,4 +91,69 @@ describe("lint-rule-schema types", () => {
 
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
+
+  it("accepts severity alongside message on a constraint", () => {
+    const example = {
+      "/server/strategy": {
+        "[1]": {
+          enum: ["rolling", "recreate", "blue-green"],
+          severity: "warning",
+          message: "strategy debería ser uno de: rolling, recreate, blue-green",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+  });
+
+  it("accepts every DON argument type, including bigint, null, and heredoc", () => {
+    const bigintRange = {
+      type: "bigint",
+      gt: 0,
+      message: "maxSize debe ser un bigint positivo",
+    } satisfies ArgumentConstraint;
+    expectTypeOf(bigintRange).toMatchTypeOf<ArgumentConstraint>();
+
+    const booleanOrNull = {
+      or: [{ type: "boolean" }, { type: "null" }],
+    } satisfies ArgumentConstraint;
+    expectTypeOf(booleanOrNull).toMatchTypeOf<ArgumentConstraint>();
+
+    const heredoc = {
+      type: "heredoc",
+      pattern: "<html",
+    } satisfies ArgumentConstraint;
+    expectTypeOf(heredoc).toMatchTypeOf<ArgumentConstraint>();
+  });
+
+  it("accepts the root selector and the wildcard sub-path", () => {
+    const example = {
+      "/*": {
+        max: 1,
+        message: "el documento no puede tener más de una directiva en el root",
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+  });
+
+  it("accepts and grouping rules for unrelated paths, with an explicit path", () => {
+    const example = {
+      "/server-config": {
+        and: [
+          {
+            path: "/server/port",
+            required: true,
+            message: "server debe declarar un port",
+          },
+          {
+            path: "/route/respond",
+            "[1]": { type: "number", gte: 100, lte: 599 },
+          },
+        ],
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+  });
 });
