@@ -323,6 +323,8 @@ const status = root.at("/server/route(GET /api)/respond[0]");
 
 `atDirective` is also exported from `donly/find` for the same lookup against any `Directive`.
 
+When `path` is a string literal, TypeScript narrows `at`'s return type for you: a literal ending in `[N]` types as the argument value (`string | number | boolean | HeredocValue | undefined`), otherwise as `Directive | undefined`. A non-literal (dynamically built) path types as the union of both, since the suffix can't be checked at compile time.
+
 ## Lexer (`LexerParser`)
 
 `LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.

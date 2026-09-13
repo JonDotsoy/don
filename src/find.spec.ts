@@ -1,6 +1,42 @@
 import { describe, it, expect, mock } from "bun:test";
-import { DON } from "./don";
+import { DON, HeredocValue, type Directive } from "./don";
 import { atDirective, findAllDirectives, findDirective } from "./find";
+
+// Compile-time only: never executed, just checked by `tsc`. Confirms
+// `at`/`atDirective` narrow their return type based on whether the path
+// literal ends in `[N]` (an argument value) or not (a Directive).
+function typeAssertions(directive: Directive) {
+  const argType: string | number | boolean | HeredocValue | undefined =
+    directive.at("/server/route(/home)[0]");
+  const directiveType: Directive | undefined = directive.at(
+    "/server/route(/home)",
+  );
+  const dynamicPath: string = "/server/route(/home)";
+  const dynamicType: string | number | boolean | HeredocValue | Directive | undefined =
+    directive.at(dynamicPath);
+
+  const fnArgType: string | number | boolean | HeredocValue | undefined =
+    atDirective(directive, "/server/route(/home)[0]");
+  const fnDirectiveType: Directive | undefined = atDirective(
+    directive,
+    "/server/route(/home)",
+  );
+
+  // @ts-expect-error a `[N]`-suffixed path never resolves to a Directive.
+  const notADirective: Directive = directive.at("/server/route(/home)[0]");
+
+  // @ts-expect-error a plain path never resolves to a raw argument value.
+  const notAnArg: string = directive.at("/server/route(/home)");
+
+  void argType;
+  void directiveType;
+  void dynamicType;
+  void fnArgType;
+  void fnDirectiveType;
+  void notADirective;
+  void notAnArg;
+}
+void typeAssertions;
 
 describe("find", () => {
   const text = ""
@@ -118,7 +154,15 @@ describe("find", () => {
         + "}\n";
 
       const root = DON.parse(routesText);
-      const server = { listen: mock(() => {}) };
+      const server = {
+        listen: mock(
+          (_call: {
+            method: unknown;
+            path: unknown;
+            headers: Record<string, unknown>;
+          }) => {},
+        ),
+      };
 
       root.findAll("/server/route").map((route) => {
         const method = route.at("[0]");
