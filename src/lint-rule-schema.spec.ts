@@ -96,6 +96,18 @@ describe("lint-rule-schema types", () => {
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
 
+  it("types /server/port[1]'s value as an ArgumentConstraint", () => {
+    const example = {
+      "/server/port[1]": {
+        type: "number",
+        message: "port debe ser un número",
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+    expectTypeOf(example["/server/port[1]"]).toMatchTypeOf<ArgumentConstraint>();
+  });
+
   it("accepts a path[N] shorthand key nested inside a rule body", () => {
     const example = {
       "/server": {
