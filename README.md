@@ -261,12 +261,23 @@ server {
 `);
 
 const home = root.find("/server/route(/home)");
-// ? const home = Directive { name: "route", args: [ "/home" ], children: [] }
+// ? const home = Directive {
+//   name: "route",
+//   args: [ "/home" ],
+//   children: [],
+// }
 
 const apiRoutes = root.findAll("/server/route(* /api/user)");
 // ? const apiRoutes = [
-//   Directive { name: "route", args: [ "GET", "/api/user" ], children: [] },
-//   Directive { name: "route", args: [ "POST", "/api/user" ], children: [] }
+//   Directive {
+//     name: "route",
+//     args: [ "GET", "/api/user" ],
+//     children: [],
+//   }, Directive {
+//     name: "route",
+//     args: [ "POST", "/api/user" ],
+//     children: [],
+//   }
 // ]
 ```
 
