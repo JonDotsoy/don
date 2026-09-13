@@ -19,11 +19,14 @@ function-based rules work.
 ## Proposed property: `args`
 
 `LintRule` gains an optional `args` property: an object whose keys are
-argument positions (stringified indexes into `directive.args`) and whose
-values are constraints checked against the argument at that position. It is
-evaluated the same way `evaluation` is, for every directive matched by
-`path`, and is independent of `evaluation` — a rule may declare either or
-both.
+argument positions and whose values are constraints checked against the
+argument at that position. It is evaluated the same way `evaluation` is, for
+every directive matched by `path`, and is independent of `evaluation` — a
+rule may declare either or both.
+
+**Positions are 1-based**: the first argument is position `1`, not `0`. For
+`port 3000`, `3000` is the argument at position `1` (it maps to
+`directive.args[0]` internally, but `args` keys always count from `1`).
 
 Each constraint accepts an optional `message` to override the default
 "argument at position N must be of type T" issue message.
@@ -40,23 +43,23 @@ been checked as `number`, and can be combined to express a range.
 
 ```json
 {
-  "path": "/server/route",
+  "path": "/server/port",
   "args": {
     "1": {
       "type": "number",
-      "message": "el status code debe ser un número"
+      "message": "port debe ser un número"
     }
   }
 }
 ```
 
-This rule matches directives at `/server/route` and requires
-`directive.args[1]` to be a `number`, reporting the custom `message` when it
-isn't, e.g.:
+This rule matches directives at `/server/port` and requires the argument at
+position `1` to be a `number`, reporting the custom `message` when it isn't,
+e.g.:
 
 ```don
 server {
-  route "/api" 200
+  port 3000
 }
 ```
 
@@ -66,7 +69,7 @@ server {
 {
   "path": "/server/route",
   "args": {
-    "1": {
+    "2": {
       "type": ["boolean", "number"],
       "message": "el segundo argumento debe ser boolean o number"
     }
@@ -74,8 +77,8 @@ server {
 }
 ```
 
-This rule accepts either a `boolean` or a `number` at `directive.args[1]`,
-e.g. both of the following are valid:
+This rule accepts either a `boolean` or a `number` at position `2` (the
+second argument), e.g. both of the following are valid:
 
 ```don
 server {
@@ -90,7 +93,7 @@ server {
 {
   "path": "/server/port",
   "args": {
-    "0": {
+    "1": {
       "type": "number",
       "gt": 1024,
       "lte": 65535,
@@ -100,9 +103,9 @@ server {
 }
 ```
 
-This rule requires `directive.args[0]` to be a `number` strictly greater
-than `1024` (`gt`) and less than or equal to `65535` (`lte`); `gte` and
-`lt` are the inclusive-lower/exclusive-upper counterparts, e.g.:
+This rule requires the argument at position `1` to be a `number` strictly
+greater than `1024` (`gt`) and less than or equal to `65535` (`lte`); `gte`
+and `lt` are the inclusive-lower/exclusive-upper counterparts, e.g.:
 
 ```don
 server {
