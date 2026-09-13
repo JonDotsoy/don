@@ -24,7 +24,7 @@ rule body directly by the directive path it targets:
 ```json
 {
   "/server/port": {
-    "args": { "...": "..." }
+    "...": "..."
   }
 }
 ```
@@ -36,20 +36,19 @@ to `lint()` (see [Equivalent shape](#equivalent-shape-explicit-path-field)
 at the end of this document for that form, and for how two rules on the
 *same* path, or nested sub-paths, are expressed).
 
-## Proposed property: `args`
+## Argument selectors: `[N]`
 
-A rule body gains an optional `args` property: an object whose keys select
-an argument position, written `"[N]"` (e.g. `"[1]"`, `"[2]"`), and whose
-values are constraints checked against the argument at that position. The
-brackets mark it as a positional selector, distinct from a `children` key
-(a bare directive name) or a nested sub-path key (prefixed with `/`). It is
-evaluated the same way `evaluation` is, for every directive matched by the
-rule's path, and is independent of `evaluation` — a rule may declare either
-or both.
+A rule body's keys select an argument position directly, written `"[N]"`
+(e.g. `"[1]"`, `"[2]"`), with a constraint object as the value — no wrapping
+`args` property is needed, since the brackets already distinguish an
+argument selector from a `children` key (a bare directive name) or a nested
+sub-path key (prefixed with `/`). It is evaluated the same way `evaluation`
+is, for every directive matched by the rule's path, and is independent of
+`evaluation` — a rule may declare either or both, alongside `children`.
 
 **Positions are 1-based**: the first argument is position `1`, not `0`. For
 `port 3000`, `3000` is the argument selected by `"[1]"` (it maps to
-`directive.args[0]` internally, but `args` keys always count from `1`).
+`directive.args[0]` internally, but positions always count from `1`).
 
 Each constraint accepts an optional `message` to override the default
 "argument at position N must be of type T" issue message.
@@ -77,11 +76,9 @@ only once the argument's type has already been checked as `string`.
 ```json
 {
   "/server/port": {
-    "args": {
-      "[1]": {
-        "type": "number",
-        "message": "port debe ser un número"
-      }
+    "[1]": {
+      "type": "number",
+      "message": "port debe ser un número"
     }
   }
 }
@@ -102,11 +99,9 @@ server {
 ```json
 {
   "/server/route": {
-    "args": {
-      "[2]": {
-        "type": ["boolean", "number"],
-        "message": "el segundo argumento debe ser boolean o number"
-      }
+    "[2]": {
+      "type": ["boolean", "number"],
+      "message": "el segundo argumento debe ser boolean o number"
     }
   }
 }
@@ -127,13 +122,11 @@ server {
 ```json
 {
   "/server/port": {
-    "args": {
-      "[1]": {
-        "type": "number",
-        "gt": 1024,
-        "lte": 65535,
-        "message": "port debe ser mayor a 1024 y menor o igual a 65535"
-      }
+    "[1]": {
+      "type": "number",
+      "gt": 1024,
+      "lte": 65535,
+      "message": "port debe ser mayor a 1024 y menor o igual a 65535"
     }
   }
 }
@@ -154,11 +147,9 @@ server {
 ```json
 {
   "/server/strategy": {
-    "args": {
-      "[1]": {
-        "enum": ["rolling", "recreate", "blue-green"],
-        "message": "strategy debe ser uno de: rolling, recreate, blue-green"
-      }
+    "[1]": {
+      "enum": ["rolling", "recreate", "blue-green"],
+      "message": "strategy debe ser uno de: rolling, recreate, blue-green"
     }
   }
 }
@@ -178,12 +169,10 @@ server {
 ```json
 {
   "/server/route": {
-    "args": {
-      "[1]": {
-        "type": "string",
-        "pattern": "^/[a-z0-9/_-]*$",
-        "message": "el path de route debe empezar con / y usar minúsculas, dígitos, _ o -"
-      }
+    "[1]": {
+      "type": "string",
+      "pattern": "^/[a-z0-9/_-]*$",
+      "message": "el path de route debe empezar con / y usar minúsculas, dígitos, _ o -"
     }
   }
 }
@@ -215,14 +204,12 @@ outer `message`, used when none of them match) are evaluated.
 ```json
 {
   "/server/port": {
-    "args": {
-      "[1]": {
-        "or": [
-          { "type": "number", "gt": 1024, "lte": 65535 },
-          { "type": "string", "enum": ["auto"] }
-        ],
-        "message": "port debe ser un número entre 1024 y 65535, o \"auto\""
-      }
+    "[1]": {
+      "or": [
+        { "type": "number", "gt": 1024, "lte": 65535 },
+        { "type": "string", "enum": ["auto"] }
+      ],
+      "message": "port debe ser un número entre 1024 y 65535, o \"auto\""
     }
   }
 }
@@ -260,15 +247,13 @@ entries to express arbitrary combinations.
 ```json
 {
   "/server/route": {
-    "args": {
-      "[1]": {
-        "and": [
-          { "type": "string" },
-          { "pattern": "^/", "message": "el path debe empezar con /" },
-          { "pattern": "^(?!.*//).*$", "message": "el path no puede tener // repetidos" }
-        ],
-        "message": "el path de route es inválido"
-      }
+    "[1]": {
+      "and": [
+        { "type": "string" },
+        { "pattern": "^/", "message": "el path debe empezar con /" },
+        { "pattern": "^(?!.*//).*$", "message": "el path no puede tener // repetidos" }
+      ],
+      "message": "el path de route es inválido"
     }
   }
 }
@@ -292,8 +277,8 @@ A rule body also gains an optional `children` property: an object whose
 keys are child directive names and whose values are occurrence-count
 constraints checked against `directive.children` (matching by name, not
 recursively) for every directive matched by the rule's path. It composes
-with `args` and `evaluation` the same way — a rule may declare any
-combination of the three.
+with argument selectors and `evaluation` the same way — a rule may declare
+any combination of them.
 
 Each constraint accepts `min` and `max` (both optional; `max` alone caps the
 count, `min` alone requires at least that many) and an optional `message`.
@@ -337,14 +322,15 @@ route /users {
 
 ## `and` at the rule level: composing full rules
 
-`and` isn't limited to constraints inside `args` — a rule body also accepts
-an `and` property: an array of full `{ path, ... }` rule objects, each free
-to declare its own `path`, `args`, `children`, and even a further nested
-`and`/`or`. This bundles several independent checks, across different
-directive paths, into a single named entry — useful when a schema wants to
-group "everything a `route` must satisfy" as one entry instead of one key
-per check. The outer key is purely a label for the group; each nested
-object's own `path` is what selects which directives it runs against.
+`and` isn't limited to constraints on an argument selector — a rule body
+also accepts an `and` property: an array of full `{ path, ... }` rule
+objects, each free to declare its own `path`, argument selectors,
+`children`, and even a further nested `and`/`or`. This bundles several
+independent checks, across different directive paths, into a single named
+entry — useful when a schema wants to group "everything a `route` must
+satisfy" as one entry instead of one key per check. The outer key is purely
+a label for the group; each nested object's own `path` is what selects
+which directives it runs against.
 
 ## JSON example: `and` grouping rules for different paths under `/route`
 
@@ -363,13 +349,11 @@ object's own `path` is what selects which directives it runs against.
       },
       {
         "path": "/route/respond",
-        "args": {
-          "[1]": {
-            "type": "number",
-            "gte": 100,
-            "lte": 599,
-            "message": "el status code de respond debe estar entre 100 y 599"
-          }
+        "[1]": {
+          "type": "number",
+          "gte": 100,
+          "lte": 599,
+          "message": "el status code de respond debe estar entre 100 y 599"
         }
       }
     ]
@@ -405,9 +389,9 @@ rule body is a **relative sub-path**, whose value is itself a rule body
 (optionally holding further `/`-prefixed keys). The effective path for a
 nested body is its parent key's path plus its own — `/server` holding a
 `/route` key describes `/server/route`, which holding a `/respond` key
-describes `/server/route/respond`. `args`, `children`, `and`, `or`, and
-`message` are always body fields, never sub-paths, so the two kinds of key
-never collide.
+describes `/server/route/respond`. `children`, `and`, `or`, `message`, and
+`[N]` argument selectors are always body fields, never sub-paths, so the
+two kinds of key never collide.
 
 ```json
 {
@@ -416,9 +400,7 @@ never collide.
       "route": { "max": 10, "message": "un server admite a lo más 10 route" }
     },
     "/port": {
-      "args": {
-        "[1]": { "type": "number", "gt": 1024, "lte": 65535 }
-      }
+      "[1]": { "type": "number", "gt": 1024, "lte": 65535 }
     },
     "/route": {
       "children": {
@@ -428,13 +410,11 @@ never collide.
         }
       },
       "/respond": {
-        "args": {
-          "[1]": {
-            "type": "number",
-            "gte": 100,
-            "lte": 599,
-            "message": "el status code de respond debe estar entre 100 y 599"
-          }
+        "[1]": {
+          "type": "number",
+          "gte": 100,
+          "lte": 599,
+          "message": "el status code de respond debe estar entre 100 y 599"
         }
       }
     }
@@ -460,11 +440,9 @@ key:
 [
   {
     "path": "/server/port",
-    "args": {
-      "[1]": {
-        "type": "number",
-        "message": "port debe ser un número"
-      }
+    "[1]": {
+      "type": "number",
+      "message": "port debe ser un número"
     }
   }
 ]
@@ -480,8 +458,8 @@ instead of repeating the key:
 {
   "/route/respond": {
     "and": [
-      { "args": { "[1]": { "type": "number" } } },
-      { "args": { "[2]": { "type": "string" } } }
+      { "[1]": { "type": "number" } },
+      { "[2]": { "type": "string" } }
     ]
   }
 }
