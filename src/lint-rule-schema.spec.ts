@@ -182,4 +182,26 @@ describe("lint-rule-schema types", () => {
 
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
+
+  it("makes /respond required only when /route exists, with /server itself optional", () => {
+    // "/server" carries no `required`, so it's optional in the document.
+    // "/route" carries no `required`/`min` either, so it's optional too —
+    // but once it *does* match, its own "/respond" min:1 kicks in, per
+    // RuleBody's semantics ("min... requires occurrences of a child once
+    // its parent has already matched"). No new property is needed: this
+    // conditional-on-existence requirement already falls out of nesting
+    // min under the sub-path whose presence should trigger it.
+    const example = {
+      "/server": {
+        "/route": {
+          "/respond": {
+            min: 1,
+            message: "respond es obligatorio dentro de un route",
+          },
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+  });
 });
