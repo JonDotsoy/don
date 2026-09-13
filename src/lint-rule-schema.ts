@@ -63,15 +63,18 @@ export interface RuleBody {
   readonly [subPath: SubPathSelector]: RuleBody;
 }
 
-/** One entry of a rule-level `and`; `path` defaults to the enclosing key's path when omitted. */
-export interface RuleAndEntry extends RuleBody {
+/**
+ * A full rule: a `RuleBody` optionally addressed by its own `path`. `path`
+ * is omitted when the rule is keyed by its path in a `LintRuleDocument`, or
+ * when it's a rule-level `and` entry that defaults to its enclosing key's
+ * path — see "`and` at the rule level" in the docs.
+ */
+export interface LintRule extends RuleBody {
   path?: string;
 }
 
-/** A full rule, addressable independently of any enclosing document key. */
-export interface LintRule extends RuleBody {
-  path: string;
-}
+/** One entry of a rule-level `and`; `path` defaults to the enclosing key's path when omitted. */
+export type RuleAndEntry = LintRule;
 
 /**
  * A rule document: each key is a directive path (optionally fused with an
