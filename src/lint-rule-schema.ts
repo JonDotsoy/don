@@ -36,11 +36,16 @@ export interface ArgumentConstraint {
   severity?: RuleSeverity;
 }
 
-/** Key selecting one argument by its 1-based position, e.g. `"[1]"`. */
-export type ArgumentSelector = `[${number}]`;
-
 /** Key selecting a child directive by a path relative to its parent, e.g. `"/route"`. */
 export type SubPathSelector = `/${string}`;
+
+/**
+ * Key selecting one argument by its 1-based position: either bare, e.g.
+ * `"[1]"` (of the enclosing body's own path), or fused with a sub-path,
+ * e.g. `"/route[2]"` (of that sub-path directly, without an intermediate
+ * body) — see "Shorthand: `path[N]` as a single key" in the docs.
+ */
+export type ArgumentSelector = `[${number}]` | `${SubPathSelector}[${number}]`;
 
 /**
  * The body of a rule: everything a document key (or a nested sub-path key,
@@ -58,10 +63,10 @@ export interface RuleBody {
   severity?: RuleSeverity;
   /** Combines full, independently-addressed rules — see "`and` at the rule level". */
   and?: readonly RuleAndEntry[];
-  /** `"[N]"` keys: constraints on the argument at that 1-based position. */
+  /** `"[N]"`/`"/name[N]"` keys: constraints on the argument at that 1-based position. */
   readonly [argument: ArgumentSelector]: ArgumentConstraint;
   /** `"/name"` keys: a nested rule body for that child directive. */
-  readonly [subPath: SubPathSelector]: RuleBody;
+  readonly [subPath: SubPathSelector]: RuleBody | ArgumentConstraint;
 }
 
 /**

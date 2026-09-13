@@ -96,6 +96,20 @@ describe("lint-rule-schema types", () => {
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
 
+  it("accepts a path[N] shorthand key nested inside a rule body", () => {
+    const example = {
+      "/server": {
+        "/route[2]": {
+          type: "number",
+          gte: 100,
+          lte: 599,
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+  });
+
   it("accepts severity alongside message on a constraint", () => {
     const example = {
       "/server/strategy": {
