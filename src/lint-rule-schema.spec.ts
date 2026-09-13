@@ -1,5 +1,9 @@
 import { describe, it, expectTypeOf } from "bun:test";
-import type { ArgumentConstraint, LintRuleDocument } from "./lint-rule-schema";
+import type {
+  ArgumentConstraint,
+  LintRuleDocument,
+  RuleAndEntry,
+} from "./lint-rule-schema";
 
 describe("lint-rule-schema types", () => {
   it("accepts an argument selector constraint", () => {
@@ -137,23 +141,28 @@ describe("lint-rule-schema types", () => {
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
 
-  it("accepts and grouping rules for unrelated paths, with an explicit path", () => {
-    const example = {
-      "/server-config": {
-        and: [
-          {
-            path: "/server/port",
+  it("accepts and grouping rules for unrelated paths", () => {
+    const andEntries: RuleAndEntry[] = [
+      {
+        "/server": {
+          "/port": {
             required: true,
             message: "server debe declarar un port",
           },
-          {
-            "/route": {
-              "/respond": {
-                "[1]": { type: "number", gte: 100, lte: 599 },
-              },
-            },
+        },
+      },
+      {
+        "/route": {
+          "/respond": {
+            "[1]": { type: "number", gte: 100, lte: 599 },
           },
-        ],
+        },
+      },
+    ];
+
+    const example = {
+      "/server-config": {
+        and: andEntries,
       },
     } satisfies LintRuleDocument;
 
