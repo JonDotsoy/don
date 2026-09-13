@@ -793,6 +793,20 @@ Both return `undefined` for a directive with no backing tokens (e.g. one
 built by hand with `new Directive(...)`) or, for `argumentLoc`, an
 out-of-range index.
 
+## Demos
+
+- [`donly/demo/http-proxy`](./src/demo/proxy/README.md) — a hot-reloading
+  HTTP reverse proxy / mock server driven by a DON file: `server`/`route`
+  directives with `respond`, `proxy_pass`, `header`, and
+  `http1`/`http2`/`http3` + `ssl` settings, validated with `donly/lint` on
+  every edit and served with [`Bun.serve()`](https://bun.sh/docs/api/http).
+
+  ```ts
+  import { serve } from "donly/demo/http-proxy";
+
+  const server = await serve("./my-donly-server-file.donly");
+  ```
+
 ## Development
 
 This project uses [Bun](https://bun.sh):
