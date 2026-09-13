@@ -28,6 +28,9 @@ both.
 Each constraint accepts an optional `message` to override the default
 "argument at position N must be of type T" issue message.
 
+`type` also accepts an array of types (a union): the argument is valid when
+it matches any one of them.
+
 ## JSON example: argument at position 1 must be a number
 
 ```json
@@ -49,5 +52,29 @@ isn't, e.g.:
 ```don
 server {
   route "/api" 200
+}
+```
+
+## JSON example: union type (`boolean` or `number`)
+
+```json
+{
+  "path": "/server/route",
+  "args": {
+    "1": {
+      "type": ["boolean", "number"],
+      "message": "el segundo argumento debe ser boolean o number"
+    }
+  }
+}
+```
+
+This rule accepts either a `boolean` or a `number` at `directive.args[1]`,
+e.g. both of the following are valid:
+
+```don
+server {
+  route "/api" 200
+  route "/health" true
 }
 ```
