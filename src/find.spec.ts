@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, mock } from "bun:test";
 import { DON } from "./don";
 import { atDirective, findAllDirectives, findDirective } from "./find";
 
@@ -101,6 +101,49 @@ describe("find", () => {
       expect(root.at("/server/route(* /api/user)[0]")).toBe(
         atDirective(root, "/server/route(* /api/user)[0]"),
       );
+    });
+  });
+
+  describe("usage: registering routes on a mock server", () => {
+    it("drives server.listen from route/header directives using findAll + at", () => {
+      const routesText = ""
+        + "server {\n"
+        + "  route GET /home {\n"
+        + "    header Content-Type text/html\n"
+        + "  }\n"
+        + "  route POST /api/user {\n"
+        + "    header Authorization Bearer-token\n"
+        + "    header Content-Type application/json\n"
+        + "  }\n"
+        + "}\n";
+
+      const root = DON.parse(routesText);
+      const server = { listen: mock(() => {}) };
+
+      root.findAll("/server/route").map((route) => {
+        const method = route.at("[0]");
+        const path = route.at("[1]");
+        const headers = Object.fromEntries(
+          route.findAll("/route/header").map((h) => [h.at("[0]"), h.at("[1]")]),
+        );
+
+        server.listen({ method, path, headers });
+      });
+
+      expect(server.listen).toHaveBeenCalledTimes(2);
+      expect(server.listen).toHaveBeenNthCalledWith(1, {
+        method: "GET",
+        path: "/home",
+        headers: { "Content-Type": "text/html" },
+      });
+      expect(server.listen).toHaveBeenNthCalledWith(2, {
+        method: "POST",
+        path: "/api/user",
+        headers: {
+          Authorization: "Bearer-token",
+          "Content-Type": "application/json",
+        },
+      });
     });
   });
 });
