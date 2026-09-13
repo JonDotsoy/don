@@ -127,14 +127,25 @@ export interface RuleBody {
 export type RuleAndEntry = RuleBody;
 
 /**
- * A rule document: each key is a directive path (optionally fused with an
- * argument selector, e.g. `"/server/route[2]"`), and each value is either a
- * full rule body or, for a fused `path[N]` key, a bare argument constraint.
+ * A rule document. Its usual shape keys each rule by a directive path
+ * (optionally fused with an argument selector, e.g. `"/server/route[2]"`),
+ * with each value either a full rule body or, for a fused `path[N]` key, a
+ * bare argument constraint.
+ *
+ * The root itself also accepts `or`, `and`, and `not` directly — combining
+ * whole documents as alternatives (`or`), requirements (`and`), or a
+ * negation (`not`), the same way those combinators work one level down for
+ * constraints and rule bodies. E.g. `{ "or": [{ "/a": {...} }, { "/b":
+ * {...} }] }` accepts a document matching either shape. These compose with
+ * path keys on the same object, though typically a document uses one or
+ * the other.
  */
-export type LintRuleDocument = Record<
-  SubPathSelector,
-  RuleBody | ArgumentConstraint
->;
+export interface LintRuleDocument {
+  or?: readonly LintRuleDocument[];
+  and?: readonly LintRuleDocument[];
+  not?: LintRuleDocument;
+  readonly [path: SubPathSelector]: RuleBody | ArgumentConstraint;
+}
 
 /**
  * The equivalent shape: an array of one-entry documents, each keyed by its

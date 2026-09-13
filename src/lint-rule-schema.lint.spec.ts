@@ -584,4 +584,45 @@ server {
       message: "respond es obligatorio dentro de un route",
     });
   });
+
+  test.skip("accepts an or between two alternative documents at the root", () => {
+    const orDocuments: LintRuleDocument[] = [
+      { "/server/port": { required: true } },
+      { "/server/socket": { required: true } },
+    ];
+
+    const rule = {
+      or: orDocuments,
+    } satisfies LintRuleDocument;
+
+    const validPortIssues = lint(
+      `
+server {
+  port 3000
+}
+`,
+      rule,
+    );
+    expect(validPortIssues).toHaveLength(0);
+
+    const validSocketIssues = lint(
+      `
+server {
+  socket "/tmp/app.sock"
+}
+`,
+      rule,
+    );
+    expect(validSocketIssues).toHaveLength(0);
+
+    const invalidIssues = lint(
+      `
+server {
+  timeout 30
+}
+`,
+      rule,
+    );
+    expect(invalidIssues.length).toBeGreaterThan(0);
+  });
 });

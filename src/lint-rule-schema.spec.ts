@@ -201,4 +201,25 @@ describe("lint-rule-schema types", () => {
 
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
+
+  it("accepts or/and/not directly at the document root", () => {
+    const orDocuments: LintRuleDocument[] = [
+      { "/server/port": { required: true } },
+      { "/server/socket": { required: true } },
+    ];
+    const orExample = { or: orDocuments } satisfies LintRuleDocument;
+    expectTypeOf(orExample).toMatchTypeOf<LintRuleDocument>();
+
+    const andDocuments: LintRuleDocument[] = [
+      { "/server/port": { required: true } },
+      { "/server": { "/route": { max: 10 } } },
+    ];
+    const andExample = { and: andDocuments } satisfies LintRuleDocument;
+    expectTypeOf(andExample).toMatchTypeOf<LintRuleDocument>();
+
+    const notExample = {
+      not: { "/server/legacy-mode": { required: true } },
+    } satisfies LintRuleDocument;
+    expectTypeOf(notExample).toMatchTypeOf<LintRuleDocument>();
+  });
 });

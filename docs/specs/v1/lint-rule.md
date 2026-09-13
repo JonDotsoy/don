@@ -873,7 +873,42 @@ Sub-paths nest to arbitrary depth and each level can freely mix its own
 This is equivalent to the flat keys `"/server/route"` (with `max: 10`) and
 `"/server/port"` (with the argument constraint) written out in full.
 
-## Equivalent shape: explicit `path` field
+## `or`, `and`, and `not` at the document root
+
+The document root itself accepts `or`, `and`, and `not` directly, the same
+combinators used one level down for constraints and rule bodies — but here
+each entry is a _whole document_ (its own set of path keys), not a single
+constraint or rule body. `or` accepts a document matching any one of
+several alternative shapes; `and` requires it to satisfy all of them; `not`
+requires it to satisfy none.
+
+## JSON example: `or` between two alternative documents
+
+```json
+{
+  "or": [
+    { "/server/port": { "required": true } },
+    { "/server/socket": { "required": true } }
+  ]
+}
+```
+
+This requires a `server` that declares either a `port` or a `socket` (or
+both). Valid:
+
+```don
+server {
+  socket "/tmp/app.sock"
+}
+```
+
+but invalid — neither is declared:
+
+```don
+server {
+  timeout 30
+}
+```
 
 Every rule body above can also be written as one entry in an array of
 `LintRule` objects, with `path` as an explicit field instead of the object
