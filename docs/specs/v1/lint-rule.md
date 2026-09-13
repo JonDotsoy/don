@@ -365,12 +365,12 @@ server {
 body: once the directive is confirmed to exist, the rest of the body still
 validates every match of it as usual.
 
-## JSON example: `and` combining `required` checks for the same path
+## JSON example: `and` combining `required` with an argument constraint
 
 A rule-level `and` entry that omits `path` (unlike the ones in the next
-section) inherits the path from its enclosing key, so several `required`
-checks — each with its own `message` — can be combined for the *same*
-directive:
+section) inherits the path from its enclosing key, so a `required` check
+can be combined with a further constraint — here, an `[1]` upper bound — for
+the *same* directive:
 
 ```json
 {
@@ -381,18 +381,34 @@ directive:
         "message": "server debe declarar un port"
       },
       {
-        "required": true,
-        "message": "server debe declarar un port"
+        "[1]": {
+          "type": "number",
+          "lte": 65535,
+          "message": "port debe ser menor o igual a 65535"
+        }
       }
     ]
   }
 }
 ```
 
-`and` requires every entry to hold, so this is only ever as strict as its
-strictest entry — worth doing when each carries a distinct `message` or
-pairs `required` with a further constraint (e.g. an argument selector),
-rather than repeating the identical check twice as above.
+This requires `/server/port` to exist, and, whenever it does, its argument
+at position `1` to be a `number` less than or equal to `65535`. It is
+valid:
+
+```don
+server {
+  port 3000
+}
+```
+
+but invalid — `port` exists but exceeds the limit:
+
+```don
+server {
+  port 70000
+}
+```
 
 ## `and` at the rule level: composing full rules
 
