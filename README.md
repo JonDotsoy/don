@@ -385,21 +385,39 @@ in it — a linter for your own directive schema.
 ```ts
 import { lint, argumentLoc, type LintRule } from "donly/lint";
 
-const portMustBeNumber: LintRule = {
+const portMustBeValid: LintRule = {
   path: "/server/port",
   *evaluation({ directive }) {
     const value = directive.args[0];
-    if (typeof value === "number") return;
 
-    yield {
-      message: "port debe ser un número, no un string",
-      severity: "error",
-      loc: argumentLoc(directive, 0),
-    };
+    if (typeof value !== "number") {
+      yield {
+        message: "port debe ser un número, no un string",
+        severity: "error",
+        loc: argumentLoc(directive, 0),
+      };
+      return;
+    }
+
+    if (typeof value === "number" && value <= 3000) {
+      yield {
+        message: "port debe ser mayor a 3000",
+        severity: "error",
+        loc: argumentLoc(directive, 0),
+      };
+    }
+
+    if (typeof value === "number" && value >= 60000) {
+      yield {
+        message: "port debe ser menor a 60000",
+        severity: "error",
+        loc: argumentLoc(directive, 0),
+      };
+    }
   },
 };
 
-const issues = lint('server {\n  port "3000"\n}\n', [portMustBeNumber], {
+const issues = lint('server {\n  port "3000"\n}\n', [portMustBeValid], {
   payload: "nginx.donly",
 });
 // ? const issues = [
