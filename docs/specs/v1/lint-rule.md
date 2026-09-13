@@ -86,8 +86,8 @@ straight through to `LintIssue.severity` (see
 documented below (sub-path `max`/`min`, `required`, rule-level `and`
 entries) accepts the same `message`/`severity` pair.
 
-`type` also accepts an array of types (a union): the argument is valid when
-it matches any one of them.
+`type` itself only ever names one type — a union of types is expressed with
+`or` (see below), not by passing `type` an array.
 
 For numeric arguments, a constraint also accepts range checks: `gte`
 (greater than or equal), `gt` (greater than), `lte` (less than or equal),
@@ -144,13 +144,13 @@ server {
 }
 ```
 
-## JSON example: union type (`boolean` or `number`)
+## JSON example: a union of types (`boolean` or `number`), via `or`
 
 ```json
 {
   "/server/route": {
     "[2]": {
-      "type": ["boolean", "number"],
+      "or": [{ "type": "boolean" }, { "type": "number" }],
       "message": "el segundo argumento debe ser boolean o number"
     }
   }
@@ -167,6 +167,9 @@ server {
 }
 ```
 
+(`or` is the general combinator for alternative full constraints, not just
+types — see [below](#or-combining-multiple-full-constraints).)
+
 ### Shorthand: `path[N]` as a single key
 
 The path and the argument selector can also be fused into one top-level
@@ -176,7 +179,7 @@ equivalent to the example above:
 ```json
 {
   "/server/route[2]": {
-    "type": ["boolean", "number"],
+    "or": [{ "type": "boolean" }, { "type": "number" }],
     "message": "el segundo argumento debe ser boolean o number"
   }
 }
@@ -266,7 +269,7 @@ server {
 {
   "/server/deprecated": {
     "[1]": {
-      "type": ["boolean", "null"],
+      "or": [{ "type": "boolean" }, { "type": "null" }],
       "message": "deprecated debe ser true, false, o null"
     }
   }
@@ -345,8 +348,8 @@ server {
 
 ## `or`: combining multiple full constraints
 
-`type` as an array only unions plain types (see above). `or` is the general
-combinator: a constraint accepts an `or` property, an array of full
+`or` is the general combinator for expressing alternatives — including a
+union of `type`s, as seen above. A constraint accepts an `or` property, an array of full
 constraint objects (each may itself set `type`, `enum`, `pattern`, `gte`,
 `gt`, `lte`, `lt`, and so on). The argument is valid when it satisfies at
 least one of them. When present, `or` replaces the constraint's own
