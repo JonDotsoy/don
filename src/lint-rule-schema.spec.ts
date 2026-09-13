@@ -3,6 +3,7 @@ import type {
   ArgumentConstraint,
   LintRuleDocument,
   RuleAndEntry,
+  RuleBody,
 } from "./lint-rule-schema";
 
 describe("lint-rule-schema types", () => {
@@ -94,6 +95,18 @@ describe("lint-rule-schema types", () => {
     } satisfies LintRuleDocument;
 
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+  });
+
+  it("types /server/port's value as a RuleBody", () => {
+    const example = {
+      "/server/port": {
+        required: true,
+        "[1]": { type: "number" },
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+    expectTypeOf(example["/server/port"]).toMatchTypeOf<RuleBody>();
   });
 
   it("types /server/port[1]'s value as an ArgumentConstraint", () => {
