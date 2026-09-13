@@ -147,9 +147,10 @@ describe("lint-rule-schema types", () => {
             message: "server debe declarar un port",
           },
           {
-            path: "/route",
-            "/respond": {
-              "[1]": { type: "number", gte: 100, lte: 599 },
+            "/route": {
+              "/respond": {
+                "[1]": { type: "number", gte: 100, lte: 599 },
+              },
             },
           },
         ],
