@@ -320,6 +320,51 @@ route /users {
 }
 ```
 
+## Proposed property: `required`
+
+`children.<name>.min` requires occurrences of a child *once its parent has
+already matched*, so it can't express "this directive itself must exist
+somewhere in the document" — there is no parent match to hang a `children`
+constraint off of, e.g. for a directive expected at the document root, or
+one several levels deep whose intermediate ancestors aren't otherwise
+constrained. A rule body fills that gap with `required: true`: when the
+rule's own path matches zero directives in the document, one issue is
+reported (using `message`, or a default naming the missing path).
+
+## JSON example: `/server/port` must exist
+
+```json
+{
+  "/server/port": {
+    "required": true,
+    "message": "server debe declarar un port"
+  }
+}
+```
+
+This rule requires at least one `port` directive under `/server`. It is
+valid:
+
+```don
+server {
+  port 3000
+}
+```
+
+but invalid — `/server` exists but never declares `port`:
+
+```don
+server {
+  route "/api" {
+    respond 200 "Ok"
+  }
+}
+```
+
+`required` composes with argument selectors and `children` on the same
+body: once the directive is confirmed to exist, the rest of the body still
+validates every match of it as usual.
+
 ## `and` at the rule level: composing full rules
 
 `and` isn't limited to constraints on an argument selector — a rule body
