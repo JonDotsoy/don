@@ -302,3 +302,65 @@ route /users {
   respond 404 "Not found"
 }
 ```
+
+## `and` at the rule level: composing full rules
+
+`and` isn't limited to constraints inside `args` — a top-level `LintRule`
+also accepts an `and` property: an array of full `LintRule` objects, each
+free to declare its own `path`, `args`, `children`, and even a further
+nested `and`/`or`. This bundles several independent checks, across
+different directive paths, into a single named rule entry — useful when a
+schema file wants to group "everything a `route` must satisfy" as one
+JSON/YAML document instead of one entry per check. The outer `path`, if
+present, is purely a label for the group; each nested rule's own `path` is
+what selects which directives it runs against.
+
+## JSON example: `and` grouping rules for different paths under `/route`
+
+```json
+{
+  "path": "/route",
+  "and": [
+    {
+      "path": "/route",
+      "children": {
+        "respond": {
+          "max": 1,
+          "message": "solo puede existir un respond dentro de route"
+        }
+      }
+    },
+    {
+      "path": "/route/respond",
+      "args": {
+        "1": {
+          "type": "number",
+          "gte": 100,
+          "lte": 599,
+          "message": "el status code de respond debe estar entre 100 y 599"
+        }
+      }
+    }
+  ]
+}
+```
+
+This groups two checks under one rule: `/route` allows at most one
+`respond` child, and every `/route/respond`'s first argument must be a
+`number` between `100` and `599`. It is valid:
+
+```don
+route /users {
+  respond 200 "Ok"
+}
+```
+
+but invalid — two `respond` children, and the second one's status code is
+out of range:
+
+```don
+route /users {
+  respond 200 "Ok"
+  respond 999 "Bad"
+}
+```
