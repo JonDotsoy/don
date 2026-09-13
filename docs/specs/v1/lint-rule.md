@@ -139,3 +139,50 @@ server {
   strategy "rolling"
 }
 ```
+
+## Proposed property: `children`
+
+`LintRule` also gains an optional `children` property: an object whose keys
+are child directive names and whose values are occurrence-count constraints
+checked against `directive.children` (matching by name, not recursively) for
+every directive matched by `path`. It composes with `args` and `evaluation`
+the same way — a rule may declare any combination of the three.
+
+Each constraint accepts `min` and `max` (both optional; `max` alone caps the
+count, `min` alone requires at least that many) and an optional `message`.
+When `max` is exceeded, the issue is reported once per extra occurrence
+(from the `min + 1`-th onward, mirroring `oneRespondPerLocation` in
+[`src/lint.spec.ts`](../../../src/lint.spec.ts)); when the count is below
+`min`, one issue is reported for the parent directive.
+
+## JSON example: `/route` allows only one `respond`
+
+```json
+{
+  "path": "/route",
+  "children": {
+    "respond": {
+      "max": 1,
+      "message": "solo puede existir un respond dentro de route"
+    }
+  }
+}
+```
+
+This rule matches directives at `/route` and requires at most one `respond`
+child. It is valid:
+
+```don
+route /users {
+  respond 200 "Ok"
+}
+```
+
+but invalid:
+
+```don
+route /users {
+  respond 200 "Ok"
+  respond 404 "Not found"
+}
+```
