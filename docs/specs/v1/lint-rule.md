@@ -43,6 +43,12 @@ A constraint also accepts `enum`: an array of literal values the argument
 must match exactly (one of them). It is independent of `type` — when both
 are set, the argument must satisfy `type` and be one of `enum`'s values.
 
+For string arguments, a constraint also accepts `pattern`: a regular
+expression (as a string, without delimiters) the argument must fully or
+partially match — like `RegExp.prototype.test`. An optional `flags` string
+(e.g. `"i"`) is passed along to the underlying `RegExp`. `pattern` applies
+only once the argument's type has already been checked as `string`.
+
 ## JSON example: argument at position 1 must be a number
 
 ```json
@@ -137,6 +143,32 @@ This rule requires the argument at position `1` to be exactly one of
 ```don
 server {
   strategy "rolling"
+}
+```
+
+## JSON example: `pattern` (regex) for a string argument
+
+```json
+{
+  "path": "/server/route",
+  "args": {
+    "1": {
+      "type": "string",
+      "pattern": "^/[a-z0-9/_-]*$",
+      "message": "el path de route debe empezar con / y usar minúsculas, dígitos, _ o -"
+    }
+  }
+}
+```
+
+This rule requires the argument at position `1` to be a `string` matching
+`^/[a-z0-9/_-]*$`, e.g. valid for `/api/users` but not for `api_Users`:
+
+```don
+server {
+  route "/api/users" {
+    respond 200 "Ok"
+  }
 }
 ```
 
