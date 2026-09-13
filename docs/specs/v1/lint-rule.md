@@ -364,3 +364,61 @@ route /users {
   respond 999 "Bad"
 }
 ```
+
+## Alternative top-level shape: `path` as the object key
+
+A full lint schema is naturally an array of `LintRule` objects, each
+carrying its own `path`. As a more compact top-level shape for a schema
+*document* (one JSON/YAML file describing all the rules for a project), the
+`path` can instead be the object's own key, with the rule body — `args`,
+`children`, `and`, `or` — as its value:
+
+```json
+{
+  "/server": {
+    "children": {
+      "route": { "max": 10, "message": "un server admite a lo más 10 route" }
+    }
+  },
+  "/server/port": {
+    "args": {
+      "1": { "type": "number", "gt": 1024, "lte": 65535 }
+    }
+  },
+  "/route": {
+    "children": {
+      "respond": {
+        "max": 1,
+        "message": "solo puede existir un respond dentro de route"
+      }
+    }
+  },
+  "/route/respond": {
+    "args": {
+      "1": {
+        "type": "number",
+        "gte": 100,
+        "lte": 599,
+        "message": "el status code de respond debe estar entre 100 y 599"
+      }
+    }
+  }
+}
+```
+
+This is equivalent to an array of `{ path, ...body }` `LintRule` objects —
+loading it just means mapping each `[path, body]` entry to
+`{ path, ...body }` before passing it to `lint()`. Because object keys must
+be unique, two independent rules for the *same* path are combined under
+that one key using `and` (see above) instead of repeating the key:
+
+```json
+{
+  "/route/respond": {
+    "and": [
+      { "args": { "1": { "type": "number" } } },
+      { "args": { "2": { "type": "string" } } }
+    ]
+  }
+}
+```
