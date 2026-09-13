@@ -18,14 +18,17 @@ function-based rules work.
 
 ## Proposed property: `args`
 
-`LintRule` gains an optional `args` property: an object whose keys are
-argument positions and whose values are constraints checked against the
-argument at that position. It is evaluated the same way `evaluation` is, for
-every directive matched by `path`, and is independent of `evaluation` — a
-rule may declare either or both.
+`LintRule` gains an optional `args` property: an object whose keys select an
+argument position, written `"[N]"` (e.g. `"[1]"`, `"[2]"`), and whose values
+are constraints checked against the argument at that position. The
+brackets mark it as a positional selector, distinct from a `children` key
+(a bare directive name) or a nested sub-path key (prefixed with `/`). It is
+evaluated the same way `evaluation` is, for every directive matched by
+`path`, and is independent of `evaluation` — a rule may declare either or
+both.
 
 **Positions are 1-based**: the first argument is position `1`, not `0`. For
-`port 3000`, `3000` is the argument at position `1` (it maps to
+`port 3000`, `3000` is the argument selected by `"[1]"` (it maps to
 `directive.args[0]` internally, but `args` keys always count from `1`).
 
 Each constraint accepts an optional `message` to override the default
@@ -55,7 +58,7 @@ only once the argument's type has already been checked as `string`.
 {
   "path": "/server/port",
   "args": {
-    "1": {
+    "[1]": {
       "type": "number",
       "message": "port debe ser un número"
     }
@@ -79,7 +82,7 @@ server {
 {
   "path": "/server/route",
   "args": {
-    "2": {
+    "[2]": {
       "type": ["boolean", "number"],
       "message": "el segundo argumento debe ser boolean o number"
     }
@@ -103,7 +106,7 @@ server {
 {
   "path": "/server/port",
   "args": {
-    "1": {
+    "[1]": {
       "type": "number",
       "gt": 1024,
       "lte": 65535,
@@ -129,7 +132,7 @@ server {
 {
   "path": "/server/strategy",
   "args": {
-    "1": {
+    "[1]": {
       "enum": ["rolling", "recreate", "blue-green"],
       "message": "strategy debe ser uno de: rolling, recreate, blue-green"
     }
@@ -152,7 +155,7 @@ server {
 {
   "path": "/server/route",
   "args": {
-    "1": {
+    "[1]": {
       "type": "string",
       "pattern": "^/[a-z0-9/_-]*$",
       "message": "el path de route debe empezar con / y usar minúsculas, dígitos, _ o -"
@@ -188,7 +191,7 @@ outer `message`, used when none of them match) are evaluated.
 {
   "path": "/server/port",
   "args": {
-    "1": {
+    "[1]": {
       "or": [
         { "type": "number", "gt": 1024, "lte": 65535 },
         { "type": "string", "enum": ["auto"] }
@@ -232,7 +235,7 @@ entries to express arbitrary combinations.
 {
   "path": "/server/route",
   "args": {
-    "1": {
+    "[1]": {
       "and": [
         { "type": "string" },
         { "pattern": "^/", "message": "el path debe empezar con /" },
@@ -333,7 +336,7 @@ what selects which directives it runs against.
     {
       "path": "/route/respond",
       "args": {
-        "1": {
+        "[1]": {
           "type": "number",
           "gte": 100,
           "lte": 599,
@@ -382,7 +385,7 @@ carrying its own `path`. As a more compact top-level shape for a schema
   },
   "/server/port": {
     "args": {
-      "1": { "type": "number", "gt": 1024, "lte": 65535 }
+      "[1]": { "type": "number", "gt": 1024, "lte": 65535 }
     }
   },
   "/route": {
@@ -395,7 +398,7 @@ carrying its own `path`. As a more compact top-level shape for a schema
   },
   "/route/respond": {
     "args": {
-      "1": {
+      "[1]": {
         "type": "number",
         "gte": 100,
         "lte": 599,
@@ -416,8 +419,8 @@ that one key using `and` (see above) instead of repeating the key:
 {
   "/route/respond": {
     "and": [
-      { "args": { "1": { "type": "number" } } },
-      { "args": { "2": { "type": "string" } } }
+      { "args": { "[1]": { "type": "number" } } },
+      { "args": { "[2]": { "type": "string" } } }
     ]
   }
 }
@@ -443,7 +446,7 @@ never collide.
     },
     "/port": {
       "args": {
-        "1": { "type": "number", "gt": 1024, "lte": 65535 }
+        "[1]": { "type": "number", "gt": 1024, "lte": 65535 }
       }
     },
     "/route": {
@@ -455,7 +458,7 @@ never collide.
       },
       "/respond": {
         "args": {
-          "1": {
+          "[1]": {
             "type": "number",
             "gte": 100,
             "lte": 599,
