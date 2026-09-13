@@ -172,6 +172,49 @@ server {
 }
 ```
 
+## `or`: combining multiple full constraints
+
+`type` as an array only unions plain types (see above). `or` is the general
+combinator: a constraint accepts an `or` property, an array of full
+constraint objects (each may itself set `type`, `enum`, `pattern`, `gte`,
+`gt`, `lte`, `lt`, and so on). The argument is valid when it satisfies at
+least one of them. When present, `or` replaces the constraint's own
+type/range/pattern/enum checks — only the alternatives inside `or` (plus the
+outer `message`, used when none of them match) are evaluated.
+
+## JSON example: `or` between two alternative validations
+
+```json
+{
+  "path": "/server/port",
+  "args": {
+    "1": {
+      "or": [
+        { "type": "number", "gt": 1024, "lte": 65535 },
+        { "type": "string", "enum": ["auto"] }
+      ],
+      "message": "port debe ser un número entre 1024 y 65535, o \"auto\""
+    }
+  }
+}
+```
+
+This rule requires the argument at position `1` to be either a `number`
+strictly greater than `1024` and less than or equal to `65535`, or the exact
+string `"auto"`, e.g. both are valid:
+
+```don
+server {
+  port 8080
+}
+```
+
+```don
+server {
+  port "auto"
+}
+```
+
 ## Proposed property: `children`
 
 `LintRule` also gains an optional `children` property: an object whose keys
