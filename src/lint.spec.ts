@@ -3,19 +3,35 @@ import { DON } from "./don";
 import { argumentLoc, directiveLoc, lint, type LintRule } from "./lint";
 
 describe("lint", () => {
-  const portMustBeNumber: LintRule = {
+  const portMustBeValid: LintRule = {
     path: "/server/port",
-    evaluation({ directive }) {
+    *evaluation({ directive }) {
       const value = directive.args[0];
-      if (typeof value === "number") return [];
 
-      return [
-        {
+      if (typeof value !== "number") {
+        yield {
           message: "port debe ser un número, no un string",
           severity: "error",
           loc: argumentLoc(directive, 0),
-        },
-      ];
+        };
+        return;
+      }
+
+      if (typeof value === "number" && value <= 3000) {
+        yield {
+          message: "port debe ser mayor a 3000",
+          severity: "error",
+          loc: argumentLoc(directive, 0),
+        };
+      }
+
+      if (typeof value === "number" && value >= 60000) {
+        yield {
+          message: "port debe ser menor a 60000",
+          severity: "error",
+          loc: argumentLoc(directive, 0),
+        };
+      }
     },
   };
 
@@ -62,7 +78,7 @@ describe("lint", () => {
       + '  port "3000"\n'
       + "}\n";
 
-    const issues = lint(text, [portMustBeNumber], { payload: "nginx.donly" });
+    const issues = lint(text, [portMustBeValid], { payload: "nginx.donly" });
 
     expect(issues).toHaveLength(1);
     expect(issues[0]!.severity).toBe("error");
@@ -75,15 +91,43 @@ describe("lint", () => {
     expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
-  it("does not report a numeric port", () => {
+  it("does not report a port within the valid range", () => {
+    const text = ""
+      + "server {\n"
+      + "  port 8080\n"
+      + "}\n";
+
+    const issues = lint(text, [portMustBeValid]);
+
+    expect(issues).toEqual([]);
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
+  });
+
+  it("reports a port at or below 3000 as an error", () => {
     const text = ""
       + "server {\n"
       + "  port 3000\n"
       + "}\n";
 
-    const issues = lint(text, [portMustBeNumber]);
+    const issues = lint(text, [portMustBeValid]);
 
-    expect(issues).toEqual([]);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.severity).toBe("error");
+    expect(issues[0]!.message).toBe("port debe ser mayor a 3000");
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
+  });
+
+  it("reports a port at or above 60000 as an error", () => {
+    const text = ""
+      + "server {\n"
+      + "  port 60000\n"
+      + "}\n";
+
+    const issues = lint(text, [portMustBeValid]);
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.severity).toBe("error");
+    expect(issues[0]!.message).toBe("port debe ser menor a 60000");
     expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
