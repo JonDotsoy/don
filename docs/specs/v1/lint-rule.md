@@ -215,6 +215,47 @@ server {
 }
 ```
 
+## `and`: requiring multiple full constraints together
+
+`and` is `or`'s counterpart: a constraint accepts an `and` property, an
+array of full constraint objects (each may itself set `type`, `enum`,
+`pattern`, `gte`, `gt`, `lte`, `lt`, `or`, and so on). The argument is valid
+only when it satisfies every one of them. Like `or`, when present it
+replaces the constraint's own type/range/pattern/enum checks — only the
+entries inside `and` (plus the outer `message`, used for whichever entry
+fails first) are evaluated. `and` and `or` can nest inside each other's
+entries to express arbitrary combinations.
+
+## JSON example: `and` combining a type check and a pattern
+
+```json
+{
+  "path": "/server/route",
+  "args": {
+    "1": {
+      "and": [
+        { "type": "string" },
+        { "pattern": "^/", "message": "el path debe empezar con /" },
+        { "pattern": "^(?!.*//).*$", "message": "el path no puede tener // repetidos" }
+      ],
+      "message": "el path de route es inválido"
+    }
+  }
+}
+```
+
+This rule requires the argument at position `1` to be a `string` that both
+starts with `/` and has no repeated `//`, e.g. valid for `/api/users` but
+not for `api/users` or `/api//users`:
+
+```don
+server {
+  route "/api/users" {
+    respond 200 "Ok"
+  }
+}
+```
+
 ## Proposed property: `children`
 
 `LintRule` also gains an optional `children` property: an object whose keys
