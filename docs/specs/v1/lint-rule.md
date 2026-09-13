@@ -365,6 +365,35 @@ server {
 body: once the directive is confirmed to exist, the rest of the body still
 validates every match of it as usual.
 
+## JSON example: `and` combining `required` checks for the same path
+
+A rule-level `and` entry that omits `path` (unlike the ones in the next
+section) inherits the path from its enclosing key, so several `required`
+checks — each with its own `message` — can be combined for the *same*
+directive:
+
+```json
+{
+  "/server/port": {
+    "and": [
+      {
+        "required": true,
+        "message": "server debe declarar un port"
+      },
+      {
+        "required": true,
+        "message": "server debe declarar un port"
+      }
+    ]
+  }
+}
+```
+
+`and` requires every entry to hold, so this is only ever as strict as its
+strictest entry — worth doing when each carries a distinct `message` or
+pairs `required` with a further constraint (e.g. an argument selector),
+rather than repeating the identical check twice as above.
+
 ## `and` at the rule level: composing full rules
 
 `and` isn't limited to constraints on an argument selector — a rule body
