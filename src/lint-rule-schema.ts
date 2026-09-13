@@ -44,7 +44,7 @@ export type SubPathSelector = `/${string}`;
 
 /**
  * The body of a rule: everything a document key (or an explicit `path`
- * field, see `LintRule`) can carry, minus the path itself.
+ * field, see `RuleAndEntry`) can carry, minus the path itself.
  */
 export interface RuleBody {
   /** Requires the rule's own path to match at least one directive in the document. */
@@ -64,22 +64,14 @@ export interface RuleBody {
 }
 
 /**
- * A full rule: a `RuleBody` optionally addressed by its own `path`. `path`
- * is omitted when the rule is keyed by its path in a `LintRuleDocument`, or
- * when it's a rule-level `and` entry that defaults to its enclosing key's
- * path — see "`and` at the rule level" in the docs.
+ * One entry of a rule-level `and`: a `RuleBody` whose `path` defaults to
+ * its enclosing key's path when omitted — see "`and` at the rule level" in
+ * the docs. Also doubles as the "equivalent shape" array-of-rules entry
+ * (see `LintRuleArray`), where `path` is required in practice.
  */
-export interface LintRule extends RuleBody {
-  /**
-   * @deprecated Prefer keying the rule by its path in a `LintRuleDocument`
-   * (or, inside a rule-level `and`, omitting it to inherit the enclosing
-   * key's path). Kept only for the "equivalent shape" array-of-rules form.
-   */
+export interface RuleAndEntry extends RuleBody {
   path?: string;
 }
-
-/** One entry of a rule-level `and`; `path` defaults to the enclosing key's path when omitted. */
-export type RuleAndEntry = LintRule;
 
 /**
  * A rule document: each key is a directive path (optionally fused with an
@@ -92,4 +84,4 @@ export type LintRuleDocument = Record<
 >;
 
 /** The equivalent shape: an array of rules with an explicit `path` field. */
-export type LintRuleArray = readonly LintRule[];
+export type LintRuleArray = readonly RuleAndEntry[];
