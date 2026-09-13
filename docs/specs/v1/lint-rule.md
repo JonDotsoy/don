@@ -117,6 +117,27 @@ server {
 }
 ```
 
+### Shorthand: `path[N]` as a single key
+
+The path and the argument selector can also be fused into one top-level
+key, `"path[N]"`, instead of nesting `"[N]"` inside the path's body. It is
+equivalent to the example above:
+
+```json
+{
+  "/server/route[2]": {
+    "type": ["boolean", "number"],
+    "message": "el segundo argumento debe ser boolean o number"
+  }
+}
+```
+
+This reads as "the argument at position `2` of `/server/route`" in one key,
+useful when a path has a single argument constraint and no `children` or
+sub-paths of its own. It cannot be combined with a `/`-prefixed sub-path or
+with `children` on the same key — those still need the nested form, since
+`path[N]`'s value *is* the constraint object, not a rule body.
+
 ## JSON example: `gte`, `gt`, `lte`, and `lt` range checks
 
 ```json
