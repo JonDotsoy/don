@@ -79,7 +79,12 @@ or both, alongside sub-paths.
 `directive.args[0]` internally, but positions always count from `1`).
 
 Each constraint accepts an optional `message` to override the default
-"argument at position N must be of type T" issue message.
+"argument at position N must be of type T" issue message, and an optional
+`severity` (`"error"`, `"warning"`, or `"info"`, default `"error"`) — passed
+straight through to `LintIssue.severity` (see
+[`src/lint.ts`](../../../src/lint.ts)). Every other body-level check
+documented below (sub-path `max`/`min`, `required`, rule-level `and`
+entries) accepts the same `message`/`severity` pair.
 
 `type` also accepts an array of types (a union): the argument is valid when
 it matches any one of them.
@@ -319,6 +324,68 @@ server {
   }
 }
 ```
+
+## JSON example: `severity` (downgrading an issue to a warning)
+
+```json
+{
+  "/server/strategy": {
+    "[1]": {
+      "enum": ["rolling", "recreate", "blue-green"],
+      "severity": "warning",
+      "message": "strategy debería ser uno de: rolling, recreate, blue-green"
+    }
+  }
+}
+```
+
+This is the same `enum` check as the earlier example, but a mismatch is
+reported as a `"warning"` instead of the default `"error"` — useful for
+style-level guidance that shouldn't fail a build. `severity` accepts
+`"error"`, `"warning"`, or `"info"`.
+
+## `not`: negating a constraint
+
+A constraint also accepts `not`: a single full constraint object (it may
+itself set `type`, `enum`, `pattern`, `gte`, `gt`, `lte`, `lt`, `and`, `or`,
+even a further nested `not`). The argument is valid when it does **not**
+satisfy it. Like `and`/`or`, when present `not` replaces the constraint's
+own type/range/pattern/enum checks — only whether the argument fails to
+match the negated constraint is evaluated (plus the outer `message`, used
+when it does match).
+
+## JSON example: `not` forbidding a specific value
+
+```json
+{
+  "/server/strategy": {
+    "[1]": {
+      "not": { "enum": ["big-bang"] },
+      "message": "strategy no puede ser \"big-bang\""
+    }
+  }
+}
+```
+
+This rule accepts any argument at position `1` except the literal string
+`"big-bang"`, e.g. valid for `"rolling"` or any other value:
+
+```don
+server {
+  strategy "rolling"
+}
+```
+
+but invalid:
+
+```don
+server {
+  strategy "big-bang"
+}
+```
+
+`not` composes with `and`/`or`: e.g. `{ "and": [{ "type": "string" }, { "not": { "pattern": "^/" } }] }`
+requires a `string` that does **not** start with `/`.
 
 ## Proposed properties: `max` and `min` (occurrence constraints on a sub-path)
 
