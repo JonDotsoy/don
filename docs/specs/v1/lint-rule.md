@@ -422,3 +422,56 @@ that one key using `and` (see above) instead of repeating the key:
   }
 }
 ```
+
+## Nested shape: sub-paths as nested objects
+
+The flat map above repeats each ancestor path in full (`/route`,
+`/route/respond`). Nested instead, any key that starts with `/` inside a
+rule body is a **relative sub-path**, whose value is itself a rule body
+(optionally holding further `/`-prefixed keys). The effective `path` for a
+nested body is its parent key's path plus its own — `/server` holding a
+`/route` key describes `/server/route`, which holding a `/respond` key
+describes `/server/route/respond`. `args`, `children`, `and`, `or`, and
+`message` are always body fields, never sub-paths, so the two kinds of key
+never collide.
+
+```json
+{
+  "/server": {
+    "children": {
+      "route": { "max": 10, "message": "un server admite a lo más 10 route" }
+    },
+    "/port": {
+      "args": {
+        "1": { "type": "number", "gt": 1024, "lte": 65535 }
+      }
+    },
+    "/route": {
+      "children": {
+        "respond": {
+          "max": 1,
+          "message": "solo puede existir un respond dentro de route"
+        }
+      },
+      "/respond": {
+        "args": {
+          "1": {
+            "type": "number",
+            "gte": 100,
+            "lte": 599,
+            "message": "el status code de respond debe estar entre 100 y 599"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+This describes the same four rules as the flat map above (`/server`,
+`/server/port`, `/server/route`, `/server/route/respond`), but each path
+segment is written once and its sub-rules nest under it — mirroring how
+`route /users { respond 200 "Ok" }` itself nests directives. Loading it
+means walking the tree, joining each `/`-prefixed key onto its parent's
+accumulated path, and flattening every body into a `{ path, ...body }`
+`LintRule`.
