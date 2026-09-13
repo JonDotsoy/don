@@ -55,6 +55,10 @@
     "./find": {
       "types": "./lib/esm/find.d.ts",
       "import": "./lib/esm/find.js"
+    },
+    "./demo/http-proxy": {
+      "types": "./lib/esm/demo/proxy/http-proxy.d.ts",
+      "import": "./lib/esm/demo/proxy/http-proxy.js"
     }
   },
   "files": [
@@ -62,8 +66,9 @@
   ],
   "scripts": {
     "prepack": "npm run lint && npm run build",
-    "build": "npm run build:esm",
+    "build": "npm run build:esm && npm run build:assets",
     "build:esm": "tsc -p tsconfig.esm.json",
+    "build:assets": "mkdir -p lib/esm/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/esm/demo/proxy/certs/",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",

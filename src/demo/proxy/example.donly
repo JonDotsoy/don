@@ -1,0 +1,33 @@
+# donly/demo/http-proxy example configuration.
+# Edit this file while `serve()` is running: it is hot-reloaded automatically.
+
+server {
+  host "0.0.0.0"
+  port 8080
+  http1 true
+  http2 false
+  http3 false
+
+  header "X-Powered-By" "donly-demo-proxy"
+
+  route GET /api/health {
+    respond 200 "OK"
+  }
+
+  route /app {
+    proxy_pass "http://localhost:3000"
+    header "X-Forwarded-Host" "example.com"
+  }
+}
+
+server {
+  host "0.0.0.0"
+  port 8443
+  http2 true
+
+  # No `ssl` block: the bundled development certificate is used.
+
+  route /secure {
+    respond 200 "Secure OK"
+  }
+}

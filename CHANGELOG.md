@@ -45,3 +45,9 @@ documentation.
   spanning a directive's own tokens, and `argumentLoc(directive, startIndex, endIndex?)`
   derives one spanning a single positional argument or a range of them, when
   the directive has backing tokens.
+- `serve(patch)` (`donly/demo/http-proxy`) — example hot-reloading HTTP
+  reverse proxy / mock server driven by a DON file (`server`/`route`
+  directives with `respond`, `proxy_pass`, `header`, `http1`/`http2`/`http3`,
+  and `ssl` settings), built on `donly/lint` and `Bun.serve()`. Also exports
+  `proxyLintRules`, its schema's `LintRule[]`. See `src/demo/proxy/README.md`
+  for the schema and usage.
