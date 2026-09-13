@@ -756,21 +756,19 @@ property — nesting `min` under that ancestor is enough:
 
 ```json
 {
-  "/server": {
-    "/route": {
-      "/respond": {
-        "min": 1,
-        "message": "respond es obligatorio dentro de un route"
-      }
+  "/server/route": {
+    "/respond": {
+      "min": 1,
+      "message": "respond es obligatorio dentro de un route"
     }
   }
 }
 ```
 
-Neither `/server` nor `/route` carries `required`, so both are optional —
-`server` without any `route` inside it, or no `server` at all, is fine.
-It's only once `route` shows up that its own `respond` becomes required.
-Valid — `route` exists and declares `respond`:
+`/server/route` carries no `required`, so it's optional — `server` without
+any `route` inside it, or no `server` at all, is fine. It's only once
+`route` shows up that its own `respond` becomes required. Valid — `route`
+exists and declares `respond`:
 
 ```don
 server {
