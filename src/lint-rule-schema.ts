@@ -19,22 +19,72 @@ export type ArgumentType =
 /** A literal value an argument's `enum` constraint may compare against. */
 export type ArgumentLiteral = string | number | boolean | null;
 
-/** A single, self-contained validation for one directive argument. */
-export interface ArgumentConstraint {
-  type?: ArgumentType;
+/** Fields every constraint shares, regardless of `type`. */
+export interface BaseArgumentConstraint {
   enum?: readonly ArgumentLiteral[];
-  pattern?: string;
-  flags?: string;
-  gte?: number | bigint;
-  gt?: number | bigint;
-  lte?: number | bigint;
-  lt?: number | bigint;
   or?: readonly ArgumentConstraint[];
   and?: readonly ArgumentConstraint[];
   not?: ArgumentConstraint;
   message?: string;
   severity?: RuleSeverity;
 }
+
+/** A constraint on a `"string"` argument. */
+export interface StringArgumentConstraint extends BaseArgumentConstraint {
+  type: "string";
+  pattern?: string;
+  flags?: string;
+}
+
+/** A constraint on a `"number"` argument. */
+export interface NumberArgumentConstraint extends BaseArgumentConstraint {
+  type: "number";
+  gte?: number;
+  gt?: number;
+  lte?: number;
+  lt?: number;
+}
+
+/** A constraint on a `"bigint"` argument. */
+export interface BigintArgumentConstraint extends BaseArgumentConstraint {
+  type: "bigint";
+  gte?: bigint;
+  gt?: bigint;
+  lte?: bigint;
+  lt?: bigint;
+}
+
+/** A constraint on a `"boolean"` argument; no further refinement beyond `type`. */
+export interface BooleanArgumentConstraint extends BaseArgumentConstraint {
+  type: "boolean";
+}
+
+/** A constraint on a `"null"` argument; no further refinement beyond `type`. */
+export interface NullArgumentConstraint extends BaseArgumentConstraint {
+  type: "null";
+}
+
+/** A constraint on a `"heredoc"` argument; `pattern`/`flags` apply to its `content`. */
+export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
+  type: "heredoc";
+  pattern?: string;
+  flags?: string;
+}
+
+/** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
+export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
+  type?: undefined;
+}
+
+/** A single, self-contained validation for one directive argument. */
+export type ArgumentConstraint =
+  | StringArgumentConstraint
+  | NumberArgumentConstraint
+  | BigintArgumentConstraint
+  | BooleanArgumentConstraint
+  | NullArgumentConstraint
+  | HeredocArgumentConstraint
+  | UntypedArgumentConstraint;
 
 /** Key selecting a child directive by a path relative to its parent, e.g. `"/route"`. */
 export type SubPathSelector = `/${string}`;

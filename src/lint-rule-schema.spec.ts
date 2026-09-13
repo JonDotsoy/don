@@ -46,7 +46,7 @@ describe("lint-rule-schema types", () => {
     expectTypeOf(union).toMatchTypeOf<ArgumentConstraint>();
 
     const intersection = {
-      and: [{ type: "string" }, { pattern: "^/" }],
+      and: [{ type: "string" }, { type: "string", pattern: "^/" }],
     } satisfies ArgumentConstraint;
     expectTypeOf(intersection).toMatchTypeOf<ArgumentConstraint>();
 
@@ -127,7 +127,7 @@ describe("lint-rule-schema types", () => {
   it("accepts every DON argument type, including bigint, null, and heredoc", () => {
     const bigintRange = {
       type: "bigint",
-      gt: 0,
+      gt: 0n,
       message: "maxSize debe ser un bigint positivo",
     } satisfies ArgumentConstraint;
     expectTypeOf(bigintRange).toMatchTypeOf<ArgumentConstraint>();
