@@ -34,17 +34,45 @@ of `LintRule` objects with an explicit `path` field — loading it just means
 mapping each `[path, body]` entry to `{ path, ...body }` before passing it
 to `lint()` (see [Equivalent shape](#equivalent-shape-explicit-path-field)
 at the end of this document for that form, and for how two rules on the
-*same* path, or nested sub-paths, are expressed).
+*same* path are expressed).
+
+## Sub-paths: `/name` keys
+
+Inside a rule body, any key that starts with `/` is a **relative sub-path**,
+whose value is itself a rule body (optionally holding further `/`-prefixed
+keys, to arbitrary depth). The effective path for a nested body is its
+parent key's path plus its own — `/server` holding a `/route` key describes
+`/server/route`, which holding a `/respond` key describes
+`/server/route/respond`:
+
+```json
+{
+  "/server": {
+    "/route": {
+      "/respond": {
+        "...": "..."
+      }
+    }
+  }
+}
+```
+
+This describes the same rule as the flat, fully-repeated key
+`"/server/route/respond"` — each path segment is written once and its
+sub-rules nest under it, mirroring how `route /users { respond 200 "Ok" }`
+itself nests directives. Loading it means walking the tree, joining each
+`/`-prefixed key onto its parent's accumulated path, and flattening every
+body into a `{ path, ...body }` `LintRule`.
 
 ## Argument selectors: `[N]`
 
-A rule body's keys select an argument position directly, written `"[N]"`
-(e.g. `"[1]"`, `"[2]"`), with a constraint object as the value — no wrapping
-`args` property is needed, since the brackets already distinguish an
-argument selector from a `children` key (a bare directive name) or a nested
-sub-path key (prefixed with `/`). It is evaluated the same way `evaluation`
-is, for every directive matched by the rule's path, and is independent of
-`evaluation` — a rule may declare either or both, alongside `children`.
+A rule body's keys also select an argument position directly, written
+`"[N]"` (e.g. `"[1]"`, `"[2]"`), with a constraint object as the value — no
+wrapping `args` property is needed, since the brackets already distinguish
+an argument selector from a sub-path key (prefixed with `/`). It is
+evaluated the same way `evaluation` is, for every directive matched by the
+rule's path, and is independent of `evaluation` — a rule may declare either
+or both, alongside sub-paths.
 
 **Positions are 1-based**: the first argument is position `1`, not `0`. For
 `port 3000`, `3000` is the argument selected by `"[1]"` (it maps to
@@ -133,10 +161,10 @@ equivalent to the example above:
 ```
 
 This reads as "the argument at position `2` of `/server/route`" in one key,
-useful when a path has a single argument constraint and no `children` or
-sub-paths of its own. It cannot be combined with a `/`-prefixed sub-path or
-with `children` on the same key — those still need the nested form, since
-`path[N]`'s value *is* the constraint object, not a rule body.
+useful when a path has a single argument constraint and no sub-paths of its
+own. It cannot be combined with a `/`-prefixed sub-path on the same key —
+that still needs the nested form, since `path[N]`'s value *is* the
+constraint object, not a rule body.
 
 ## JSON example: `gte`, `gt`, `lte`, and `lt` range checks
 
@@ -292,19 +320,20 @@ server {
 }
 ```
 
-## Proposed property: `children`
+## Proposed properties: `max` and `min` (occurrence constraints on a sub-path)
 
-A rule body also gains an optional `children` property: an object whose
-keys are child directive names and whose values are occurrence-count
-constraints checked against `directive.children` (matching by name, not
-recursively) for every directive matched by the rule's path. It composes
-with argument selectors and `evaluation` the same way — a rule may declare
-any combination of them.
+A `/`-prefixed sub-path body (see [Sub-paths](#sub-paths-name-keys) above)
+also accepts `max` and `min`: constraints on how many times that child
+directive occurs under its parent (matching by name, not recursively),
+alongside whatever else the sub-path's own body declares — argument
+selectors, further nested sub-paths, `and`/`or`. There's no separate
+`children` wrapper: the sub-path key both selects the child and carries its
+occurrence limits.
 
-Each constraint accepts `min` and `max` (both optional; `max` alone caps the
-count, `min` alone requires at least that many) and an optional `message`.
-When `max` is exceeded, the issue is reported once per extra occurrence
-(from the `min + 1`-th onward, mirroring `oneRespondPerLocation` in
+`max` and `min` are both optional (`max` alone caps the count, `min` alone
+requires at least that many) and accept an optional `message`. When `max`
+is exceeded, the issue is reported once per extra occurrence (from the
+`min + 1`-th onward, mirroring `oneRespondPerLocation` in
 [`src/lint.spec.ts`](../../../src/lint.spec.ts)); when the count is below
 `min`, one issue is reported for the parent directive.
 
@@ -313,11 +342,9 @@ When `max` is exceeded, the issue is reported once per extra occurrence
 ```json
 {
   "/route": {
-    "children": {
-      "respond": {
-        "max": 1,
-        "message": "solo puede existir un respond dentro de route"
-      }
+    "/respond": {
+      "max": 1,
+      "message": "solo puede existir un respond dentro de route"
     }
   }
 }
@@ -341,11 +368,32 @@ route /users {
 }
 ```
 
+Because `max`/`min` live on the same sub-path body as everything else, an
+occurrence limit and an argument constraint on that same child combine
+without needing `and`:
+
+```json
+{
+  "/route": {
+    "/respond": {
+      "max": 1,
+      "message": "solo puede existir un respond dentro de route",
+      "[1]": {
+        "type": "number",
+        "gte": 100,
+        "lte": 599,
+        "message": "el status code de respond debe estar entre 100 y 599"
+      }
+    }
+  }
+}
+```
+
 ## Proposed property: `required`
 
-`children.<name>.min` requires occurrences of a child *once its parent has
+`min` on a sub-path requires occurrences of a child *once its parent has
 already matched*, so it can't express "this directive itself must exist
-somewhere in the document" — there is no parent match to hang a `children`
+somewhere in the document" — there is no parent match to hang a sub-path
 constraint off of, e.g. for a directive expected at the document root, or
 one several levels deep whose intermediate ancestors aren't otherwise
 constrained. A rule body fills that gap with `required: true`: when the
@@ -382,7 +430,7 @@ server {
 }
 ```
 
-`required` composes with argument selectors and `children` on the same
+`required` composes with argument selectors and sub-paths on the same
 body: once the directive is confirmed to exist, the rest of the body still
 validates every match of it as usual.
 
@@ -436,27 +484,24 @@ server {
 `and` isn't limited to constraints on an argument selector — a rule body
 also accepts an `and` property: an array of full `{ path, ... }` rule
 objects, each free to declare its own `path`, argument selectors,
-`children`, and even a further nested `and`/`or`. This bundles several
-independent checks, across different directive paths, into a single named
-entry — useful when a schema wants to group "everything a `route` must
-satisfy" as one entry instead of one key per check. The outer key is purely
-a label for the group; each nested object's own `path` is what selects
-which directives it runs against.
+sub-paths, and even a further nested `and`/`or`. This bundles several
+independent checks into a single named entry even when the paths involved
+aren't in a common ancestor/descendant chain that nesting could express —
+useful when a schema wants to group unrelated checks as one entry instead
+of one key per check. The outer key is purely a label for the group; each
+nested object's own `path` is what selects which directives it runs
+against.
 
-## JSON example: `and` grouping rules for different paths under `/route`
+## JSON example: `and` grouping rules for unrelated paths
 
 ```json
 {
-  "/route": {
+  "/server-config": {
     "and": [
       {
-        "path": "/route",
-        "children": {
-          "respond": {
-            "max": 1,
-            "message": "solo puede existir un respond dentro de route"
-          }
-        }
+        "path": "/server/port",
+        "required": true,
+        "message": "server debe declarar un port"
       },
       {
         "path": "/route/respond",
@@ -472,74 +517,52 @@ which directives it runs against.
 }
 ```
 
-This groups two checks under one entry: `/route` allows at most one
-`respond` child, and every `/route/respond`'s first argument must be a
-`number` between `100` and `599`. It is valid:
+This groups two unrelated checks under one entry, purely for organization —
+the outer `/server-config` key is a label, not itself a directive path:
+`/server/port` must exist, and every `/route/respond`'s first argument must
+be a `number` between `100` and `599`. It is valid:
 
 ```don
+server {
+  port 3000
+}
 route /users {
   respond 200 "Ok"
 }
 ```
 
-but invalid — two `respond` children, and the second one's status code is
-out of range:
+but invalid — no `port` under `/server`, and a `respond` status code out of
+range:
 
 ```don
+server {
+}
 route /users {
-  respond 200 "Ok"
   respond 999 "Bad"
 }
 ```
 
-## Nested shape: sub-paths as nested objects
+## JSON example: sub-paths and occurrence constraints nested under `/server`
 
-The flat map above repeats each ancestor path in full (`/route`,
-`/route/respond`). Nested instead, any key that starts with `/` inside a
-rule body is a **relative sub-path**, whose value is itself a rule body
-(optionally holding further `/`-prefixed keys). The effective path for a
-nested body is its parent key's path plus its own — `/server` holding a
-`/route` key describes `/server/route`, which holding a `/respond` key
-describes `/server/route/respond`. `children`, `and`, `or`, `message`, and
-`[N]` argument selectors are always body fields, never sub-paths, so the
-two kinds of key never collide.
+Sub-paths nest to arbitrary depth and each level can freely mix its own
+`max`/`min`, argument selectors, and further sub-paths:
 
 ```json
 {
   "/server": {
-    "children": {
-      "route": { "max": 10, "message": "un server admite a lo más 10 route" }
+    "/route": {
+      "max": 10,
+      "message": "un server admite a lo más 10 route"
     },
     "/port": {
       "[1]": { "type": "number", "gt": 1024, "lte": 65535 }
-    },
-    "/route": {
-      "children": {
-        "respond": {
-          "max": 1,
-          "message": "solo puede existir un respond dentro de route"
-        }
-      },
-      "/respond": {
-        "[1]": {
-          "type": "number",
-          "gte": 100,
-          "lte": 599,
-          "message": "el status code de respond debe estar entre 100 y 599"
-        }
-      }
     }
   }
 }
 ```
 
-This describes the same four rules as the flat map above (`/server`,
-`/server/port`, `/server/route`, `/server/route/respond`), but each path
-segment is written once and its sub-rules nest under it — mirroring how
-`route /users { respond 200 "Ok" }` itself nests directives. Loading it
-means walking the tree, joining each `/`-prefixed key onto its parent's
-accumulated path, and flattening every body into a `{ path, ...body }`
-`LintRule`.
+This is equivalent to the flat keys `"/server/route"` (with `max: 10`) and
+`"/server/port"` (with the argument constraint) written out in full.
 
 ## Equivalent shape: explicit `path` field
 
