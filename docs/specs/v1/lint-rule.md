@@ -70,7 +70,12 @@ body into a `{ path, ...body }` `LintRule`.
 itself, the same as a `LintRule` with no `path` at all (see `evaluation`'s
 doc comment in [`src/lint.ts`](../../../src/lint.ts): "Omit to run
 `evaluation` once against the document root"). It's a body like any other,
-so it can carry sub-paths, `and`/`or`, `required`, and so on.
+so it can carry sub-paths, `and`/`or`, `required`, and so on. It's only
+useful as an explicit key, though, when a body needs to attach something
+_directly_ to the root itself — top-level document keys are already
+root-relative, so nesting a sub-path under an explicit `"/"` is equivalent
+to writing that sub-path as a top-level key on its own (see the example
+below).
 
 A sub-path name can also be the wildcard `"*"` — `"/*"` matches **any**
 child directive regardless of name, rather than one specific name. This
@@ -82,17 +87,17 @@ level, of any name, combined.
 
 ```json
 {
-  "/": {
-    "/*": {
-      "max": 1,
-      "message": "el documento no puede tener más de una directiva en el root"
-    }
+  "/*": {
+    "max": 1,
+    "message": "el documento no puede tener más de una directiva en el root"
   }
 }
 ```
 
-This matches the document root and requires at most one top-level
-directive, of any name. Valid:
+This is equivalent to nesting the same body under an explicit `"/": { ... }`
+key — redundant here, since the document's top level is already the root.
+It matches the document root and requires at most one top-level directive,
+of any name. Valid:
 
 ```don
 server {
