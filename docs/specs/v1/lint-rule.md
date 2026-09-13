@@ -104,6 +104,23 @@ partially match — like `RegExp.prototype.test`. An optional `flags` string
 (e.g. `"i"`) is passed along to the underlying `RegExp`. `pattern` applies
 only once the argument's type has already been checked as `string`.
 
+### `type` values
+
+`type` covers every argument kind DON v1 produces (see
+[`docs/specs/v1/spec.md`](./spec.md)): `"string"`, `"number"`, `"bigint"`,
+`"boolean"`, `"null"`, and `"heredoc"`.
+
+- `"number"` and `"bigint"` are distinct types (mirroring JS `typeof`, and
+  DON's own `123` vs. `123n` literals) — both accept `gte`/`gt`/`lte`/`lt`
+  range checks, compared numerically.
+- `"boolean"` and `"null"` have no further refinement beyond `type` itself
+  (a boolean is `true`/`false`, `null` has exactly one value) — `enum` is
+  redundant with them but harmless.
+- `"heredoc"` matches a `HeredocValue` argument (see
+  [§2.8 Heredocs](./spec.md#28-heredocs)); `pattern` applies to its
+  `content` string, and `enum` is not meaningful since heredoc content is
+  rarely one of a fixed set of literals.
+
 ## JSON example: argument at position 1 must be a number
 
 ```json
@@ -240,6 +257,89 @@ server {
   route "/api/users" {
     respond 200 "Ok"
   }
+}
+```
+
+## JSON example: `"boolean"` and `"null"`
+
+```json
+{
+  "/server/deprecated": {
+    "[1]": {
+      "type": ["boolean", "null"],
+      "message": "deprecated debe ser true, false, o null"
+    }
+  }
+}
+```
+
+This rule accepts `true`, `false`, or `null` at position `1`, e.g.:
+
+```don
+server {
+  deprecated true
+}
+```
+
+```don
+server {
+  deprecated null
+}
+```
+
+## JSON example: `"bigint"` with a range check
+
+```json
+{
+  "/config/maxSize": {
+    "[1]": {
+      "type": "bigint",
+      "gt": 0,
+      "message": "maxSize debe ser un bigint positivo"
+    }
+  }
+}
+```
+
+`gt`/`gte`/`lt`/`lte` compare `bigint` arguments numerically just like
+`number` ones. This is valid:
+
+```don
+config {
+  maxSize 1024n
+}
+```
+
+but invalid — `0n` fails `gt: 0`:
+
+```don
+config {
+  maxSize 0n
+}
+```
+
+## JSON example: `"heredoc"` with a `pattern` on its content
+
+```json
+{
+  "/server/template": {
+    "[1]": {
+      "type": "heredoc",
+      "pattern": "<html",
+      "message": "template debe contener un documento HTML"
+    }
+  }
+}
+```
+
+This requires the heredoc's `content` to match `<html`, e.g.:
+
+```don
+server {
+  template <<<HTML
+    <html>
+      <body>Hello</body>
+    </html>
 }
 ```
 
