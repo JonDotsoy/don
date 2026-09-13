@@ -34,7 +34,7 @@ export interface LintRule {
    * `evaluation` once against the document root.
    */
   path?: string;
-  evaluation: (context: LintContext) => LintIssue[];
+  evaluation: (context: LintContext) => Iterable<LintIssue>;
 }
 
 export interface LintOptions {

@@ -160,6 +160,184 @@ exports[`lint reports a string port as an error, with a trace naming the payload
 ]
 `;
 
+exports[`lint does not report a port within the valid range 1`] = `[]`;
+
+exports[`lint reports a port at or below 3000 as an error 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 11,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 4,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "3000",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 11,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 4,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "3000",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 11,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 4,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "3000",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 11,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 4,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "3000",
+        "type": 13,
+      },
+    },
+    "message": "port debe ser mayor a 3000",
+    "severity": "error",
+    "trace": "<input>:2:8",
+  },
+]
+`;
+
+exports[`lint reports a port at or above 60000 as an error 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 5,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "60000",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 12,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 5,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "60000",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 5,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "60000",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 12,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 5,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "60000",
+        "type": 13,
+      },
+    },
+    "message": "port debe ser menor a 60000",
+    "severity": "error",
+    "trace": "<input>:2:8",
+  },
+]
+`;
+
 exports[`lint reports the second respond in a location as an error 1`] = `
 [
   {
@@ -354,6 +532,175 @@ exports[`lint reports a duplicate location path under the same server 1`] = `
 ]
 `;
 
-exports[`lint does not report a numeric port 1`] = `[]`;
+exports[`lint accepts a generator function as evaluation, yielding multiple issues 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 10,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 9,
+              "length": 1,
+              "startLocation": {
+                "column": 9,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "1",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 10,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 9,
+          "length": 1,
+          "startLocation": {
+            "column": 9,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "1",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 10,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 9,
+              "length": 1,
+              "startLocation": {
+                "column": 9,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "1",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 10,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 9,
+          "length": 1,
+          "startLocation": {
+            "column": 9,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "1",
+        "type": 13,
+      },
+    },
+    "message": "el argumento 1 debe ser un string",
+    "severity": "error",
+    "trace": "<input>:1:10",
+  },
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 20,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 15,
+              "length": 5,
+              "startLocation": {
+                "column": 15,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "false",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 20,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 15,
+          "length": 5,
+          "startLocation": {
+            "column": 15,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "false",
+        "type": 14,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 20,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 15,
+              "length": 5,
+              "startLocation": {
+                "column": 15,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "false",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 20,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 15,
+          "length": 5,
+          "startLocation": {
+            "column": 15,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "false",
+        "type": 14,
+      },
+    },
+    "message": "el argumento 3 debe ser un string",
+    "severity": "error",
+    "trace": "<input>:1:16",
+  },
+]
+`;
 
 exports[`lint runs a path-less rule once against the document root 1`] = `[]`;
