@@ -353,3 +353,5 @@ exports[`lint reports a duplicate location path under the same server 1`] = `
   },
 ]
 `;
+
+exports[`lint does not report a numeric port 1`] = `[]`;

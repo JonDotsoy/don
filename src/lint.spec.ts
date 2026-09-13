@@ -81,7 +81,10 @@ describe("lint", () => {
       + "  port 3000\n"
       + "}\n";
 
-    expect(lint(text, [portMustBeNumber])).toEqual([]);
+    const issues = lint(text, [portMustBeNumber]);
+
+    expect(issues).toEqual([]);
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
   it("reports the second respond in a location as an error", () => {
