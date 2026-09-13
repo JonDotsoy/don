@@ -18,7 +18,7 @@ function-based rules work.
 
 ## Document shape: `path` as the object key
 
-Rather than an array of `{ path, ... }` objects, a rule *document* keys each
+Rather than an array of `{ path, ... }` objects, a rule _document_ keys each
 rule body directly by the directive path it targets:
 
 ```json
@@ -34,7 +34,7 @@ of `LintRule` objects with an explicit `path` field — loading it just means
 mapping each `[path, body]` entry to `{ path, ...body }` before passing it
 to `lint()` (see [Equivalent shape](#equivalent-shape-explicit-path-field)
 at the end of this document for that form, and for how two rules on the
-*same* path are expressed).
+_same_ path are expressed).
 
 ## Sub-paths: `/name` keys
 
@@ -63,6 +63,53 @@ sub-rules nest under it, mirroring how `route /users { respond 200 "Ok" }`
 itself nests directives. Loading it means walking the tree, joining each
 `/`-prefixed key onto its parent's accumulated path, and flattening every
 body into a `{ path, ...body }` `LintRule`.
+
+## The root selector `"/"` and the wildcard `"/*"`
+
+`"/"` alone — a slash with no name after it — addresses the document root
+itself, the same as a `LintRule` with no `path` at all (see `evaluation`'s
+doc comment in [`src/lint.ts`](../../../src/lint.ts): "Omit to run
+`evaluation` once against the document root"). It's a body like any other,
+so it can carry sub-paths, `and`/`or`, `required`, and so on.
+
+A sub-path name can also be the wildcard `"*"` — `"/*"` matches **any**
+child directive regardless of name, rather than one specific name. This
+matters for `max`/`min`: unlike a named sub-path (which counts only that
+one name), `"/*"`'s occurrence count is _every_ child directive at that
+level, of any name, combined.
+
+## JSON example: no more than one directive at the document root
+
+```json
+{
+  "/": {
+    "/*": {
+      "max": 1,
+      "message": "el documento no puede tener más de una directiva en el root"
+    }
+  }
+}
+```
+
+This matches the document root and requires at most one top-level
+directive, of any name. Valid:
+
+```don
+server {
+  port 3000
+}
+```
+
+but invalid — two top-level directives:
+
+```don
+server {
+  port 3000
+}
+route /health {
+  respond 200 "Ok"
+}
+```
 
 ## Argument selectors: `[N]`
 
@@ -188,7 +235,7 @@ equivalent to the example above:
 This reads as "the argument at position `2` of `/server/route`" in one key,
 useful when a path has a single argument constraint and no sub-paths of its
 own. It cannot be combined with a `/`-prefixed sub-path on the same key —
-that still needs the nested form, since `path[N]`'s value *is* the
+that still needs the nested form, since `path[N]`'s value _is_ the
 constraint object, not a rule body.
 
 ## JSON example: `gte`, `gt`, `lte`, and `lt` range checks
@@ -451,7 +498,10 @@ entries to express arbitrary combinations.
       "and": [
         { "type": "string" },
         { "pattern": "^/", "message": "el path debe empezar con /" },
-        { "pattern": "^(?!.*//).*$", "message": "el path no puede tener // repetidos" }
+        {
+          "pattern": "^(?!.*//).*$",
+          "message": "el path no puede tener // repetidos"
+        }
       ],
       "message": "el path de route es inválido"
     }
@@ -604,8 +654,8 @@ without needing `and`:
 
 ## Proposed property: `required`
 
-`min` on a sub-path requires occurrences of a child *once its parent has
-already matched*, so it can't express "this directive itself must exist
+`min` on a sub-path requires occurrences of a child _once its parent has
+already matched_, so it can't express "this directive itself must exist
 somewhere in the document" — there is no parent match to hang a sub-path
 constraint off of, e.g. for a directive expected at the document root, or
 one several levels deep whose intermediate ancestors aren't otherwise
@@ -652,7 +702,7 @@ validates every match of it as usual.
 A rule-level `and` entry that omits `path` (unlike the ones in the next
 section) inherits the path from its enclosing key, so a `required` check
 can be combined with a further constraint — here, an `[1]` upper bound — for
-the *same* directive:
+the _same_ directive:
 
 ```json
 {
@@ -797,17 +847,14 @@ key:
 
 This is the shape closest to the `LintRule` TypeScript type in
 [`src/lint.ts`](../../../src/lint.ts). Because object keys must be unique,
-two independent rules for the *same* path — which the array form expresses
+two independent rules for the _same_ path — which the array form expresses
 as two separate entries — are combined under that one key using `and`
 instead of repeating the key:
 
 ```json
 {
   "/route/respond": {
-    "and": [
-      { "[1]": { "type": "number" } },
-      { "[2]": { "type": "string" } }
-    ]
+    "and": [{ "[1]": { "type": "number" } }, { "[2]": { "type": "string" } }]
   }
 }
 ```

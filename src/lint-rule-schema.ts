@@ -70,6 +70,11 @@ export interface RuleBody {
  * path — see "`and` at the rule level" in the docs.
  */
 export interface LintRule extends RuleBody {
+  /**
+   * @deprecated Prefer keying the rule by its path in a `LintRuleDocument`
+   * (or, inside a rule-level `and`, omitting it to inherit the enclosing
+   * key's path). Kept only for the "equivalent shape" array-of-rules form.
+   */
   path?: string;
 }
 
