@@ -387,17 +387,15 @@ import { lint, argumentLoc, type LintRule } from "donly/lint";
 
 const portMustBeNumber: LintRule = {
   path: "/server/port",
-  evaluation({ directive }) {
+  *evaluation({ directive }) {
     const value = directive.args[0];
-    if (typeof value === "number") return [];
+    if (typeof value === "number") return;
 
-    return [
-      {
-        message: "port debe ser un número, no un string",
-        severity: "error",
-        loc: argumentLoc(directive, 0),
-      },
-    ];
+    yield {
+      message: "port debe ser un número, no un string",
+      severity: "error",
+      loc: argumentLoc(directive, 0),
+    };
   },
 };
 
