@@ -2,5 +2,9 @@
   - Ejecuta el script completo: `.kiro/skills/integration-test/scripts/run-full-test.sh`
   - Este skill automatiza todo el proceso: empaquetado, preparación de entorno, instalación y ejecución de pruebas
 - Este proyecto usa bun.sh para ejecutar comandos: usa `bunx` para ejecutables y `bun add` para instalar paquetes
+- Los documentos Markdown (`README.md`, `docs/specs/v1/spec.md`) contienen anotaciones `tmd` (comentarios `// ? const <expr> =`, `:` o `: =` dentro de bloques ` ```ts `/` ```js ` ) que deben resolverse con la herramienta `@jondotsoy/tmd` antes de dar por terminada una tarea que modifique esos documentos
+  - Ejecuta `npm run update:docs` (equivalente a `tmd README.md docs/specs/v1/spec.md --cwd .`) para recalcular los valores/tipos evaluados y reescribir los archivos in place
+  - Corre este comando después de cualquier cambio de código o de Markdown que afecte los ejemplos documentados, para mantener los resultados sincronizados con el comportamiento real
+  - Antes de usar `tmd` (sintaxis de anotaciones, `before-block`, `before-block-eval`, manejo de errores, flags), consulta el README de la versión instalada con `npm view @jondotsoy/tmd@latest readme`, ya que su comportamiento puede cambiar entre versiones
 - Toda feature debe publicarse en `CHANGELOG.md` (bajo `Unreleased` hasta su release) y debe estar probada con un test unitario
   - Si la feature es de sintaxis, debe probarse en distintos entornos: en la raíz del documento, dentro de un bloque, y junto a otras directivas
