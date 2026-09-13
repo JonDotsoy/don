@@ -1,4 +1,4 @@
-import { Directive } from "./don.js";
+import type { Directive } from "./don.js";
 import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 
 interface PathSegment {

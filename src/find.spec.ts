@@ -60,4 +60,15 @@ describe("find", () => {
 
     expect(directives).toEqual([]);
   });
+
+  describe("Directive#find / Directive#findAll", () => {
+    it("mirror findDirective/findAllDirectives, using `this` as the root", () => {
+      expect(root.find("/server/route(/home)")).toEqual(
+        findDirective(root, "/server/route(/home)"),
+      );
+      expect(root.findAll("/server/route(* /api/user)")).toEqual(
+        findAllDirectives(root, "/server/route(* /api/user)"),
+      );
+    });
+  });
 });
