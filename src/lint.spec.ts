@@ -128,6 +128,32 @@ describe("lint", () => {
     expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
   });
 
+  it("accepts a generator function as evaluation, yielding multiple issues", () => {
+    const everyArgMustBeString: LintRule = {
+      path: "/tags",
+      *evaluation({ directive }) {
+        for (const [index, value] of directive.args.entries()) {
+          if (typeof value === "string") continue;
+
+          yield {
+            message: `el argumento ${index} debe ser un string`,
+            severity: "error",
+            loc: argumentLoc(directive, index),
+          };
+        }
+      },
+    };
+
+    const issues = lint('tags "a" 1 "b" false', [everyArgMustBeString]);
+
+    expect(issues).toHaveLength(2);
+    expect(issues.map((issue) => issue.message)).toEqual([
+      "el argumento 1 debe ser un string",
+      "el argumento 3 debe ser un string",
+    ]);
+    expect(JSON.parse(JSON.stringify(issues))).toMatchSnapshot();
+  });
+
   it("runs a path-less rule once against the document root", () => {
     let calls = 0;
     const rootRule: LintRule = {

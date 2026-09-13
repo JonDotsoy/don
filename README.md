@@ -401,11 +401,9 @@ const portMustBeNumber: LintRule = {
   },
 };
 
-const issues = lint(
-  'server {\n  port "3000"\n}\n',
-  [portMustBeNumber],
-  { payload: "nginx.donly" },
-);
+const issues = lint('server {\n  port "3000"\n}\n', [portMustBeNumber], {
+  payload: "nginx.donly",
+});
 // ? const issues = [
 //   {
 //     message: "port debe ser un número, no un string",
@@ -431,8 +429,26 @@ A `LintRule` has:
   every directive whose own name, preceded by its ancestors' names up to the
   root, matches this chain exactly. Omitting `path` runs `evaluation` once
   against the document root instead.
-- `evaluation: (context: LintContext) => LintIssue[]` — inspects the matched
-  directive and returns any issues found
+- `evaluation: (context: LintContext) => Iterable<LintIssue>` — inspects the
+  matched directive and returns any issues found; an array works, and so
+  does a generator function that `yield`s each issue as it finds it:
+
+  ```ts
+  const everyArgMustBeString: LintRule = {
+    path: "/tags",
+    *evaluation({ directive }) {
+      for (const [index, value] of directive.args.entries()) {
+        if (typeof value === "string") continue;
+
+        yield {
+          message: `el argumento ${index} debe ser un string`,
+          severity: "error",
+          loc: argumentLoc(directive, index),
+        };
+      }
+    },
+  };
+  ```
 
 `LintContext` gives the rule:
 

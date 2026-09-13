@@ -357,3 +357,174 @@ exports[`lint reports a duplicate location path under the same server 1`] = `
 exports[`lint does not report a numeric port 1`] = `[]`;
 
 exports[`lint runs a path-less rule once against the document root 1`] = `[]`;
+
+exports[`lint accepts a generator function as evaluation, yielding multiple issues 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 10,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 9,
+              "length": 1,
+              "startLocation": {
+                "column": 9,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "1",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 10,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 9,
+          "length": 1,
+          "startLocation": {
+            "column": 9,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "1",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 10,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 9,
+              "length": 1,
+              "startLocation": {
+                "column": 9,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "1",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 10,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 9,
+          "length": 1,
+          "startLocation": {
+            "column": 9,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "1",
+        "type": 13,
+      },
+    },
+    "message": "el argumento 1 debe ser un string",
+    "severity": "error",
+    "trace": "<input>:1:10",
+  },
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 20,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 15,
+              "length": 5,
+              "startLocation": {
+                "column": 15,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "false",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 20,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 15,
+          "length": 5,
+          "startLocation": {
+            "column": 15,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "false",
+        "type": 14,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 20,
+                "line": 0,
+                "paddingLine": 0,
+              },
+              "index": 15,
+              "length": 5,
+              "startLocation": {
+                "column": 15,
+                "line": 0,
+                "paddingLine": 0,
+              },
+            },
+            "text": "false",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 20,
+            "line": 0,
+            "paddingLine": 0,
+          },
+          "index": 15,
+          "length": 5,
+          "startLocation": {
+            "column": 15,
+            "line": 0,
+            "paddingLine": 0,
+          },
+        },
+        "text": "false",
+        "type": 14,
+      },
+    },
+    "message": "el argumento 3 debe ser un string",
+    "severity": "error",
+    "trace": "<input>:1:16",
+  },
+]
+`;
