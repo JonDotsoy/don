@@ -388,6 +388,49 @@ server {
 }
 ```
 
+## JSON example: `or` with a ranged branch (`boolean` or a bounded `number`)
+
+```json
+{
+  "/server/route": {
+    "[2]": {
+      "or": [
+        { "type": "boolean" },
+        {
+          "type": "number",
+          "gte": 0,
+          "lte": 30000,
+          "message": "el número debe estar entre 0 y 30000"
+        }
+      ],
+      "message": "el segundo argumento debe ser boolean o number"
+    }
+  }
+}
+```
+
+Each `or` branch is a full constraint, so range checks (`gte`/`lte` here,
+not `min`/`max` — those are reserved for occurrence counts on a sub-path,
+see below) live on the branch they refine. A branch's own `message` (as on
+the `number` branch here) documents that branch for readers but, per the
+`or` semantics above, plays no role in what gets reported — only the outer
+`message` is used, whichever branch fails to match. Valid:
+
+```don
+server {
+  route "/api" true
+  route "/health" 200
+}
+```
+
+invalid — a `number` outside the branch's range:
+
+```don
+server {
+  route "/api" 50000
+}
+```
+
 ## `and`: requiring multiple full constraints together
 
 `and` is `or`'s counterpart: a constraint accepts an `and` property, an
