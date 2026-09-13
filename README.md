@@ -19,6 +19,8 @@ routes:
 
 This matters more as the number of parameters grows — a container declaration with an image, a port mapping, and env vars stays one directive with a block, not a pyramid of nested maps. Because the shape is uniform (`name arg1 arg2 ... { children }`), an LLM reading or writing DON doesn't have to track indentation-sensitive nesting rules to know what a declaration means — it just reads the arguments in order.
 
+Unlike DSLs tied to a single domain (an HTTP server config, a Dockerfile, an IaC tool), DON carries no built-in schema — it only defines the grammar for directives, arguments, and blocks. Directive names and their arguments are entirely up to you, so the same format can describe routes, containers, security rules, or any other domain-specific structure your project needs. See [`docs/refs/vs.md`](./docs/refs/vs.md) for a comparison against other DSLs.
+
 ## Features
 
 - **Directive Arguments**: Directives take positional arguments (`route GET /api`), collapsing what would otherwise be several nested keys into one line
