@@ -16,16 +16,36 @@ argument checks be expressed as plain data, which can then be serialized to
 and loaded from JSON, YAML, or DON itself, without changing how existing
 function-based rules work.
 
+## Document shape: `path` as the object key
+
+Rather than an array of `{ path, ... }` objects, a rule *document* keys each
+rule body directly by the directive path it targets:
+
+```json
+{
+  "/server/port": {
+    "args": { "...": "..." }
+  }
+}
+```
+
+Every JSON example below follows this shape. It is equivalent to an array
+of `LintRule` objects with an explicit `path` field — loading it just means
+mapping each `[path, body]` entry to `{ path, ...body }` before passing it
+to `lint()` (see [Equivalent shape](#equivalent-shape-explicit-path-field)
+at the end of this document for that form, and for how two rules on the
+*same* path, or nested sub-paths, are expressed).
+
 ## Proposed property: `args`
 
-`LintRule` gains an optional `args` property: an object whose keys select an
-argument position, written `"[N]"` (e.g. `"[1]"`, `"[2]"`), and whose values
-are constraints checked against the argument at that position. The
+A rule body gains an optional `args` property: an object whose keys select
+an argument position, written `"[N]"` (e.g. `"[1]"`, `"[2]"`), and whose
+values are constraints checked against the argument at that position. The
 brackets mark it as a positional selector, distinct from a `children` key
 (a bare directive name) or a nested sub-path key (prefixed with `/`). It is
-evaluated the same way `evaluation` is, for every directive matched by
-`path`, and is independent of `evaluation` — a rule may declare either or
-both.
+evaluated the same way `evaluation` is, for every directive matched by the
+rule's path, and is independent of `evaluation` — a rule may declare either
+or both.
 
 **Positions are 1-based**: the first argument is position `1`, not `0`. For
 `port 3000`, `3000` is the argument selected by `"[1]"` (it maps to
@@ -56,11 +76,12 @@ only once the argument's type has already been checked as `string`.
 
 ```json
 {
-  "path": "/server/port",
-  "args": {
-    "[1]": {
-      "type": "number",
-      "message": "port debe ser un número"
+  "/server/port": {
+    "args": {
+      "[1]": {
+        "type": "number",
+        "message": "port debe ser un número"
+      }
     }
   }
 }
@@ -80,11 +101,12 @@ server {
 
 ```json
 {
-  "path": "/server/route",
-  "args": {
-    "[2]": {
-      "type": ["boolean", "number"],
-      "message": "el segundo argumento debe ser boolean o number"
+  "/server/route": {
+    "args": {
+      "[2]": {
+        "type": ["boolean", "number"],
+        "message": "el segundo argumento debe ser boolean o number"
+      }
     }
   }
 }
@@ -104,13 +126,14 @@ server {
 
 ```json
 {
-  "path": "/server/port",
-  "args": {
-    "[1]": {
-      "type": "number",
-      "gt": 1024,
-      "lte": 65535,
-      "message": "port debe ser mayor a 1024 y menor o igual a 65535"
+  "/server/port": {
+    "args": {
+      "[1]": {
+        "type": "number",
+        "gt": 1024,
+        "lte": 65535,
+        "message": "port debe ser mayor a 1024 y menor o igual a 65535"
+      }
     }
   }
 }
@@ -130,11 +153,12 @@ server {
 
 ```json
 {
-  "path": "/server/strategy",
-  "args": {
-    "[1]": {
-      "enum": ["rolling", "recreate", "blue-green"],
-      "message": "strategy debe ser uno de: rolling, recreate, blue-green"
+  "/server/strategy": {
+    "args": {
+      "[1]": {
+        "enum": ["rolling", "recreate", "blue-green"],
+        "message": "strategy debe ser uno de: rolling, recreate, blue-green"
+      }
     }
   }
 }
@@ -153,12 +177,13 @@ server {
 
 ```json
 {
-  "path": "/server/route",
-  "args": {
-    "[1]": {
-      "type": "string",
-      "pattern": "^/[a-z0-9/_-]*$",
-      "message": "el path de route debe empezar con / y usar minúsculas, dígitos, _ o -"
+  "/server/route": {
+    "args": {
+      "[1]": {
+        "type": "string",
+        "pattern": "^/[a-z0-9/_-]*$",
+        "message": "el path de route debe empezar con / y usar minúsculas, dígitos, _ o -"
+      }
     }
   }
 }
@@ -189,14 +214,15 @@ outer `message`, used when none of them match) are evaluated.
 
 ```json
 {
-  "path": "/server/port",
-  "args": {
-    "[1]": {
-      "or": [
-        { "type": "number", "gt": 1024, "lte": 65535 },
-        { "type": "string", "enum": ["auto"] }
-      ],
-      "message": "port debe ser un número entre 1024 y 65535, o \"auto\""
+  "/server/port": {
+    "args": {
+      "[1]": {
+        "or": [
+          { "type": "number", "gt": 1024, "lte": 65535 },
+          { "type": "string", "enum": ["auto"] }
+        ],
+        "message": "port debe ser un número entre 1024 y 65535, o \"auto\""
+      }
     }
   }
 }
@@ -233,15 +259,16 @@ entries to express arbitrary combinations.
 
 ```json
 {
-  "path": "/server/route",
-  "args": {
-    "[1]": {
-      "and": [
-        { "type": "string" },
-        { "pattern": "^/", "message": "el path debe empezar con /" },
-        { "pattern": "^(?!.*//).*$", "message": "el path no puede tener // repetidos" }
-      ],
-      "message": "el path de route es inválido"
+  "/server/route": {
+    "args": {
+      "[1]": {
+        "and": [
+          { "type": "string" },
+          { "pattern": "^/", "message": "el path debe empezar con /" },
+          { "pattern": "^(?!.*//).*$", "message": "el path no puede tener // repetidos" }
+        ],
+        "message": "el path de route es inválido"
+      }
     }
   }
 }
@@ -261,11 +288,12 @@ server {
 
 ## Proposed property: `children`
 
-`LintRule` also gains an optional `children` property: an object whose keys
-are child directive names and whose values are occurrence-count constraints
-checked against `directive.children` (matching by name, not recursively) for
-every directive matched by `path`. It composes with `args` and `evaluation`
-the same way — a rule may declare any combination of the three.
+A rule body also gains an optional `children` property: an object whose
+keys are child directive names and whose values are occurrence-count
+constraints checked against `directive.children` (matching by name, not
+recursively) for every directive matched by the rule's path. It composes
+with `args` and `evaluation` the same way — a rule may declare any
+combination of the three.
 
 Each constraint accepts `min` and `max` (both optional; `max` alone caps the
 count, `min` alone requires at least that many) and an optional `message`.
@@ -278,11 +306,12 @@ When `max` is exceeded, the issue is reported once per extra occurrence
 
 ```json
 {
-  "path": "/route",
-  "children": {
-    "respond": {
-      "max": 1,
-      "message": "solo puede existir un respond dentro de route"
+  "/route": {
+    "children": {
+      "respond": {
+        "max": 1,
+        "message": "solo puede existir un respond dentro de route"
+      }
     }
   }
 }
@@ -308,47 +337,47 @@ route /users {
 
 ## `and` at the rule level: composing full rules
 
-`and` isn't limited to constraints inside `args` — a top-level `LintRule`
-also accepts an `and` property: an array of full `LintRule` objects, each
-free to declare its own `path`, `args`, `children`, and even a further
-nested `and`/`or`. This bundles several independent checks, across
-different directive paths, into a single named rule entry — useful when a
-schema file wants to group "everything a `route` must satisfy" as one
-JSON/YAML document instead of one entry per check. The outer `path`, if
-present, is purely a label for the group; each nested rule's own `path` is
-what selects which directives it runs against.
+`and` isn't limited to constraints inside `args` — a rule body also accepts
+an `and` property: an array of full `{ path, ... }` rule objects, each free
+to declare its own `path`, `args`, `children`, and even a further nested
+`and`/`or`. This bundles several independent checks, across different
+directive paths, into a single named entry — useful when a schema wants to
+group "everything a `route` must satisfy" as one entry instead of one key
+per check. The outer key is purely a label for the group; each nested
+object's own `path` is what selects which directives it runs against.
 
 ## JSON example: `and` grouping rules for different paths under `/route`
 
 ```json
 {
-  "path": "/route",
-  "and": [
-    {
-      "path": "/route",
-      "children": {
-        "respond": {
-          "max": 1,
-          "message": "solo puede existir un respond dentro de route"
+  "/route": {
+    "and": [
+      {
+        "path": "/route",
+        "children": {
+          "respond": {
+            "max": 1,
+            "message": "solo puede existir un respond dentro de route"
+          }
+        }
+      },
+      {
+        "path": "/route/respond",
+        "args": {
+          "[1]": {
+            "type": "number",
+            "gte": 100,
+            "lte": 599,
+            "message": "el status code de respond debe estar entre 100 y 599"
+          }
         }
       }
-    },
-    {
-      "path": "/route/respond",
-      "args": {
-        "[1]": {
-          "type": "number",
-          "gte": 100,
-          "lte": 599,
-          "message": "el status code de respond debe estar entre 100 y 599"
-        }
-      }
-    }
-  ]
+    ]
+  }
 }
 ```
 
-This groups two checks under one rule: `/route` allows at most one
+This groups two checks under one entry: `/route` allows at most one
 `respond` child, and every `/route/respond`'s first argument must be a
 `number` between `100` and `599`. It is valid:
 
@@ -368,70 +397,12 @@ route /users {
 }
 ```
 
-## Alternative top-level shape: `path` as the object key
-
-A full lint schema is naturally an array of `LintRule` objects, each
-carrying its own `path`. As a more compact top-level shape for a schema
-*document* (one JSON/YAML file describing all the rules for a project), the
-`path` can instead be the object's own key, with the rule body — `args`,
-`children`, `and`, `or` — as its value:
-
-```json
-{
-  "/server": {
-    "children": {
-      "route": { "max": 10, "message": "un server admite a lo más 10 route" }
-    }
-  },
-  "/server/port": {
-    "args": {
-      "[1]": { "type": "number", "gt": 1024, "lte": 65535 }
-    }
-  },
-  "/route": {
-    "children": {
-      "respond": {
-        "max": 1,
-        "message": "solo puede existir un respond dentro de route"
-      }
-    }
-  },
-  "/route/respond": {
-    "args": {
-      "[1]": {
-        "type": "number",
-        "gte": 100,
-        "lte": 599,
-        "message": "el status code de respond debe estar entre 100 y 599"
-      }
-    }
-  }
-}
-```
-
-This is equivalent to an array of `{ path, ...body }` `LintRule` objects —
-loading it just means mapping each `[path, body]` entry to
-`{ path, ...body }` before passing it to `lint()`. Because object keys must
-be unique, two independent rules for the *same* path are combined under
-that one key using `and` (see above) instead of repeating the key:
-
-```json
-{
-  "/route/respond": {
-    "and": [
-      { "args": { "[1]": { "type": "number" } } },
-      { "args": { "[2]": { "type": "string" } } }
-    ]
-  }
-}
-```
-
 ## Nested shape: sub-paths as nested objects
 
 The flat map above repeats each ancestor path in full (`/route`,
 `/route/respond`). Nested instead, any key that starts with `/` inside a
 rule body is a **relative sub-path**, whose value is itself a rule body
-(optionally holding further `/`-prefixed keys). The effective `path` for a
+(optionally holding further `/`-prefixed keys). The effective path for a
 nested body is its parent key's path plus its own — `/server` holding a
 `/route` key describes `/server/route`, which holding a `/respond` key
 describes `/server/route/respond`. `args`, `children`, `and`, `or`, and
@@ -478,3 +449,40 @@ segment is written once and its sub-rules nest under it — mirroring how
 means walking the tree, joining each `/`-prefixed key onto its parent's
 accumulated path, and flattening every body into a `{ path, ...body }`
 `LintRule`.
+
+## Equivalent shape: explicit `path` field
+
+Every rule body above can also be written as one entry in an array of
+`LintRule` objects, with `path` as an explicit field instead of the object
+key:
+
+```json
+[
+  {
+    "path": "/server/port",
+    "args": {
+      "[1]": {
+        "type": "number",
+        "message": "port debe ser un número"
+      }
+    }
+  }
+]
+```
+
+This is the shape closest to the `LintRule` TypeScript type in
+[`src/lint.ts`](../../../src/lint.ts). Because object keys must be unique,
+two independent rules for the *same* path — which the array form expresses
+as two separate entries — are combined under that one key using `and`
+instead of repeating the key:
+
+```json
+{
+  "/route/respond": {
+    "and": [
+      { "args": { "[1]": { "type": "number" } } },
+      { "args": { "[2]": { "type": "string" } } }
+    ]
+  }
+}
+```
