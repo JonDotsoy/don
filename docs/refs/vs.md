@@ -6,7 +6,7 @@ lang: en
 
 # DON vs Other DSLs
 
-DON is a general-purpose directive-based serialization format. This document compares it against other domain-specific languages (DSLs) commonly used for configuration, infrastructure, and routing, to highlight where DON's design choices overlap or differ.
+Unlike most DSLs, which are bound to a single domain (HTTP routing, container builds, IaC), DON is a general-purpose DSL: its directive-based grammar carries no built-in schema, so it can be customized with any set of directive names and arguments to fit any kind of project. This document compares it against other domain-specific languages (DSLs) commonly used for configuration, infrastructure, and routing, to highlight where DON's design choices overlap or differ.
 
 | DSL | Domain | Structure model | Positional arguments | Repeated keys at same level | General-purpose (any domain) |
 | --- | --- | --- | --- | --- | --- |
