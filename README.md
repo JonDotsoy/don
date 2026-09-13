@@ -1,9 +1,27 @@
 # donly
 
-**donly** is the reference implementation of DON (Directive Object Notation), a human-readable data serialization format designed around the concept of directives and subdirectives. It combines the simplicity of declarative syntax with the flexibility of nested structures, allowing you to define hierarchical configurations using intuitive directive blocks. Each directive can accept arguments and contain nested subdirectives, making it ideal for configuration files, infrastructure definitions, and structured data representation where readability and expressiveness are priorities.
+**donly** is the reference implementation of DON (Directive Object Notation), a human-readable data serialization format built around directives and subdirectives. DON was designed for writing infrastructure annotations — routes, containers, security rules, reverse proxies — in a shape that's fast for both humans and AI agents to read and generate. Instead of nesting keys and indentation levels to express a declaration, a directive takes its parameters as positional **arguments**, so a rule that needs a method, a path, and a body reads as one line instead of a tree:
+
+```don
+route GET /api {
+  respond 200 "Ok"
+}
+```
+
+The equivalent in a key-value format needs an extra level of nesting per parameter:
+
+```yaml
+routes:
+  /api:
+    GET:
+      respond: 200 Ok
+```
+
+This matters more as the number of parameters grows — a container declaration with an image, a port mapping, and env vars stays one directive with a block, not a pyramid of nested maps. Because the shape is uniform (`name arg1 arg2 ... { children }`), an LLM reading or writing DON doesn't have to track indentation-sensitive nesting rules to know what a declaration means — it just reads the arguments in order.
 
 ## Features
 
+- **Directive Arguments**: Directives take positional arguments (`route GET /api`), collapsing what would otherwise be several nested keys into one line
 - **Minimal Syntax**: Fewer special characters, more readability
 - **Sequential Processing**: Directives are processed as a pipeline, allowing overwriting and incremental composition
 - **Flexible Nesting**: Supports hierarchies of any depth
@@ -470,6 +488,190 @@ const issues = lint('server {\n  port "3000"\n}\n', [portMustBeValid], {
 //   {
 //     message: "port debe ser un número, no un string",
 //     severity: "error",
+//     loc: {
+//       start: Token {
+//         type: 12,
+//         parts: [
+//           Part {
+//             type: 8,
+//             buffer: [ 34 ],
+//             span: Span {
+//               index: 16,
+//               length: 1,
+//               startLocation: {
+//                 line: 1,
+//                 column: 7,
+//                 paddingLine: 2,
+//               },
+//               endLocation: {
+//                 line: 1,
+//                 column: 8,
+//                 paddingLine: 2,
+//               },
+//             },
+//             id: 7,
+//             toUint8Array: [Function: toUint8Array],
+//             toText: [Function: toText],
+//             toJSON: [Function: toJSON],
+//           }, Part {
+//             type: 2,
+//             buffer: [ 51, 48, 48, 48 ],
+//             span: Span {
+//               index: 17,
+//               length: 4,
+//               startLocation: {
+//                 line: 1,
+//                 column: 8,
+//                 paddingLine: 2,
+//               },
+//               endLocation: {
+//                 line: 1,
+//                 column: 12,
+//                 paddingLine: 2,
+//               },
+//             },
+//             id: 8,
+//             toUint8Array: [Function: toUint8Array],
+//             toText: [Function: toText],
+//             toJSON: [Function: toJSON],
+//           }, Part {
+//             type: 8,
+//             buffer: [ 34 ],
+//             span: Span {
+//               index: 21,
+//               length: 1,
+//               startLocation: {
+//                 line: 1,
+//                 column: 12,
+//                 paddingLine: 2,
+//               },
+//               endLocation: {
+//                 line: 1,
+//                 column: 13,
+//                 paddingLine: 2,
+//               },
+//             },
+//             id: 9,
+//             toUint8Array: [Function: toUint8Array],
+//             toText: [Function: toText],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         span: Span {
+//           index: 16,
+//           length: 6,
+//           startLocation: {
+//             line: 1,
+//             column: 7,
+//             paddingLine: 2,
+//           },
+//           endLocation: {
+//             line: 1,
+//             column: 13,
+//             paddingLine: 2,
+//           },
+//         },
+//         describeError: [Function: describeError],
+//         getErrors: [Function: getErrors],
+//         arrayBuffer: [Function: arrayBuffer],
+//         text: [Function: text],
+//         raw: [Function: raw],
+//         toJS: [Function: toJS],
+//         json: [Function: json],
+//         toJSON: [Function: toJSON],
+//       },
+//       end: Token {
+//         type: 12,
+//         parts: [
+//           Part {
+//             type: 8,
+//             buffer: [ 34 ],
+//             span: Span {
+//               index: 16,
+//               length: 1,
+//               startLocation: {
+//                 line: 1,
+//                 column: 7,
+//                 paddingLine: 2,
+//               },
+//               endLocation: {
+//                 line: 1,
+//                 column: 8,
+//                 paddingLine: 2,
+//               },
+//             },
+//             id: 7,
+//             toUint8Array: [Function: toUint8Array],
+//             toText: [Function: toText],
+//             toJSON: [Function: toJSON],
+//           }, Part {
+//             type: 2,
+//             buffer: [ 51, 48, 48, 48 ],
+//             span: Span {
+//               index: 17,
+//               length: 4,
+//               startLocation: {
+//                 line: 1,
+//                 column: 8,
+//                 paddingLine: 2,
+//               },
+//               endLocation: {
+//                 line: 1,
+//                 column: 12,
+//                 paddingLine: 2,
+//               },
+//             },
+//             id: 8,
+//             toUint8Array: [Function: toUint8Array],
+//             toText: [Function: toText],
+//             toJSON: [Function: toJSON],
+//           }, Part {
+//             type: 8,
+//             buffer: [ 34 ],
+//             span: Span {
+//               index: 21,
+//               length: 1,
+//               startLocation: {
+//                 line: 1,
+//                 column: 12,
+//                 paddingLine: 2,
+//               },
+//               endLocation: {
+//                 line: 1,
+//                 column: 13,
+//                 paddingLine: 2,
+//               },
+//             },
+//             id: 9,
+//             toUint8Array: [Function: toUint8Array],
+//             toText: [Function: toText],
+//             toJSON: [Function: toJSON],
+//           }
+//         ],
+//         span: Span {
+//           index: 16,
+//           length: 6,
+//           startLocation: {
+//             line: 1,
+//             column: 7,
+//             paddingLine: 2,
+//           },
+//           endLocation: {
+//             line: 1,
+//             column: 13,
+//             paddingLine: 2,
+//           },
+//         },
+//         describeError: [Function: describeError],
+//         getErrors: [Function: getErrors],
+//         arrayBuffer: [Function: arrayBuffer],
+//         text: [Function: text],
+//         raw: [Function: raw],
+//         toJS: [Function: toJS],
+//         json: [Function: json],
+//         toJSON: [Function: toJSON],
+//       },
+//     },
 //     trace: "nginx.donly:2:8",
 //   }
 // ]
