@@ -321,9 +321,45 @@ const status = root.at("/server/route(GET /api)/respond[0]");
 // ? const status = 200
 ```
 
-`atDirective` is also exported from `donly/find` for the same lookup against any `Directive`.
+`atDirective` is also exported from `donly/find` for the same lookup against any `Directive`. `at`'s return type is narrowed for string-literal paths — see [TypeScript](#typescript).
 
-When `path` is a string literal, TypeScript narrows `at`'s return type for you: a literal ending in `[N]` types as the argument value (`string | number | boolean | HeredocValue | undefined`), otherwise as `Directive | undefined`. A non-literal (dynamically built) path types as the union of both, since the suffix can't be checked at compile time.
+## TypeScript
+
+`donly` is written in TypeScript and ships its own `.d.ts` files — no `@types/donly` needed.
+
+`Directive#at`/`atDirective` are generic over the path you pass them, so a string-literal path narrows the return type without a manual type assertion:
+
+```ts
+import { DON, type Directive } from "donly";
+
+const root = DON.parse(`
+server {
+  route GET /api { respond 200 }
+}
+`);
+
+// A path with no trailing "[N]" types as Directive | undefined.
+const respond = root.at("/server/route(GET /api)/respond");
+respond?.args; // Directive["args"]
+
+// A path ending in "[N]" types as the argument value, not a Directive.
+const status = root.at("/server/route(GET /api)/respond[0]");
+//    ^? const status: string | number | boolean | HeredocValue | undefined
+
+// @ts-expect-error a "[N]"-suffixed path never resolves to a Directive.
+const notADirective: Directive = root.at("/server/route(GET /api)/respond[0]");
+```
+
+This only works when `path` is a string literal (or a literal type, e.g. from a `const` binding without a wider annotation) — TypeScript needs the exact string to check whether it ends in `[N]`. A path built at runtime (e.g. a `string` variable, or a template literal with a non-literal interpolation) can't be checked at compile time, so it types as the union of both possibilities:
+
+```ts
+declare const dynamicPath: string;
+
+const value = root.at(dynamicPath);
+//    ^? const value: string | number | boolean | HeredocValue | Directive | undefined
+```
+
+The conditional type behind this, `AtPathResult<P>`, is exported from `donly/find` if you need to reuse it (e.g. to type a helper that wraps `at`).
 
 ## Lexer (`LexerParser`)
 
