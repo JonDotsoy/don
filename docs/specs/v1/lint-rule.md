@@ -25,19 +25,26 @@ evaluated the same way `evaluation` is, for every directive matched by
 `path`, and is independent of `evaluation` — a rule may declare either or
 both.
 
+Each constraint accepts an optional `message` to override the default
+"argument at position N must be of type T" issue message.
+
 ## JSON example: argument at position 1 must be a number
 
 ```json
 {
   "path": "/server/route",
   "args": {
-    "1": { "type": "number" }
+    "1": {
+      "type": "number",
+      "message": "el status code debe ser un número"
+    }
   }
 }
 ```
 
 This rule matches directives at `/server/route` and requires
-`directive.args[1]` to be a `number`, e.g.:
+`directive.args[1]` to be a `number`, reporting the custom `message` when it
+isn't, e.g.:
 
 ```don
 server {
