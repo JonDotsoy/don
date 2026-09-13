@@ -43,8 +43,9 @@ export type ArgumentSelector = `[${number}]`;
 export type SubPathSelector = `/${string}`;
 
 /**
- * The body of a rule: everything a document key (or an explicit `path`
- * field, see `RuleAndEntry`) can carry, minus the path itself.
+ * The body of a rule: everything a document key (or a nested sub-path key,
+ * or a rule-level `and` entry) can carry, minus the path itself — a rule is
+ * always addressed by a key, never by a `path` field.
  */
 export interface RuleBody {
   /** Requires the rule's own path to match at least one directive in the document. */
@@ -64,14 +65,11 @@ export interface RuleBody {
 }
 
 /**
- * One entry of a rule-level `and`: a `RuleBody` whose `path` defaults to
- * its enclosing key's path when omitted — see "`and` at the rule level" in
- * the docs. Also doubles as the "equivalent shape" array-of-rules entry
- * (see `LintRuleArray`), where `path` is required in practice.
+ * One entry of a rule-level `and`: a `RuleBody`, addressed either by its
+ * own sub-path key(s) or, absent one, applying directly to its enclosing
+ * key's path — see "`and` at the rule level" in the docs.
  */
-export interface RuleAndEntry extends RuleBody {
-  path?: string;
-}
+export type RuleAndEntry = RuleBody;
 
 /**
  * A rule document: each key is a directive path (optionally fused with an
@@ -83,5 +81,8 @@ export type LintRuleDocument = Record<
   RuleBody | ArgumentConstraint
 >;
 
-/** The equivalent shape: an array of rules with an explicit `path` field. */
-export type LintRuleArray = readonly RuleAndEntry[];
+/**
+ * The equivalent shape: an array of one-entry documents, each keyed by its
+ * own path — e.g. `[{ "/server/port": { required: true } }]`.
+ */
+export type LintRuleArray = readonly LintRuleDocument[];
