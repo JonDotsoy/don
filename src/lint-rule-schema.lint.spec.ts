@@ -87,12 +87,67 @@ server {
     expect(invalidIssues).toHaveLength(3);
   });
 
-  test.skip("accepts or/and/not combinators on a constraint", () => {
+  test.skip("accepts an or combinator on a constraint", () => {
+    const rule = {
+      "/server/port": {
+        "[1]": {
+          or: [
+            { type: "number", gt: 1024, lte: 65535 },
+            { type: "string", enum: ["auto"] },
+          ],
+          message: 'port debe ser un número entre 1024 y 65535, o "auto"',
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validNumberIssues = lint(
+      `
+server {
+  port 8080
+}
+`,
+      rule,
+    );
+    expect(validNumberIssues).toHaveLength(0);
+
+    const validAutoIssues = lint(
+      `
+server {
+  port "auto"
+}
+`,
+      rule,
+    );
+    expect(validAutoIssues).toHaveLength(0);
+
+    const invalidIssues = lint(
+      `
+server {
+  port "not-auto"
+}
+`,
+      rule,
+    );
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: 'port debe ser un número entre 1024 y 65535, o "auto"',
+    });
+  });
+
+  test.skip("accepts an and combinator on a constraint", () => {
     const rule = {
       "/server/route": {
-        "[2]": {
-          or: [{ type: "boolean" }, { type: "number" }],
-          message: "el segundo argumento debe ser boolean o number",
+        "[1]": {
+          and: [
+            { type: "string" },
+            { type: "string", pattern: "^/", message: "el path debe empezar con /" },
+            {
+              type: "string",
+              pattern: "^(?!.*//).*$",
+              message: "el path no puede tener // repetidos",
+            },
+          ],
+          message: "el path de route es inválido",
         },
       },
     } satisfies LintRuleDocument;
@@ -100,8 +155,54 @@ server {
     const validIssues = lint(
       `
 server {
-  route "/api" 200
-  route "/health" true
+  route "/api/users" {
+    respond 200 "Ok"
+  }
+}
+`,
+      rule,
+    );
+    expect(validIssues).toHaveLength(0);
+
+    const missingSlashIssues = lint(
+      `
+server {
+  route "api/users" {
+    respond 200 "Ok"
+  }
+}
+`,
+      rule,
+    );
+    expect(missingSlashIssues).toHaveLength(1);
+
+    const doubleSlashIssues = lint(
+      `
+server {
+  route "/api//users" {
+    respond 200 "Ok"
+  }
+}
+`,
+      rule,
+    );
+    expect(doubleSlashIssues).toHaveLength(1);
+  });
+
+  test.skip("accepts a not combinator on a constraint", () => {
+    const rule = {
+      "/server/strategy": {
+        "[1]": {
+          not: { enum: ["big-bang"] },
+          message: 'strategy no puede ser "big-bang"',
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lint(
+      `
+server {
+  strategy "rolling"
 }
 `,
       rule,
@@ -111,14 +212,14 @@ server {
     const invalidIssues = lint(
       `
 server {
-  route "/api" "200"
+  strategy "big-bang"
 }
 `,
       rule,
     );
     expect(invalidIssues).toHaveLength(1);
     expect(invalidIssues[0]).toMatchObject({
-      message: "el segundo argumento debe ser boolean o number",
+      message: 'strategy no puede ser "big-bang"',
     });
   });
 
