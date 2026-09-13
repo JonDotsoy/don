@@ -2,6 +2,7 @@ import { DirectiveNode, DocumentNode } from "./v1/compiler/directive-node.js";
 import { SyntaxParser } from "./v1/compiler/syntax-encode.js";
 import { directiveToJSON, wrapAsRoot } from "./directive-json.js";
 import { HeredocValue } from "./v1/compiler/heredoc-value.js";
+import { findAllDirectives, findDirective } from "./find.js";
 import type { Token } from "./v1/compiler/token.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
@@ -61,6 +62,24 @@ export class Directive {
    */
   static tokensByDirective(directive: Directive): Token[] | undefined {
     return tokensByDirective.get(directive);
+  }
+
+  /**
+   * The first directive matching an absolute path from `this` directive
+   * (treated as the document root); see `findAllDirectives` for the path
+   * syntax. `undefined` if none match.
+   */
+  find(path: string): Directive | undefined {
+    return findDirective(this, path);
+  }
+
+  /**
+   * Every directive matching an absolute path from `this` directive
+   * (treated as the document root); see `findAllDirectives` for the path
+   * syntax.
+   */
+  findAll(path: string): Directive[] {
+    return findAllDirectives(this, path);
   }
 }
 

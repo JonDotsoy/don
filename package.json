@@ -51,6 +51,10 @@
     "./lint": {
       "types": "./lib/esm/lint.d.ts",
       "import": "./lib/esm/lint.js"
+    },
+    "./find": {
+      "types": "./lib/esm/find.d.ts",
+      "import": "./lib/esm/find.js"
     }
   },
   "files": [

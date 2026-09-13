@@ -245,6 +245,52 @@ import { SyntaxKind as kindsyntax } from "donly";
 
 If you need lower-level access to the parse — spans, source locations, or the full token stream including directives you don't hold a reference to — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
 
+## Finding Directives
+
+Every `Directive` has `find(path)` and `findAll(path)` to locate descendants by an absolute, `/`-separated path from that directive (treated as the document root), instead of walking `children` by hand:
+
+```ts
+import { DON } from "donly";
+
+const root = DON.parse(`
+server {
+  route /home
+  route GET /api/user
+  route POST /api/user
+}
+`);
+
+const home = root.find("/server/route(/home)");
+// ? const home = Directive {
+//   name: "route",
+//   args: [ "/home" ],
+//   children: [],
+// }
+
+const apiRoutes = root.findAll("/server/route(* /api/user)");
+// ? const apiRoutes = [
+//   Directive {
+//     name: "route",
+//     args: [ "GET", "/api/user" ],
+//     children: [],
+//   }, Directive {
+//     name: "route",
+//     args: [ "POST", "/api/user" ],
+//     children: [],
+//   }
+// ]
+```
+
+The path syntax:
+
+- `"/"` — the directive itself.
+- `"/server"` — top-level children named `server`.
+- `"/server/route"` — `route` children of a matched `server`.
+- `"/server/route(/home)"` — `route` children whose args are exactly `["/home"]`.
+- `"/server/route(* /api/user)"` — `route` children with any first argument and a second argument exactly `"/api/user"` (`*` wildcards a single argument; a directive only matches a `(...)` group when its `args.length` equals the number of space-separated patterns).
+
+`find` returns the first match (or `undefined`), `findAll` returns every match. `findDirective`/`findAllDirectives` are also exported from `donly/find` for the same lookup against any `Directive`, not just as instance methods.
+
 ## Lexer (`LexerParser`)
 
 `LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.
