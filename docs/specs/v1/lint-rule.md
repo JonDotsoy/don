@@ -31,6 +31,11 @@ Each constraint accepts an optional `message` to override the default
 `type` also accepts an array of types (a union): the argument is valid when
 it matches any one of them.
 
+For numeric arguments, a constraint also accepts range checks: `gte`
+(greater than or equal), `gt` (greater than), `lte` (less than or equal),
+and `lt` (less than). They apply only once the argument's type has already
+been checked as `number`, and can be combined to express a range.
+
 ## JSON example: argument at position 1 must be a number
 
 ```json
@@ -76,5 +81,31 @@ e.g. both of the following are valid:
 server {
   route "/api" 200
   route "/health" true
+}
+```
+
+## JSON example: `gte`, `gt`, `lte`, and `lt` range checks
+
+```json
+{
+  "path": "/server/port",
+  "args": {
+    "0": {
+      "type": "number",
+      "gt": 1024,
+      "lte": 65535,
+      "message": "port debe ser mayor a 1024 y menor o igual a 65535"
+    }
+  }
+}
+```
+
+This rule requires `directive.args[0]` to be a `number` strictly greater
+than `1024` (`gt`) and less than or equal to `65535` (`lte`); `gte` and
+`lt` are the inclusive-lower/exclusive-upper counterparts, e.g.:
+
+```don
+server {
+  port 8080
 }
 ```
