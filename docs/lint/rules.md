@@ -1352,12 +1352,17 @@ label for an alternative with more than one property — its own children
 become that alternative's keys, and the label itself is discarded. The
 idiomatic label is a bare `/` (the root selector — reserved for this use
 _inside_ `or`/`and`; see below), annotated with a `# comment` above it so
-each alternative still reads clearly:
+each alternative still reads clearly.
+
+`or`/`and`/`not` themselves also take the leading-string-argument-as-
+`message` shorthand — since their own value is always an array (or, for
+`not`, a single entry), the argument becomes `message` on the _enclosing_
+object instead, the same place a sibling `message` child would put it:
 
 ```don
 /server/port {
   [1] {
-    or {
+    or 'port debe ser un número entre 1024 y 65535, o "auto"' {
       # range
       / {
         type "number"
@@ -1370,7 +1375,6 @@ each alternative still reads clearly:
         enum "auto"
       }
     }
-    message 'port debe ser un número entre 1024 y 65535, o "auto"'
   }
 }
 ```
@@ -1382,7 +1386,7 @@ above. The fused `path[N]` shorthand (see [Shorthand:
 
 ```don
 /server/port[1] {
-  or {
+  or 'port debe ser un número entre 1024 y 65535, o "auto"' {
     # range
     / {
       type "number"
@@ -1395,7 +1399,6 @@ above. The fused `path[N]` shorthand (see [Shorthand:
       enum "auto"
     }
   }
-  message 'port debe ser un número entre 1024 y 65535, o "auto"'
 }
 ```
 

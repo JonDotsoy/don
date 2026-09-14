@@ -85,6 +85,19 @@ const KNOWN_PROPERTY_NAMES = new Set([
 const isPathOrArgumentSelector = (name: string): boolean =>
   (name.startsWith("/") && name !== "/") || /^\[\d+\]$/.test(name);
 
+/**
+ * `or`/`and`/`not`'s own value is always an array (or a single entry for
+ * `not`) — there's no room inside it for a sibling `message`, unlike an
+ * ordinary sub-path/property child, whose `message` shorthand lives
+ * *inside* its own returned object (handled generically below, since
+ * `objectFromChildren` recurses into every child with children of its
+ * own). So `or 'msg' { ... }` / `and 'msg' { ... }` / `not 'msg' { ... }`
+ * escapes its leading string argument one level up instead, as `message`
+ * on the *enclosing* object — the same place a sibling `message` child
+ * would put it.
+ */
+const COMBINATOR_NAMES = new Set(["or", "and", "not"]);
+
 /** A directive's own children built into a plain object, keyed by name. */
 const objectFromChildren = (directive: Directive): Record<string, unknown> => {
   const obj: Record<string, unknown> = {};
@@ -99,6 +112,13 @@ const objectFromChildren = (directive: Directive): Record<string, unknown> => {
         : [existing, value];
     } else {
       obj[key] = value;
+    }
+
+    if (COMBINATOR_NAMES.has(key) && !("message" in obj)) {
+      const [firstArg, ...restArgs] = child.args;
+      if (typeof firstArg === "string" && restArgs.length === 0) {
+        obj.message = firstArg;
+      }
     }
   }
 

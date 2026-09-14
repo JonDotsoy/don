@@ -68,7 +68,7 @@ or {
     const source = `
 /server/port {
   [1] {
-    or {
+    or 'port debe ser un número entre 1024 y 65535, o "auto"' {
       # range
       / {
         type "number"
@@ -81,7 +81,6 @@ or {
         enum "auto"
       }
     }
-    message 'port debe ser un número entre 1024 y 65535, o "auto"'
   }
 }
 `;
@@ -101,7 +100,7 @@ or {
   test("fused path[N] shorthand with a compound or alternative", () => {
     const source = `
 /server/port[1] {
-  or {
+  or 'port debe ser un número entre 1024 y 65535, o "auto"' {
     # range
     / {
       type "number"
@@ -114,7 +113,6 @@ or {
       enum "auto"
     }
   }
-  message 'port debe ser un número entre 1024 y 65535, o "auto"'
 }
 `;
     expect(parseLintRulesDonly(source)).toEqual({
@@ -124,6 +122,23 @@ or {
           { type: "string", enum: ["auto"] },
         ],
         message: 'port debe ser un número entre 1024 y 65535, o "auto"',
+      },
+    } satisfies LintRuleDocument);
+  });
+
+  test("or's leading-arg message shorthand doesn't clobber an explicit sibling message", () => {
+    const source = `
+[1] {
+  message "outer wins"
+  or "ignored" {
+    type "boolean"
+  }
+}
+`;
+    expect(parseLintRulesDonly(source)).toEqual({
+      "[1]": {
+        message: "outer wins",
+        or: [{ type: "boolean" }],
       },
     } satisfies LintRuleDocument);
   });
