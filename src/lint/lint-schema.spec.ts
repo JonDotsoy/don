@@ -1,8 +1,8 @@
 import { describe, test, expect } from "bun:test";
-import { lint } from "./lint-rule-schema-eval";
-import type { LintRuleDocument, RuleAndEntry } from "./lint-rule-schema";
+import { lintSchema } from "./lint-schema";
+import type { LintRuleDocument, RuleAndEntry } from "./schema";
 
-describe("lint-rule-schema runtime", () => {
+describe("lint schema runtime", () => {
   test("accepts an argument selector constraint", () => {
     const rule = {
       "/server/port": {
@@ -13,7 +13,7 @@ describe("lint-rule-schema runtime", () => {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   port 3000
@@ -23,7 +23,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   port "3000"
@@ -51,7 +51,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   port 8080
@@ -63,7 +63,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   port 70000
@@ -89,7 +89,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validNumberIssues = lint(
+    const validNumberIssues = lintSchema(
       `
 server {
   port 8080
@@ -99,7 +99,7 @@ server {
     );
     expect(validNumberIssues).toHaveLength(0);
 
-    const validAutoIssues = lint(
+    const validAutoIssues = lintSchema(
       `
 server {
   port "auto"
@@ -109,7 +109,7 @@ server {
     );
     expect(validAutoIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   port "not-auto"
@@ -141,7 +141,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   route "/api/users" {
@@ -153,7 +153,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const missingSlashIssues = lint(
+    const missingSlashIssues = lintSchema(
       `
 server {
   route "api/users" {
@@ -165,7 +165,7 @@ server {
     );
     expect(missingSlashIssues).toHaveLength(1);
 
-    const doubleSlashIssues = lint(
+    const doubleSlashIssues = lintSchema(
       `
 server {
   route "/api//users" {
@@ -188,7 +188,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   strategy "rolling"
@@ -198,7 +198,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   strategy "big-bang"
@@ -225,7 +225,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   port 8080
@@ -241,7 +241,7 @@ server {
       "  port 8080\n" +
       Array.from({ length: 11 }, (_, i) => `  route "/api${i}"\n`).join("") +
       "}\n";
-    const invalidIssues = lint(donWithElevenRoutes, rule);
+    const invalidIssues = lintSchema(donWithElevenRoutes, rule);
     expect(invalidIssues.length).toBeGreaterThan(0);
     expect(invalidIssues[0]).toMatchObject({
       message: "un server admite a lo más 10 route",
@@ -258,7 +258,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   port 3000
@@ -268,7 +268,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const missingPortIssues = lint(
+    const missingPortIssues = lintSchema(
       `
 server {
   route "/api"
@@ -281,7 +281,7 @@ server {
       message: "server debe declarar un port",
     });
 
-    const tooLargeIssues = lint(
+    const tooLargeIssues = lintSchema(
       `
 server {
   port 70000
@@ -300,7 +300,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   route "/api" 200
@@ -310,7 +310,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   route "/api" "200"
@@ -332,7 +332,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   route "/api" 200
@@ -342,7 +342,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   route "/api" 999
@@ -364,7 +364,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   strategy "rolling"
@@ -374,7 +374,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   strategy "big-bang"
@@ -399,7 +399,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 config {
   maxSize 1024n
@@ -416,7 +416,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 config {
   maxSize 0n
@@ -440,7 +440,7 @@ server {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   port 3000
@@ -450,7 +450,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   port 3000
@@ -492,7 +492,7 @@ route /health {
       },
     } satisfies LintRuleDocument;
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   port 3000
@@ -505,7 +505,7 @@ route /users {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
 }
@@ -528,7 +528,7 @@ route /users {
       },
     } satisfies LintRuleDocument;
 
-    const noServerIssues = lint(
+    const noServerIssues = lintSchema(
       `
 port 3000
 `,
@@ -536,7 +536,7 @@ port 3000
     );
     expect(noServerIssues).toHaveLength(0);
 
-    const noRouteIssues = lint(
+    const noRouteIssues = lintSchema(
       `
 server {
   port 3000
@@ -546,7 +546,7 @@ server {
     );
     expect(noRouteIssues).toHaveLength(0);
 
-    const validIssues = lint(
+    const validIssues = lintSchema(
       `
 server {
   route /health {
@@ -558,7 +558,7 @@ server {
     );
     expect(validIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   route /health {
@@ -584,7 +584,7 @@ server {
       or: orDocuments,
     } satisfies LintRuleDocument;
 
-    const validPortIssues = lint(
+    const validPortIssues = lintSchema(
       `
 server {
   port 3000
@@ -594,7 +594,7 @@ server {
     );
     expect(validPortIssues).toHaveLength(0);
 
-    const validSocketIssues = lint(
+    const validSocketIssues = lintSchema(
       `
 server {
   socket "/tmp/app.sock"
@@ -604,7 +604,7 @@ server {
     );
     expect(validSocketIssues).toHaveLength(0);
 
-    const invalidIssues = lint(
+    const invalidIssues = lintSchema(
       `
 server {
   timeout 30

@@ -4,9 +4,9 @@ import type {
   LintRuleDocument,
   RuleAndEntry,
   RuleBody,
-} from "./lint-rule-schema";
+} from "./schema";
 
-describe("lint-rule-schema types", () => {
+describe("lint schema types", () => {
   it("accepts an argument selector constraint", () => {
     const example = {
       "/server/port": {
