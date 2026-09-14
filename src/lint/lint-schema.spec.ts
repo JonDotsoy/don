@@ -646,6 +646,28 @@ server {
     ).toMatchSnapshot();
   });
 
+  test("accepts an or combinator on port or socket, violated when neither is present", () => {
+    const rule = {
+      or: [
+        { "/server/port": { required: true } },
+        { "/server/socket": { required: true } },
+      ],
+    } satisfies LintRuleDocument;
+
+    const invalidIssues = lintSchema(
+      `
+server {
+}
+`,
+      rule,
+    );
+    expect(invalidIssues.length).toBeGreaterThan(0);
+
+    expect(
+      renderReport(invalidIssues, { filePath: "server.donly" }),
+    ).toMatchSnapshot();
+  });
+
   test("accepts a custom evaluation at the document root", () => {
     const rule = {
       *evaluation(directive: Directive): Iterable<LintIssue> {
