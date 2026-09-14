@@ -174,7 +174,7 @@ exports[`lint schema runtime accepts an or combinator on port or socket, violate
 
 exports[`lint schema runtime accepts a message on the or combinator, shown when neither alternative passes 1`] = `
 "server.donly
-  -  error  server debe declarar port o socket
+  2:1  error  server debe declarar port o socket
 
 1 error 0 warnings 0 info"
 `;

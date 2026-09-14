@@ -347,19 +347,20 @@ const evaluateDocument = (
     const alternatives = doc.or.map((alt) => evaluateDocument(root, alt));
     const passing = alternatives.find((issues) => issues.length === 0);
     if (passing) return [];
+    const best = alternatives.reduce(
+      (best, issues) => (issues.length < best.length ? issues : best),
+      alternatives[0] ?? [],
+    );
     if (doc.message) {
       return [
         {
           message: doc.message,
           severity: doc.severity ?? "error",
-          loc: directiveLoc(root),
+          loc: best[0]?.loc ?? directiveLoc(root),
         },
       ];
     }
-    return alternatives.reduce(
-      (best, issues) => (issues.length < best.length ? issues : best),
-      alternatives[0] ?? [],
-    );
+    return best;
   }
 
   const issues: LintIssue[] = [];
