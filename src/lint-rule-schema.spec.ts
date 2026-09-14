@@ -97,6 +97,72 @@ describe("lint-rule-schema types", () => {
     expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
   });
 
+  it("validates both body and argument constraints at a depth of 10 sub-paths", () => {
+    const example = {
+      "/l1": {
+        required: true,
+        "/l2": {
+          max: 5,
+          "/l3": {
+            min: 1,
+            "/l4": {
+              required: true,
+              "/l5": {
+                max: 1,
+                "/l6": {
+                  min: 0,
+                  "/l7": {
+                    required: true,
+                    "/l8": {
+                      max: 2,
+                      "/l9": {
+                        min: 1,
+                        "/l10": {
+                          required: true,
+                          "[1]": {
+                            type: "number",
+                            gte: 1,
+                            lte: 10,
+                            message: "l10 debe declarar un número entre 1 y 10",
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+
+    const l1 = example["/l1"];
+    const l2 = l1["/l2"];
+    const l3 = l2["/l3"];
+    const l4 = l3["/l4"];
+    const l5 = l4["/l5"];
+    const l6 = l5["/l6"];
+    const l7 = l6["/l7"];
+    const l8 = l7["/l8"];
+    const l9 = l8["/l9"];
+    const l10 = l9["/l10"];
+
+    expectTypeOf(l1).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l2).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l3).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l4).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l5).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l6).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l7).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l8).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l9).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l10).toMatchTypeOf<RuleBody>();
+    expectTypeOf(l10["[1]"]).toMatchTypeOf<ArgumentConstraint>();
+  });
+
   it("types /server/port's value as a RuleBody", () => {
     const example = {
       "/server/port": {
