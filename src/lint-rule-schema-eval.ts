@@ -1,6 +1,6 @@
 /**
  * Runtime evaluator for the object/JSON-format `LintRuleDocument` design
- * described in `docs/specs/v1/lint-rule.md` (types: `./lint-rule-schema.ts`).
+ * described in `docs/lint/rules.md` (types: `./lint-rule-schema.ts`).
  *
  * This is a first implementation, not a spec: it's written to satisfy the
  * behavior already sketched in `lint-rule-schema.lint.spec.ts`'s
@@ -347,7 +347,7 @@ const evaluateDocument = (
 
 /**
  * Lints a DON document against an object/JSON-format `LintRuleDocument`
- * (see `docs/specs/v1/lint-rule.md`), returning every issue its rules
+ * (see `docs/lint/rules.md`), returning every issue its rules
  * report.
  */
 export const lint = (don: string, rule: LintRuleDocument): LintIssue[] => {

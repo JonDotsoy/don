@@ -1,6 +1,6 @@
 /**
  * Type definitions for the object/JSON-format `LintRule` design described in
- * `docs/specs/v1/lint-rule.md`. This module is types only — there is no
+ * `docs/lint/rules.md`. This module is types only — there is no
  * runtime behavior here, only the shapes a lint rule document may take.
  */
 

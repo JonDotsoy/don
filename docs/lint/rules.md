@@ -10,7 +10,7 @@ lang: en
 
 ## Motivation
 
-`LintRule.evaluation` (see [`src/lint.ts`](../../../src/lint.ts)) is a function,
+`LintRule.evaluation` (see [`src/lint.ts`](../../src/lint.ts)) is a function,
 so a rule can only be authored in code. A declarative counterpart lets simple
 argument checks be expressed as plain data, which can then be serialized to
 and loaded from JSON, YAML, or DON itself, without changing how existing
@@ -68,7 +68,7 @@ body into a `{ path, ...body }` `LintRule`.
 
 `"/"` alone — a slash with no name after it — addresses the document root
 itself, the same as a `LintRule` with no `path` at all (see `evaluation`'s
-doc comment in [`src/lint.ts`](../../../src/lint.ts): "Omit to run
+doc comment in [`src/lint.ts`](../../src/lint.ts): "Omit to run
 `evaluation` once against the document root"). It's a body like any other,
 so it can carry sub-paths, `and`/`or`, `required`, and so on. It's only
 useful as an explicit key, though, when a body needs to attach something
@@ -134,7 +134,7 @@ Each constraint accepts an optional `message` to override the default
 "argument at position N must be of type T" issue message, and an optional
 `severity` (`"error"`, `"warning"`, or `"info"`, default `"error"`) — passed
 straight through to `LintIssue.severity` (see
-[`src/lint.ts`](../../../src/lint.ts)). Every other body-level check
+[`src/lint.ts`](../../src/lint.ts)). Every other body-level check
 documented below (sub-path `max`/`min`, `required`, rule-level `and`
 entries) accepts the same `message`/`severity` pair.
 
@@ -159,7 +159,7 @@ only once the argument's type has already been checked as `string`.
 ### `type` values
 
 `type` covers every argument kind DON v1 produces (see
-[`docs/specs/v1/spec.md`](./spec.md)): `"string"`, `"number"`, `"bigint"`,
+[`docs/specs/v1/spec.md`](../specs/v1/spec.md)): `"string"`, `"number"`, `"bigint"`,
 `"boolean"`, `"null"`, and `"heredoc"`.
 
 - `"number"` and `"bigint"` are distinct types (mirroring JS `typeof`, and
@@ -169,7 +169,7 @@ only once the argument's type has already been checked as `string`.
   (a boolean is `true`/`false`, `null` has exactly one value) — `enum` is
   redundant with them but harmless.
 - `"heredoc"` matches a `HeredocValue` argument (see
-  [§2.8 Heredocs](./spec.md#28-heredocs)); `pattern` applies to its
+  [§2.8 Heredocs](../specs/v1/spec.md#28-heredocs)); `pattern` applies to its
   `content` string, and `enum` is not meaningful since heredoc content is
   rarely one of a fixed set of literals.
 
@@ -602,7 +602,7 @@ occurrence limits.
 requires at least that many) and accept an optional `message`. When `max`
 is exceeded, the issue is reported once per extra occurrence (from the
 `min + 1`-th onward, mirroring `oneRespondPerLocation` in
-[`src/lint.spec.ts`](../../../src/lint.spec.ts)); when the count is below
+[`src/lint.spec.ts`](../../src/lint.spec.ts)); when the count is below
 `min`, one issue is reported for the parent directive.
 
 ## JSON example: `/route` allows only one `respond`
@@ -927,7 +927,7 @@ key:
 ```
 
 This is the shape closest to the `LintRule` TypeScript type in
-[`src/lint.ts`](../../../src/lint.ts). Because object keys must be unique,
+[`src/lint.ts`](../../src/lint.ts). Because object keys must be unique,
 two independent rules for the _same_ path — which the array form expresses
 as two separate entries — are combined under that one key using `and`
 instead of repeating the key:
