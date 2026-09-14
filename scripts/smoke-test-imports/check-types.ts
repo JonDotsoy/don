@@ -3,8 +3,9 @@
 // confirm each public export's TypeScript signature accepts the
 // documented argument types and produces the documented result types,
 // for every published entry point ("donly", "donly/encoder",
-// "donly/decoder"). Relies on the same self-reference resolution the
-// runtime smoke test (run.mjs) uses, so `lib/esm` must be built first.
+// "donly/decoder", "donly/lint"). Relies on the same self-reference
+// resolution the runtime smoke test (run.mjs) uses, so `lib/esm` must be
+// built first.
 
 import {
   DON,
@@ -16,6 +17,8 @@ import {
 import type { DirectiveReducer, DirectiveJSONEncoderOptions } from "donly";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
+import { lintSchema, lint as lintDoc } from "donly/lint";
+import type { LintRuleDocument, LintIssue } from "donly/lint";
 
 // --- "donly": DON.parse ---
 
@@ -76,6 +79,19 @@ const decodedViaSubpath: Directive = new DecoderOnly().decode(
   encodedViaSubpath,
 );
 
+// --- "donly/lint": lintSchema/lint (declarative LintRuleDocument engine) ---
+
+const lintSchemaSame: boolean = lintSchema === lintDoc;
+const ruleDocument: LintRuleDocument = {
+  "/server/port": {
+    "[1]": { type: "number", message: "port debe ser un número" },
+  },
+};
+const lintDocIssues: LintIssue[] = lintSchema(
+  "server { port 3000 }",
+  ruleDocument,
+);
+
 // --- negative cases: unsupported argument/result types must not compile ---
 
 // @ts-expect-error DON.parse requires a string
@@ -112,4 +128,6 @@ void [
   encoderSame,
   decoderSame,
   decodedViaSubpath,
+  lintSchemaSame,
+  lintDocIssues,
 ];

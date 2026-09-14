@@ -33,18 +33,18 @@ documentation.
 - `donToParts(text)` — utility to break a DON document into typed lexical parts.
 - `load(filePath)` (`donly/load`) — reads a `.donly` file and parses it into a
   plain object using the nested reducer shape.
-- `lint(input, rules, options?)` (`donly/lint`) — runs `LintRule`s against a
-  DON document (text or a parsed `Directive`) and returns the `LintIssue`s
-  they report. A rule's `path` (e.g. `"/server/location"`) scopes its
-  `evaluation` to directives whose name, preceded by their ancestors' names up
-  to the document root, matches that absolute `/`-separated chain; omitting
-  `path` runs `evaluation` once against the document root. Each returned
-  issue's `trace` (`<payload>:line:column`)
-  is filled in from `loc.start`'s token when the rule sets a `loc` and no
-  `trace` already. `directiveLoc(directive)` derives a `{ start, end }` `loc`
-  spanning a directive's own tokens, and `argumentLoc(directive, startIndex, endIndex?)`
-  derives one spanning a single positional argument or a range of them, when
-  the directive has backing tokens.
+- `lintSchema(don, rules)` (also exported as `lint`, from `donly/lint`) — runs
+  a declarative `LintRuleDocument` against a DON source string and returns
+  the `LintIssue`s it reports. A rule document is keyed by directive path
+  (e.g. `"/server/port"`), optionally fused with a 1-based argument selector
+  (`"/server/port[1]"`); each body may combine `required`/`min`/`max`
+  occurrence checks, nested sub-paths, `"[N]"` argument constraints
+  (`type`, `enum`, `gt`/`gte`/`lt`/`lte`, `pattern`/`flags`, `or`/`and`/
+  `not`), and an `evaluation` escape hatch. See `docs/lint/rules.md` for the
+  full format. `renderReport`/`renderJSONReport` turn a `LintIssue[]` into an
+  ESLint-style text report or a `JSONReport`. The previous function-based
+  `LintRule`/`evaluation` engine moved internal (`src/lint.ts`, deprecated,
+  no longer published as `donly/lint`).
 - `serve(patch)` (`donly/demo/http-proxy`) — example hot-reloading HTTP
   reverse proxy / mock server driven by a DON file (`server`/`route`
   directives with `respond`, `proxy_pass`, `header`, `http1`/`http2`/`http3`,
