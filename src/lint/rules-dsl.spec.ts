@@ -179,6 +179,60 @@ and {
     } satisfies LintRuleDocument);
   });
 
+  test("and grouping rules for unrelated paths lints a document the same as the equivalent JSON rules", () => {
+    const rulesSource = `
+and {
+  /server/port "server debe declarar un port" { required }
+  /route/respond {
+    [1] {
+      type "number"
+      gte 100
+      lte 599
+      message "el status code de respond debe estar entre 100 y 599"
+    }
+  }
+}
+`;
+    const rules = parseLintRulesDonly(rulesSource);
+
+    const valid = lintSchema(
+      `
+server {
+  port 3000
+}
+route /users {
+  respond 200 "Ok"
+}
+`,
+      rules,
+    );
+    expect(valid).toHaveLength(0);
+
+    const invalid = lintSchema(
+      `
+server {
+}
+route /users {
+  respond 999 "Bad"
+}
+`,
+      rules,
+    );
+    expect(invalid).toHaveLength(2);
+    expect(invalid).toContainEqual(
+      expect.objectContaining({
+        message: "server debe declarar un port",
+        severity: "error",
+      }),
+    );
+    expect(invalid).toContainEqual(
+      expect.objectContaining({
+        message: "el status code de respond debe estar entre 100 y 599",
+        severity: "error",
+      }),
+    );
+  });
+
   test("parsed rules lint a document the same as the equivalent JSON rules", () => {
     const rulesSource = `
 or {
