@@ -64,17 +64,19 @@ or {
     } satisfies LintRuleDocument);
   });
 
-  test("or with a compound alternative grouped under an anonymous label", () => {
+  test("or with a compound alternative grouped under an anonymous `/` label", () => {
     const source = `
 /server/port {
   [1] {
     or {
-      range {
+      # range
+      / {
         type "number"
         gt 1024
         lte 65535
       }
-      auto {
+      # auto
+      / {
         type "string"
         enum "auto"
       }
@@ -92,6 +94,36 @@ or {
           ],
           message: 'port debe ser un número entre 1024 y 65535, o "auto"',
         },
+      },
+    } satisfies LintRuleDocument);
+  });
+
+  test("fused path[N] shorthand with a compound or alternative", () => {
+    const source = `
+/server/port[1] {
+  or {
+    # range
+    / {
+      type "number"
+      gt 1024
+      lte 65535
+    }
+    # auto
+    / {
+      type "string"
+      enum "auto"
+    }
+  }
+  message 'port debe ser un número entre 1024 y 65535, o "auto"'
+}
+`;
+    expect(parseLintRulesDonly(source)).toEqual({
+      "/server/port[1]": {
+        or: [
+          { type: "number", gt: 1024, lte: 65535 },
+          { type: "string", enum: ["auto"] },
+        ],
+        message: 'port debe ser un número entre 1024 y 65535, o "auto"',
       },
     } satisfies LintRuleDocument);
   });

@@ -74,8 +74,16 @@ const KNOWN_PROPERTY_NAMES = new Set([
   "evaluation",
 ]);
 
+/**
+ * A bare `/` is the sole exception: elsewhere it's the explicit root
+ * selector (see "The root selector `/` and the wildcard `/*`" in the
+ * docs), but as an `or`/`and` child it's reserved as the anonymous
+ * grouping marker (see `orAndEntry`) — a real root-selector alternative is
+ * vanishingly rare next to a multi-property alternative, so `/` alone
+ * favors the latter.
+ */
 const isPathOrArgumentSelector = (name: string): boolean =>
-  name.startsWith("/") || /^\[\d+\]$/.test(name);
+  (name.startsWith("/") && name !== "/") || /^\[\d+\]$/.test(name);
 
 /** A directive's own children built into a plain object, keyed by name. */
 const objectFromChildren = (directive: Directive): Record<string, unknown> => {
@@ -110,11 +118,12 @@ const objectFromChildren = (directive: Directive): Record<string, unknown> => {
  * One entry of an `or`/`and` array (or `not`'s sole entry): a child
  * directive named `/path`, `[N]`, or a known property (`type`, `required`,
  * etc.) wraps itself as `{ [name]: value }` — the common case, one property
- * per alternative. Any other name is an anonymous grouping label whose own
- * children (and leading-string-arg-as-`message` shorthand) become a
- * multi-property alternative directly, discarding the label itself — e.g.
- * `case { type "number"; gt 1024; lte 65535 }` -> `{ type: "number", gt:
- * 1024, lte: 65535 }`.
+ * per alternative. Any other name — conventionally a bare `/`, annotated
+ * with a `# comment` above it for readers — is an anonymous grouping label
+ * whose own children (and leading-string-arg-as-`message` shorthand)
+ * become a multi-property alternative directly, discarding the label
+ * itself — e.g. `/ { type "number"; gt 1024; lte 65535 }` -> `{ type:
+ * "number", gt: 1024, lte: 65535 }`.
  */
 const orAndEntry = (child: Directive): Record<string, unknown> => {
   const name = String(child.name);

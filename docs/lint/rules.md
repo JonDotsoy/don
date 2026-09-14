@@ -1349,18 +1349,23 @@ selector (`[N]`), or a recognized property (`type`, `required`, `max`,
 `lte`, `lt`, `or`, `and`, `not`) wraps itself under that name, as in the
 `or` example above. Any other name is treated as an anonymous grouping
 label for an alternative with more than one property — its own children
-become that alternative's keys, and the label itself is discarded:
+become that alternative's keys, and the label itself is discarded. The
+idiomatic label is a bare `/` (the root selector — reserved for this use
+_inside_ `or`/`and`; see below), annotated with a `# comment` above it so
+each alternative still reads clearly:
 
 ```don
 /server/port {
   [1] {
     or {
-      range {
+      # range
+      / {
         type "number"
         gt 1024
         lte 65535
       }
-      auto {
+      # auto
+      / {
         type "string"
         enum "auto"
       }
@@ -1370,14 +1375,39 @@ become that alternative's keys, and the label itself is discarded:
 }
 ```
 
-parses to the same `or` array as the [ranged-branch
+which parses to the same `or` array as the [ranged-branch
 example](#json-example-or-with-a-ranged-branch-boolean-or-a-bounded-number)
-above — `range` and `auto` are just labels here, not schema keys.
+above. The fused `path[N]` shorthand (see [Shorthand:
+`path[N]`](#shorthand-pathn-as-a-single-key) above) composes the same way:
+
+```don
+/server/port[1] {
+  or {
+    # range
+    / {
+      type "number"
+      gt 1024
+      lte 65535
+    }
+    # auto
+    / {
+      type "string"
+      enum "auto"
+    }
+  }
+  message 'port debe ser un número entre 1024 y 65535, o "auto"'
+}
+```
 
 Because `/*` (the wildcard sub-path selector) collides with DON's own
 `/* ... */` block-comment syntax, write it quoted — `"/*"` — the same way
 any directive name with special characters can be quoted. The bare root
-selector `/` is unaffected and needs no quoting.
+selector `/` still addresses the document root everywhere _except_ as a
+direct child of `or`/`and`, where it's reserved as the anonymous grouping
+label described above (quoting it doesn't change the underlying name, so
+`"/"` is reserved there too) — an alternative that targets the root
+itself is rare enough that this DSL doesn't have a spelling for it inside
+`or`/`and`; author that one rule in JSON instead if it's ever needed.
 
 `evaluation` has no DON-syntax form, since a `.donly` rules file can't
 embed a function — it's only ever available to a rule document authored
