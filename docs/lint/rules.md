@@ -942,11 +942,6 @@ instead of repeating the key:
 
 ## `evaluation`: an escape hatch for custom logic
 
-> **JavaScript/TypeScript only.** `evaluation` takes a function, and
-> functions have no JSON (or YAML) representation — a rule document loaded
-> from a `.json`/`.yaml` file can never declare `evaluation`. It is only
-> available when the `LintRuleDocument` is authored directly in code.
-
 A function can't be serialized to JSON, so `evaluation` only makes sense
 when a rule document is authored directly in code (TypeScript/JavaScript)
 rather than loaded from a `.json`/`.yaml` file — it's the same escape hatch
