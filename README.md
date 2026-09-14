@@ -578,10 +578,13 @@ The package ships a `donly` executable — run it with `npx donly` or
 bunx donly lint --rules rules.json file.donly
 ```
 
-`donly lint --rules <rules.json> <file>` reads a `LintRuleDocument` from
-`rules.json`, runs it against `file` with `lintSchema`, prints the result
-with `renderReport`, and exits with a non-zero status code when any
-reported issue is an `"error"`.
+`donly lint --rules <rules.json|rules.donly> <file>` reads a
+`LintRuleDocument` from `rules.json` (or, given a `.donly`/`.don` path,
+parses the same shape from DON syntax instead — see [Authoring rules in
+DON syntax](./docs/lint/rules.md#authoring-rules-in-don-syntax-donly-rules-files)),
+runs it against `file` with `lintSchema`, prints the result with
+`renderReport`, and exits with a non-zero status code when any reported
+issue is an `"error"`.
 
 - `--output`/`-o` `default | json` — output format, defaults to `default`
   (the `renderReport` text report). `json` prints the `renderJSONReport`
