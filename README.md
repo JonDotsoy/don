@@ -495,303 +495,79 @@ const decoded = new DirectiveJSONDecoder().decode(encoded);
 
 ## Lint
 
-`donly/lint` runs custom rules against a DON document and reports issues found
-in it — a linter for your own directive schema.
+`donly/lint` runs a declarative `LintRuleDocument` against a DON document and
+reports the issues found in it — a linter for your own directive schema,
+authored as plain data instead of code, so rules can be written, stored, and
+exchanged as JSON, YAML, or DON itself. See
+[`docs/lint/rules.md`](./docs/lint/rules.md) for the full rule format.
 
 ```ts
-import { lint, argumentLoc, type LintRule } from "donly/lint";
+import { lintSchema, type LintRuleDocument } from "donly/lint";
 
-const portMustBeValid: LintRule = {
-  path: "/server/port",
-  *evaluation({ directive }) {
-    const value = directive.args[0];
-
-    if (typeof value !== "number") {
-      yield {
-        message: "port debe ser un número, no un string",
-        severity: "error",
-        loc: argumentLoc(directive, 0),
-      };
-      return;
-    }
-
-    if (typeof value === "number" && value <= 3000) {
-      yield {
-        message: "port debe ser mayor a 3000",
-        severity: "error",
-        loc: argumentLoc(directive, 0),
-      };
-    }
-
-    if (typeof value === "number" && value >= 60000) {
-      yield {
-        message: "port debe ser menor a 60000",
-        severity: "error",
-        loc: argumentLoc(directive, 0),
-      };
-    }
+const rules: LintRuleDocument = {
+  "/server/port": {
+    "[1]": {
+      type: "number",
+      gt: 3000,
+      lt: 60000,
+      message: "port debe ser un número entre 3000 y 60000",
+    },
   },
 };
 
-const issues = lint('server {\n  port "3000"\n}\n', [portMustBeValid], {
-  payload: "nginx.donly",
-});
-// ? const issues = [
+const issues = lintSchema(
+  `
+server {
+  port "3000"
+}
+`,
+  rules,
+);
+
+const summary = issues.map(({ message, severity }) => ({
+  message,
+  severity,
+}));
+// ? const summary = [
 //   {
-//     message: "port debe ser un número, no un string",
+//     message: "port debe ser un número entre 3000 y 60000",
 //     severity: "error",
-//     loc: {
-//       start: Token {
-//         type: 12,
-//         parts: [
-//           Part {
-//             type: 8,
-//             buffer: [ 34 ],
-//             span: Span {
-//               index: 16,
-//               length: 1,
-//               startLocation: {
-//                 line: 1,
-//                 column: 7,
-//                 paddingLine: 2,
-//               },
-//               endLocation: {
-//                 line: 1,
-//                 column: 8,
-//                 paddingLine: 2,
-//               },
-//             },
-//             id: 7,
-//             toUint8Array: [Function: toUint8Array],
-//             toText: [Function: toText],
-//             toJSON: [Function: toJSON],
-//           }, Part {
-//             type: 2,
-//             buffer: [ 51, 48, 48, 48 ],
-//             span: Span {
-//               index: 17,
-//               length: 4,
-//               startLocation: {
-//                 line: 1,
-//                 column: 8,
-//                 paddingLine: 2,
-//               },
-//               endLocation: {
-//                 line: 1,
-//                 column: 12,
-//                 paddingLine: 2,
-//               },
-//             },
-//             id: 8,
-//             toUint8Array: [Function: toUint8Array],
-//             toText: [Function: toText],
-//             toJSON: [Function: toJSON],
-//           }, Part {
-//             type: 8,
-//             buffer: [ 34 ],
-//             span: Span {
-//               index: 21,
-//               length: 1,
-//               startLocation: {
-//                 line: 1,
-//                 column: 12,
-//                 paddingLine: 2,
-//               },
-//               endLocation: {
-//                 line: 1,
-//                 column: 13,
-//                 paddingLine: 2,
-//               },
-//             },
-//             id: 9,
-//             toUint8Array: [Function: toUint8Array],
-//             toText: [Function: toText],
-//             toJSON: [Function: toJSON],
-//           }
-//         ],
-//         span: Span {
-//           index: 16,
-//           length: 6,
-//           startLocation: {
-//             line: 1,
-//             column: 7,
-//             paddingLine: 2,
-//           },
-//           endLocation: {
-//             line: 1,
-//             column: 13,
-//             paddingLine: 2,
-//           },
-//         },
-//         describeError: [Function: describeError],
-//         getErrors: [Function: getErrors],
-//         arrayBuffer: [Function: arrayBuffer],
-//         text: [Function: text],
-//         raw: [Function: raw],
-//         toJS: [Function: toJS],
-//         json: [Function: json],
-//         toJSON: [Function: toJSON],
-//       },
-//       end: Token {
-//         type: 12,
-//         parts: [
-//           Part {
-//             type: 8,
-//             buffer: [ 34 ],
-//             span: Span {
-//               index: 16,
-//               length: 1,
-//               startLocation: {
-//                 line: 1,
-//                 column: 7,
-//                 paddingLine: 2,
-//               },
-//               endLocation: {
-//                 line: 1,
-//                 column: 8,
-//                 paddingLine: 2,
-//               },
-//             },
-//             id: 7,
-//             toUint8Array: [Function: toUint8Array],
-//             toText: [Function: toText],
-//             toJSON: [Function: toJSON],
-//           }, Part {
-//             type: 2,
-//             buffer: [ 51, 48, 48, 48 ],
-//             span: Span {
-//               index: 17,
-//               length: 4,
-//               startLocation: {
-//                 line: 1,
-//                 column: 8,
-//                 paddingLine: 2,
-//               },
-//               endLocation: {
-//                 line: 1,
-//                 column: 12,
-//                 paddingLine: 2,
-//               },
-//             },
-//             id: 8,
-//             toUint8Array: [Function: toUint8Array],
-//             toText: [Function: toText],
-//             toJSON: [Function: toJSON],
-//           }, Part {
-//             type: 8,
-//             buffer: [ 34 ],
-//             span: Span {
-//               index: 21,
-//               length: 1,
-//               startLocation: {
-//                 line: 1,
-//                 column: 12,
-//                 paddingLine: 2,
-//               },
-//               endLocation: {
-//                 line: 1,
-//                 column: 13,
-//                 paddingLine: 2,
-//               },
-//             },
-//             id: 9,
-//             toUint8Array: [Function: toUint8Array],
-//             toText: [Function: toText],
-//             toJSON: [Function: toJSON],
-//           }
-//         ],
-//         span: Span {
-//           index: 16,
-//           length: 6,
-//           startLocation: {
-//             line: 1,
-//             column: 7,
-//             paddingLine: 2,
-//           },
-//           endLocation: {
-//             line: 1,
-//             column: 13,
-//             paddingLine: 2,
-//           },
-//         },
-//         describeError: [Function: describeError],
-//         getErrors: [Function: getErrors],
-//         arrayBuffer: [Function: arrayBuffer],
-//         text: [Function: text],
-//         raw: [Function: raw],
-//         toJS: [Function: toJS],
-//         json: [Function: json],
-//         toJSON: [Function: toJSON],
-//       },
-//     },
-//     trace: "nginx.donly:2:8",
 //   }
 // ]
 ```
 
-`lint(input, rules, options?)` accepts a DON source string or an already
-parsed `Directive`, plus a list of `LintRule`s, and returns every `LintIssue`
-their `evaluation`s report:
+`lintSchema(don, rules)` (also exported as `lint`) accepts a DON source
+string and a `LintRuleDocument`, and returns every `LintIssue` the rules
+report:
 
-- `input: string | Directive` — the document to check
-- `rules: LintRule[]` — the rules to run against it
-- `options.payload?: string` — source name shown in a reported issue's
-  `trace` (e.g. a file path); defaults to `"<input>"`
-
-A `LintRule` has:
-
-- `path?: string` — an absolute, `/`-separated chain of directive names from
-  the document root (e.g. `"/server/location"`). `evaluation` runs once for
-  every directive whose own name, preceded by its ancestors' names up to the
-  root, matches this chain exactly. Omitting `path` runs `evaluation` once
-  against the document root instead.
-- `evaluation: (context: LintContext) => Iterable<LintIssue>` — inspects the
-  matched directive and returns any issues found; an array works, and so
-  does a generator function that `yield`s each issue as it finds it:
-
-  ```ts
-  const everyArgMustBeString: LintRule = {
-    path: "/tags",
-    *evaluation({ directive }) {
-      for (const [index, value] of directive.args.entries()) {
-        if (typeof value === "string") continue;
-
-        yield {
-          message: `el argumento ${index} debe ser un string`,
-          severity: "error",
-          loc: argumentLoc(directive, index),
-        };
-      }
-    },
-  };
-  ```
-
-`LintContext` gives the rule:
-
-- `directive: Directive` — the directive the rule matched
-- `parent: Directive | null` — the matched directive's parent, or `null` at
-  the document root
-- `namePath: string[]` — real directive names from the document root down to
-  `directive`
+- `don: string` — the document to check
+- `rules: LintRuleDocument` — a document keyed by directive path (e.g.
+  `"/server/port"`), optionally fused with a 1-based argument selector (e.g.
+  `"/server/port[1]"`). Each body may combine:
+  - `required`/`min`/`max` — occurrence checks on the path
+  - nested `"/child"` sub-paths, for validating deeper directives
+  - `"[N]"` argument selectors, constraining the argument at that position
+    by `type` (`"string" | "number" | "bigint" | "boolean" | "null" |
+"heredoc"`), `enum`, `gt`/`gte`/`lt`/`lte` (numbers/bigints),
+    `pattern`/`flags` (strings/heredocs), or the `or`/`and`/`not`
+    combinators
+  - an `evaluation` escape hatch for arbitrary custom logic, at the rule
+    body or the individual argument level
+  - `message`/`severity` (`"error" | "warning" | "info"`, default
+    `"error"`), reported when the constraint fails
 
 A `LintIssue` is:
 
 - `message: string`
 - `severity: "error" | "warning" | "info"`
-- `trace?: string` — filled in from `loc.start` when the rule didn't set one
-  itself
-- `loc?: LintLoc` — a `{ start, end }` pair of `Token`s
+- `loc?: LintLoc` — a `{ start, end }` pair of `Token`s spanning the
+  offending directive or argument, when it comes from a document parsed by
+  `DON.parse()`
 
-Two helpers build a `LintLoc` from a directive parsed by `DON.parse()`:
-
-- `directiveLoc(directive)` — spans the directive's own name and args (not
-  its children's)
-- `argumentLoc(directive, startIndex, endIndex?)` — spans one positional
-  argument, or a range of them when `endIndex` is given
-
-Both return `undefined` for a directive with no backing tokens (e.g. one
-built by hand with `new Directive(...)`) or, for `argumentLoc`, an
-out-of-range index.
+`renderReport(issues, { filePath, asciiColor? })` and
+`renderJSONReport(issues, { filePath })` turn a `LintIssue[]` into an
+ESLint-style text report or a `JSONReport`, respectively — see
+[`src/lint/report.ts`](./src/lint/report.ts).
 
 ## Demos
 

@@ -1,9 +1,9 @@
 /**
  * @deprecated This function-based lint engine is superseded by the
- * declarative, object/JSON-format `LintRuleDocument` engine in
- * `donly/lint/lint` (see `docs/lint/rules.md`). New rules should be
- * written against `lintSchema`/`lint` from `./lint/lint.js` instead; this
- * module is kept only for existing consumers and receives no new features.
+ * declarative, object/JSON-format `LintRuleDocument` engine now published
+ * as `donly/lint` (see `docs/lint/rules.md`). New rules should be written
+ * against `lintSchema`/`lint` from `./lint/lint.js` instead; this module is
+ * kept only for existing internal consumers and receives no new features.
  */
 import { DON, Directive } from "./don.js";
 import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
