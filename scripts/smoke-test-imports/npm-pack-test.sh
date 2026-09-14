@@ -77,6 +77,27 @@ EOF
       echo "Unexpected 'bunx donly inspect' output" >&2
       exit 1
     fi
+
+    # Exercises --rules with a .donly (DON-syntax) rules file instead of
+    # JSON — see src/demo/lint/rules.donly, a multi-level ruleset covering
+    # most of the schema (required, max/min, [N]/path[N], every `type`,
+    # or/and/not at every level, severity, etc.), paired with a fully
+    # valid and a fully invalid example document.
+    cp "$REPO_ROOT/src/demo/lint/rules.donly" ./rules.donly
+    cp "$REPO_ROOT/src/demo/lint/example-valid.donly" ./example-valid.donly
+    cp "$REPO_ROOT/src/demo/lint/example-invalid.donly" ./example-invalid.donly
+
+    echo "==> Running 'bunx donly lint --rules rules.donly example-valid.donly' against the installed package"
+    if ! bunx donly lint --rules rules.donly example-valid.donly; then
+      echo "Expected 'bunx donly lint --rules rules.donly example-valid.donly' to exit zero" >&2
+      exit 1
+    fi
+
+    echo "==> Running 'bunx donly lint --rules rules.donly example-invalid.donly' against the installed package"
+    if bunx donly lint --rules rules.donly example-invalid.donly; then
+      echo "Expected 'bunx donly lint --rules rules.donly example-invalid.donly' to exit non-zero on lint errors" >&2
+      exit 1
+    fi
     ;;
   *)
     echo "Unknown mode: $MODE (expected 'node', 'bun', 'types', or 'cli')" >&2
