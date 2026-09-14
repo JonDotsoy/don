@@ -953,9 +953,10 @@ adapted to slot into this declarative design at three levels:
   `LintRule` with no `path`).
 - On a rule body: `{ "/path": { evaluation(directive) { ... } } }` — runs
   once per directive the path matches, receiving that directive.
-- On an argument constraint: `{ "/path[1]": { evaluation(argument,
+- On an argument constraint: `{ "/path[1]": { evaluation(argument, position,
 directive) { ... } } }` — runs once per matching directive, receiving the
-  argument's value and the directive it belongs to.
+  argument's value, its 1-based position (matching the `[N]` selector that
+  reached it), and the directive it belongs to.
 
 Each `evaluation` returns (or yields, as a generator) zero or more
 `LintIssue`s. It runs _in addition to_ — not instead of — whatever else is
@@ -969,9 +970,12 @@ const rule = {
   "/server/port": {
     "[1]": {
       type: "number",
-      *evaluation(argument) {
+      *evaluation(argument, position) {
         if (typeof argument === "number" && argument < 1024) {
-          yield { message: "port privilegiado", severity: "warning" };
+          yield {
+            message: `argumento ${position}: port privilegiado`,
+            severity: "warning",
+          };
         }
       },
     },

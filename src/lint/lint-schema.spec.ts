@@ -667,9 +667,12 @@ server {
   test("accepts a custom evaluation on an argument constraint", () => {
     const rule = {
       "/server/port[1]": {
-        *evaluation(argument: unknown): Iterable<LintIssue> {
+        *evaluation(argument: unknown, position: number): Iterable<LintIssue> {
           if (argument === 8080) {
-            yield { message: "8080 está reservado", severity: "error" };
+            yield {
+              message: `argumento ${position}: 8080 está reservado`,
+              severity: "error",
+            };
           }
         },
       },
@@ -681,7 +684,7 @@ server {
     const invalidIssues = lintSchema("server {\n  port 8080\n}\n", rule);
     expect(invalidIssues).toHaveLength(1);
     expect(invalidIssues[0]).toMatchObject({
-      message: "8080 está reservado",
+      message: "argumento 1: 8080 está reservado",
     });
   });
 
@@ -689,9 +692,12 @@ server {
     const rule = {
       "/server/port[1]": {
         type: "number",
-        *evaluation(argument: unknown): Iterable<LintIssue> {
+        *evaluation(argument: unknown, position: number): Iterable<LintIssue> {
           if (typeof argument === "number" && argument > 65535) {
-            yield { message: "fuera de rango", severity: "error" };
+            yield {
+              message: `argumento ${position}: fuera de rango`,
+              severity: "error",
+            };
           }
         },
       },
@@ -705,6 +711,8 @@ server {
 
     const outOfRangeIssues = lintSchema("server {\n  port 70000\n}\n", rule);
     expect(outOfRangeIssues).toHaveLength(1);
-    expect(outOfRangeIssues[0]).toMatchObject({ message: "fuera de rango" });
+    expect(outOfRangeIssues[0]).toMatchObject({
+      message: "argumento 1: fuera de rango",
+    });
   });
 });

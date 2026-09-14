@@ -178,7 +178,7 @@ const evaluateArgumentConstraint = (
   }
 
   if (constraint.evaluation) {
-    for (const issue of constraint.evaluation(value, directive)) {
+    for (const issue of constraint.evaluation(value, argIndex, directive)) {
       issues.push(issue);
     }
   }

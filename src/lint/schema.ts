@@ -31,11 +31,17 @@ export interface BaseArgumentConstraint {
   severity?: RuleSeverity;
   /**
    * Escape hatch: arbitrary custom logic for this argument, e.g.
-   * `{ "/path[1]": { evaluation: (argument, directive) => [...] } }`. Runs
-   * in addition to (not instead of) `type`/`enum`/`pattern`/etc. on the same
-   * constraint, and to `and`/`or`/`not` alternatives.
+   * `{ "/path[1]": { evaluation: (argument, position, directive) => [...] } }`.
+   * `position` is the argument's 1-based position (matching the `[N]`
+   * selector that reached it). Runs in addition to (not instead of)
+   * `type`/`enum`/`pattern`/etc. on the same constraint, and to
+   * `and`/`or`/`not` alternatives.
    */
-  evaluation?: (argument: unknown, directive: Directive) => Iterable<LintIssue>;
+  evaluation?: (
+    argument: unknown,
+    position: number,
+    directive: Directive,
+  ) => Iterable<LintIssue>;
 }
 
 /** A constraint on a `"string"` argument. */
