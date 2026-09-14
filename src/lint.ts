@@ -1,20 +1,10 @@
 import { DON, Directive } from "./don.js";
 import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 import type { Token } from "./v1/compiler/token.js";
+import type { LintIssue } from "./lint-types.js";
 
-export type LintSeverity = "error" | "warning" | "info";
-
-export interface LintLoc {
-  readonly start: Token;
-  readonly end: Token;
-}
-
-export interface LintIssue {
-  message: string;
-  severity: LintSeverity;
-  trace?: string;
-  loc?: LintLoc;
-}
+export type { LintSeverity, LintLoc, LintIssue } from "./lint-types.js";
+export { directiveLoc, argumentLoc } from "./lint-types.js";
 
 export interface LintContext {
   /** The directive the rule matched. */
@@ -44,37 +34,6 @@ export interface LintOptions {
    */
   payload?: string;
 }
-
-/**
- * The `{ start, end }` tokens of a directive's own name and args (not its
- * children's), or `undefined` for a directive with no backing tokens (e.g.
- * one built by hand rather than parsed by `DON.parse()`).
- */
-export const directiveLoc = (directive: Directive): LintLoc | undefined => {
-  const tokens = Directive.tokensByDirective(directive);
-  if (!tokens || tokens.length === 0) return undefined;
-
-  return { start: tokens[0]!, end: tokens[tokens.length - 1]! };
-};
-
-/**
- * The `loc` of one positional argument (`directive.args[index]`), or of a
- * range of them (`directive.args[startIndex..endIndex]`) when `endIndex` is
- * given. `undefined` for a directive with no backing tokens, or for an
- * out-of-range index.
- */
-export const argumentLoc = (
-  directive: Directive,
-  startIndex: number,
-  endIndex: number = startIndex,
-): LintLoc | undefined => {
-  const tokens = Directive.tokensByDirective(directive);
-  const start = tokens?.[startIndex + 1];
-  const end = tokens?.[endIndex + 1];
-  if (!start || !end) return undefined;
-
-  return { start, end };
-};
 
 const traceOfToken = (payload: string, token: Token): string => {
   const { line, column } = token.span.startLocation;
