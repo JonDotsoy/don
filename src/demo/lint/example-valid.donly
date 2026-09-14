@@ -1,0 +1,20 @@
+server {
+  port 8080
+  route "/api/users" {
+    respond 200 "Ok"
+  }
+  route "/health" {
+    respond 204 "No Content"
+  }
+  strategy "rolling"
+  deprecated false
+  template <<<HTML
+    <html>
+      <body>Hello</body>
+    </html>
+}
+
+config {
+  maxSize 1024n
+  timeout 30
+}
