@@ -219,6 +219,12 @@ const applyValue = (
   value: RuleBody | ArgumentConstraint,
   issues: LintIssue[],
   root: Directive,
+  /**
+   * The directive(s) whose children were searched for `matches` — used only
+   * as a loc fallback for `required`, since an unmatched path has no
+   * directive of its own to point at.
+   */
+  contextParents: Directive[] = [],
 ): void => {
   if (argIndex !== undefined) {
     const constraint = value as ArgumentConstraint;
@@ -234,6 +240,7 @@ const applyValue = (
     issues.push({
       message: body.message ?? "required directive is missing",
       severity: body.severity ?? "error",
+      loc: contextParents[0] ? directiveLoc(contextParents[0]) : undefined,
     });
   }
 
@@ -242,7 +249,7 @@ const applyValue = (
       if (isSubPathOnlyEntry(entry)) {
         evaluateDocumentKeys(root, entry as LintRuleDocument, issues);
       } else {
-        applyValue(matches, undefined, entry, issues, root);
+        applyValue(matches, undefined, entry, issues, root, contextParents);
       }
     }
   }
@@ -300,7 +307,7 @@ const matchAndEvaluate = (
   }
 
   if (isFinal) {
-    applyValue(nextParents, argIndex, value, issues, root);
+    applyValue(nextParents, argIndex, value, issues, root, parents);
   } else {
     matchAndEvaluate(nextParents, rest, argIndex, value, issues, root);
   }
@@ -340,10 +347,20 @@ const evaluateDocument = (
     const alternatives = doc.or.map((alt) => evaluateDocument(root, alt));
     const passing = alternatives.find((issues) => issues.length === 0);
     if (passing) return [];
-    return alternatives.reduce(
+    const best = alternatives.reduce(
       (best, issues) => (issues.length < best.length ? issues : best),
       alternatives[0] ?? [],
     );
+    if (doc.message) {
+      return [
+        {
+          message: doc.message,
+          severity: doc.severity ?? "error",
+          loc: best[0]?.loc ?? directiveLoc(root),
+        },
+      ];
+    }
+    return best;
   }
 
   const issues: LintIssue[] = [];

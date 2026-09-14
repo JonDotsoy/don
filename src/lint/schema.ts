@@ -167,6 +167,13 @@ export interface LintRuleDocument {
   and?: readonly LintRuleDocument[];
   not?: LintRuleDocument;
   /**
+   * Overrides the issues reported when none of `or`'s alternatives pass: a
+   * single issue with this message (and `severity`, default `"error"`)
+   * replaces the failing alternatives' own issues. Ignored without `or`.
+   */
+  message?: string;
+  severity?: RuleSeverity;
+  /**
    * Escape hatch: arbitrary custom logic for the document root itself, e.g.
    * `{ evaluation: (directive) => [...] }` — mirrors `RuleBody.evaluation`,
    * scoped to the root instead of some sub-path's matches.

@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import { lintSchema } from "./lint-schema";
+import { renderReport } from "./report";
 import type { LintRuleDocument, RuleAndEntry } from "./schema";
 import type { Directive } from "../don";
 import type { LintIssue } from "./types";
@@ -620,6 +621,77 @@ server {
       rule,
     );
     expect(invalidIssues.length).toBeGreaterThan(0);
+  });
+
+  test("accepts an or combinator on port or socket, satisfied by socket alone", () => {
+    const rule = {
+      or: [
+        { "/server/port": { required: true } },
+        { "/server/socket": { required: true } },
+      ],
+    } satisfies LintRuleDocument;
+
+    const validSocketIssues = lintSchema(
+      `
+server {
+  socket "/tmp/app.sock"
+}
+`,
+      rule,
+    );
+    expect(validSocketIssues).toHaveLength(0);
+
+    expect(
+      renderReport(validSocketIssues, { filePath: "server.donly" }),
+    ).toMatchSnapshot();
+  });
+
+  test("accepts an or combinator on port or socket, violated when neither is present", () => {
+    const rule = {
+      or: [
+        { "/server/port": { required: true } },
+        { "/server/socket": { required: true } },
+      ],
+    } satisfies LintRuleDocument;
+
+    const invalidIssues = lintSchema(
+      `
+server {
+}
+`,
+      rule,
+    );
+    expect(invalidIssues.length).toBeGreaterThan(0);
+
+    expect(
+      renderReport(invalidIssues, { filePath: "server.donly" }),
+    ).toMatchSnapshot();
+  });
+
+  test("accepts a message on the or combinator, shown when neither alternative passes", () => {
+    const rule = {
+      or: [
+        { "/server/port": { required: true } },
+        { "/server/socket": { required: true } },
+      ],
+      message: "server debe declarar port o socket",
+    } satisfies LintRuleDocument;
+
+    const invalidIssues = lintSchema(
+      `
+server {
+}
+`,
+      rule,
+    );
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: "server debe declarar port o socket",
+    });
+
+    expect(
+      renderReport(invalidIssues, { filePath: "server.donly" }),
+    ).toMatchSnapshot();
   });
 
   test("accepts a custom evaluation at the document root", () => {
