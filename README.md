@@ -569,6 +569,20 @@ A `LintIssue` is:
 ESLint-style text report or a `JSONReport`, respectively — see
 [`src/lint/report.ts`](./src/lint/report.ts).
 
+### CLI
+
+The package ships a `donly` executable — run it with `npx donly` or
+`bunx donly` without installing anything first:
+
+```sh
+bunx donly lint --rules rules.json file.donly
+```
+
+`donly lint --rules <rules.json> <file>` reads a `LintRuleDocument` from
+`rules.json`, runs it against `file` with `lintSchema`, prints the result
+with `renderReport`, and exits with a non-zero status code when any
+reported issue is an `"error"`.
+
 ## Demos
 
 - [`donly/demo/http-proxy`](./src/demo/proxy/README.md) — a hot-reloading

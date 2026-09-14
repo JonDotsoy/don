@@ -58,6 +58,24 @@ jobs:
       - name: Pack, install, and run the import smoke test
         run: bash scripts/smoke-test-imports/npm-pack-test.sh ${{ matrix.runtime }}
 
+  cli-smoke-test:
+    name: CLI smoke test (bunx donly)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      # Same packaging as smoke-test-imports, but verifies the `donly`
+      # bin resolves and runs the `lint` command via `bunx donly`.
+      - name: Pack, install, and run the CLI smoke test
+        run: bash scripts/smoke-test-imports/npm-pack-test.sh cli
+
   type-smoke-test-imports:
     name: Import types smoke test
     runs-on: ubuntu-latest
