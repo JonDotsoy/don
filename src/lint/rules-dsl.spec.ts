@@ -164,6 +164,34 @@ and {
     } satisfies LintRuleDocument);
   });
 
+  test("two top-level path keys combine into one document (implicit and)", () => {
+    const source = `
+/server/port "server debe declarar un port" { required }
+/route/respond {
+  [1] {
+    type "number"
+    gte 100
+    lte 599
+    message "el status code de respond debe estar entre 100 y 599"
+  }
+}
+`;
+    expect(parseLintRulesDonly(source)).toEqual({
+      "/server/port": {
+        required: true,
+        message: "server debe declarar un port",
+      },
+      "/route/respond": {
+        "[1]": {
+          type: "number",
+          gte: 100,
+          lte: 599,
+          message: "el status code de respond debe estar entre 100 y 599",
+        },
+      },
+    } satisfies LintRuleDocument);
+  });
+
   test("wildcard sub-path must be quoted (/* collides with block comments)", () => {
     const source = `
 "/*" {
