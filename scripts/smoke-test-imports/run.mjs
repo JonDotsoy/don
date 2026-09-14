@@ -17,6 +17,8 @@ import {
 } from "donly";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
+// "donly/lint/lint" (the declarative `LintRuleDocument` engine)
+import { lintSchema, lint as lintDoc } from "donly/lint/lint";
 
 // "donly"
 const directive = DON.parse('name "example"');
@@ -38,6 +40,23 @@ assert.ok(decoded instanceof Directive);
 assert.equal(decoded.name, "name");
 assert.deepEqual(decoded.args, ["example"]);
 
+// "donly/lint/lint"
+assert.equal(lintSchema, lintDoc);
+assert.equal(typeof lintSchema, "function");
+const validIssues = lintSchema("server {\n  port 3000\n}\n", {
+  "/server/port": {
+    "[1]": { type: "number", message: "port must be a number" },
+  },
+});
+assert.deepEqual(validIssues, []);
+const invalidIssues = lintSchema('server {\n  port "3000"\n}\n', {
+  "/server/port": {
+    "[1]": { type: "number", message: "port must be a number" },
+  },
+});
+assert.equal(invalidIssues.length, 1);
+assert.equal(invalidIssues[0].message, "port must be a number");
+
 console.log(
-  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder" and "donly/decoder" all resolve and work.`,
+  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder", "donly/decoder" and "donly/lint/lint" all resolve and work.`,
 );
