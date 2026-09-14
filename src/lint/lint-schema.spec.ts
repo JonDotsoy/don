@@ -668,6 +668,32 @@ server {
     ).toMatchSnapshot();
   });
 
+  test("accepts a message on the or combinator, shown when neither alternative passes", () => {
+    const rule = {
+      or: [
+        { "/server/port": { required: true } },
+        { "/server/socket": { required: true } },
+      ],
+      message: "server debe declarar port o socket",
+    } satisfies LintRuleDocument;
+
+    const invalidIssues = lintSchema(
+      `
+server {
+}
+`,
+      rule,
+    );
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: "server debe declarar port o socket",
+    });
+
+    expect(
+      renderReport(invalidIssues, { filePath: "server.donly" }),
+    ).toMatchSnapshot();
+  });
+
   test("accepts a custom evaluation at the document root", () => {
     const rule = {
       *evaluation(directive: Directive): Iterable<LintIssue> {

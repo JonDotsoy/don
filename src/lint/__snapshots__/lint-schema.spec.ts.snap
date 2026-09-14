@@ -159,6 +159,26 @@ exports[`lint schema runtime accepts an argument selector constraint 1`] = `
 ]
 `;
 
+exports[`lint schema runtime accepts an or combinator on port or socket, satisfied by socket alone 1`] = `
+"server.donly
+
+0 errors 0 warnings 0 info"
+`;
+
+exports[`lint schema runtime accepts an or combinator on port or socket, violated when neither is present 1`] = `
+"server.donly
+  2:1  error  required directive is missing
+
+1 error 0 warnings 0 info"
+`;
+
+exports[`lint schema runtime accepts a message on the or combinator, shown when neither alternative passes 1`] = `
+"server.donly
+  -  error  server debe declarar port o socket
+
+1 error 0 warnings 0 info"
+`;
+
 exports[`lint schema runtime accepts a custom evaluation at the document root 1`] = `
 [
   {
@@ -427,17 +447,4 @@ exports[`lint schema runtime runs an argument constraint's evaluation alongside 
     "severity": "error",
   },
 ]
-`;
-
-exports[`lint schema runtime accepts an or combinator on port or socket, satisfied by socket alone 1`] = `
-"server.donly
-
-0 errors 0 warnings 0 info"
-`;
-
-exports[`lint schema runtime accepts an or combinator on port or socket, violated when neither is present 1`] = `
-"server.donly
-  -  error  required directive is missing
-
-1 error 0 warnings 0 info"
 `;
