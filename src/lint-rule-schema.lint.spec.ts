@@ -1,20 +1,9 @@
-import { describe, test, expect, mock } from "bun:test";
-import type { LintIssue } from "./lint";
+import { describe, test, expect } from "bun:test";
+import { lint } from "./lint-rule-schema-eval";
 import type { LintRuleDocument, RuleAndEntry } from "./lint-rule-schema";
 
-/**
- * `lint()` for the object/JSON-format `LintRuleDocument` design (see
- * `docs/specs/v1/lint-rule.md` and `./lint-rule-schema.ts`) doesn't exist
- * yet — only the types do. This mock stands in for its future signature so
- * the `test.skip()`s below can be written against it now; every case here
- * mirrors one of the type-level examples in `lint-rule-schema.spec.ts`.
- */
-const lint = mock((don: string, rule: LintRuleDocument): LintIssue[] => {
-  throw new Error("not implemented");
-});
-
-describe("lint-rule-schema runtime (design only, not implemented)", () => {
-  test.skip("accepts an argument selector constraint", () => {
+describe("lint-rule-schema runtime", () => {
+  test("accepts an argument selector constraint", () => {
     const rule = {
       "/server/port": {
         "[1]": {
@@ -49,7 +38,7 @@ server {
     });
   });
 
-  test.skip("accepts range checks, enum, and pattern on a constraint", () => {
+  test("accepts range checks, enum, and pattern on a constraint", () => {
     const rule = {
       "/server/port": {
         "[1]": { type: "number", gt: 1024, lte: 65535 },
@@ -87,7 +76,7 @@ server {
     expect(invalidIssues).toHaveLength(3);
   });
 
-  test.skip("accepts an or combinator on a constraint", () => {
+  test("accepts an or combinator on a constraint", () => {
     const rule = {
       "/server/port": {
         "[1]": {
@@ -134,7 +123,7 @@ server {
     });
   });
 
-  test.skip("accepts an and combinator on a constraint", () => {
+  test("accepts an and combinator on a constraint", () => {
     const rule = {
       "/server/route": {
         "[1]": {
@@ -189,7 +178,7 @@ server {
     expect(doubleSlashIssues).toHaveLength(1);
   });
 
-  test.skip("accepts a not combinator on a constraint", () => {
+  test("accepts a not combinator on a constraint", () => {
     const rule = {
       "/server/strategy": {
         "[1]": {
@@ -223,7 +212,7 @@ server {
     });
   });
 
-  test.skip("accepts nested sub-paths with occurrence constraints", () => {
+  test("accepts nested sub-paths with occurrence constraints", () => {
     const rule = {
       "/server": {
         "/route": {
@@ -259,7 +248,7 @@ server {
     });
   });
 
-  test.skip("accepts required and rule-level and", () => {
+  test("accepts required and rule-level and", () => {
     const rule = {
       "/server/port": {
         and: [
@@ -303,7 +292,7 @@ server {
     expect(tooLargeIssues).toHaveLength(1);
   });
 
-  test.skip("accepts a path[N] shorthand key holding a bare constraint", () => {
+  test("accepts a path[N] shorthand key holding a bare constraint", () => {
     const rule = {
       "/server/route[2]": {
         or: [{ type: "boolean" }, { type: "number" }],
@@ -332,7 +321,7 @@ server {
     expect(invalidIssues).toHaveLength(1);
   });
 
-  test.skip("accepts a path[N] shorthand key nested inside a rule body", () => {
+  test("accepts a path[N] shorthand key nested inside a rule body", () => {
     const rule = {
       "/server": {
         "/route[2]": {
@@ -364,7 +353,7 @@ server {
     expect(invalidIssues).toHaveLength(1);
   });
 
-  test.skip("accepts severity alongside message on a constraint", () => {
+  test("accepts severity alongside message on a constraint", () => {
     const rule = {
       "/server/strategy": {
         "[1]": {
@@ -397,7 +386,7 @@ server {
     expect(invalidIssues[0]).toMatchObject({ severity: "warning" });
   });
 
-  test.skip("accepts every DON argument type, including bigint, null, and heredoc", () => {
+  test("accepts every DON argument type, including bigint, null, and heredoc", () => {
     const rule = {
       "/config/maxSize": {
         "[1]": { type: "bigint", gt: 0n, message: "maxSize debe ser un bigint positivo" },
@@ -443,7 +432,7 @@ server {
     expect(invalidIssues).toHaveLength(3);
   });
 
-  test.skip("accepts the root selector and the wildcard sub-path", () => {
+  test("accepts the root selector and the wildcard sub-path", () => {
     const rule = {
       "/*": {
         max: 1,
@@ -478,7 +467,7 @@ route /health {
     });
   });
 
-  test.skip("accepts and grouping rules for unrelated paths", () => {
+  test("accepts and grouping rules for unrelated paths", () => {
     const andEntries: RuleAndEntry[] = [
       {
         "/server": {
@@ -529,7 +518,7 @@ route /users {
     expect(invalidIssues).toHaveLength(2);
   });
 
-  test.skip("makes /respond required only when /server/route exists", () => {
+  test("makes /respond required only when /server/route exists", () => {
     const rule = {
       "/server/route": {
         "/respond": {
@@ -585,7 +574,7 @@ server {
     });
   });
 
-  test.skip("accepts an or between two alternative documents at the root", () => {
+  test("accepts an or between two alternative documents at the root", () => {
     const orDocuments: LintRuleDocument[] = [
       { "/server/port": { required: true } },
       { "/server/socket": { required: true } },
