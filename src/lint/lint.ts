@@ -3,7 +3,7 @@
  * (see `docs/lint/rules.md`). Re-exports the runtime evaluator and its
  * types from `./lint-schema.ts` / `./schema.ts`.
  */
-export { lintSchema } from "./lint-schema.js";
+export { lintSchema, lintSchema as lint } from "./lint-schema.js";
 export type {
   RuleSeverity,
   ArgumentType,
