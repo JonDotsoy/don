@@ -109,6 +109,28 @@ describe("lint-rule-schema types", () => {
     expectTypeOf(example["/server/port"]).toMatchTypeOf<RuleBody>();
   });
 
+  it("types /server/route's sub-path and argument selector siblings correctly", () => {
+    const example = {
+      "/server/route": {
+        "/body": {
+          required: true,
+          message: "route debe declarar un body",
+        },
+        "[1]": {
+          type: "string",
+          pattern: "^/",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    expectTypeOf(example).toMatchTypeOf<LintRuleDocument>();
+    expectTypeOf(example["/server/route"]).toMatchTypeOf<RuleBody>();
+    expectTypeOf(example["/server/route"]["/body"]).toMatchTypeOf<RuleBody>();
+    expectTypeOf(
+      example["/server/route"]["[1]"],
+    ).toMatchTypeOf<ArgumentConstraint>();
+  });
+
   it("types /server/port[1]'s value as an ArgumentConstraint", () => {
     const example = {
       "/server/port[1]": {
