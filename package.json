@@ -76,10 +76,10 @@
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
     "test:types": "tsc -p tsconfig.types.json --noEmit",
-    "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md --cwd ."
+    "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md docs/lint/rules.md --cwd ."
   },
   "devDependencies": {
-    "@jondotsoy/tmd": "^0.0.5",
+    "@jondotsoy/tmd": "^0.0.7",
     "@types/bun": "latest",
     "prettier": "3.7.4"
   },

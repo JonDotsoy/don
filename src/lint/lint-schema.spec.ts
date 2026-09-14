@@ -526,6 +526,43 @@ route /users {
     expect(invalidIssues).toHaveLength(2);
   });
 
+  test("accepts and grouping rules for unrelated paths at the document root, with no wrapping label", () => {
+    const rule: LintRuleDocument = JSON.parse(`
+{
+  "and": [
+    {
+      "/server/port": {
+        "required": true,
+        "message": "server debe declarar un port"
+      }
+    },
+    {
+      "/route/respond": {
+        "[1]": {
+          "type": "number",
+          "gte": 100,
+          "lte": 599,
+          "message": "el status code de respond debe estar entre 100 y 599"
+        }
+      }
+    }
+  ]
+}
+`);
+
+    const invalidIssues = lintSchema(
+      `
+server {
+}
+route /users {
+  respond 999 "Bad"
+}
+`,
+      rule,
+    );
+    expect(invalidIssues).toHaveLength(2);
+  });
+
   test("makes /respond required only when /server/route exists", () => {
     const rule = {
       "/server/route": {
