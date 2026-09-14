@@ -1053,29 +1053,29 @@ server.donly
 ## `and` at the rule level: composing full rules
 
 `and` isn't limited to constraints on an argument selector — a rule body
-also accepts an `and` property: an array of full `{ path, ... }` rule
-objects, each free to declare its own `path`, argument selectors,
-sub-paths, and even a further nested `and`/`or`. This bundles several
-independent checks into a single named entry even when the paths involved
-aren't in a common ancestor/descendant chain that nesting could express —
-useful when a schema wants to group unrelated checks as one entry instead
-of one key per check. The outer key is purely a label for the group; each
-nested object's own `path` is what selects which directives it runs
-against.
+also accepts an `and` property: an array of `RuleBody`s, each addressed by
+its own `/`-prefixed sub-path key(s) (never a `path` field — a rule is
+always addressed by a key, see [Document
+shape](#document-shape-path-as-the-object-key) above). An `and` entry whose
+own keys are _all_ sub-paths is evaluated from the document root, entirely
+independently of whatever the enclosing key matched — that's what lets its
+entries address paths unrelated to each other, and unrelated to the key
+`and` itself sits under. No label key is needed for this to work; `and` can
+just as well sit at the document root directly, with nothing wrapping it.
 
 ## JSON example: `and` grouping rules for unrelated paths
 
 ```json
 {
-  "/server-config": {
-    "and": [
-      {
-        "path": "/server/port",
+  "and": [
+    {
+      "/server/port": {
         "required": true,
         "message": "server debe declarar un port"
-      },
-      {
-        "path": "/route/respond",
+      }
+    },
+    {
+      "/route/respond": {
         "[1]": {
           "type": "number",
           "gte": 100,
@@ -1083,15 +1083,17 @@ against.
           "message": "el status code de respond debe estar entre 100 y 599"
         }
       }
-    ]
-  }
+    }
+  ]
 }
 ```
 
-This groups two unrelated checks under one entry, purely for organization —
-the outer `/server-config` key is a label, not itself a directive path:
-`/server/port` must exist, and every `/route/respond`'s first argument must
-be a `number` between `100` and `599`. It is valid:
+This groups two unrelated checks under one document-root `and` — no
+wrapping label key is needed, since `and` is already accepted directly at
+the root (see [`or`, `and`, and `not` at the document
+root](#or-and-and-not-at-the-document-root) below): `/server/port` must
+exist, and every `/route/respond`'s first argument must be a `number`
+between `100` and `599`. It is valid:
 
 ```don
 server {
@@ -1126,15 +1128,15 @@ route /users {
 }
 `,
   {
-    "/server-config": {
-      and: [
-        {
-          path: "/server/port",
+    and: [
+      {
+        "/server/port": {
           required: true,
           message: "server debe declarar un port",
         },
-        {
-          path: "/route/respond",
+      },
+      {
+        "/route/respond": {
           "[1]": {
             type: "number",
             gte: 100,
@@ -1142,8 +1144,8 @@ route /users {
             message: "el status code de respond debe estar entre 100 y 599",
           },
         },
-      ],
-    },
+      },
+    ],
   },
 );
 
@@ -1152,9 +1154,10 @@ const result = renderReport(issues, { filePath, asciiColor: false });
 
 ```txt
 server.donly
-  -  error  server debe declarar un port
+     -  error  server debe declarar un port
+  5:11  error  el status code de respond debe estar entre 100 y 599
 
-1 error 0 warnings 0 info
+2 errors 0 warnings 0 info
 ```
 
 ## JSON example: sub-paths and occurrence constraints nested under `/server`
