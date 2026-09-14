@@ -591,6 +591,20 @@ reported issue is an `"error"`.
   bunx donly lint --rules rules.json -o json file.donly
   ```
 
+`donly inspect [--strategy|-s nested|tuple|raw] <file>` parses `file` with
+`DON.parse` and prints it as JSON via `DirectiveJSONEncoder`, defaulting to
+the `nested` strategy (`DirectiveJSONEncoder.nestedReducer` — the same shape
+`load()` produces, args nested as object keys):
+
+```sh
+bunx donly inspect file.donly
+```
+
+- `--strategy`/`-s` `nested | tuple | raw` — defaults to `nested`.
+  `tuple` uses `DirectiveJSONEncoder.tupleReducer` (args kept as an array);
+  `raw` skips reducing altogether and prints the lossless
+  `{ name, args, children }` shape.
+
 ## Demos
 
 - [`donly/demo/http-proxy`](./src/demo/proxy/README.md) — a hot-reloading

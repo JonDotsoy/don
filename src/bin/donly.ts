@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
+import { DON } from "../don.js";
+import { DirectiveJSONEncoder } from "../directive-json.js";
+import type { DirectiveReducer } from "../directive-json.js";
 import { lintSchema } from "../lint/lint.js";
 import { renderReport, renderJSONReport } from "../lint/report.js";
 import type { LintRuleDocument } from "../lint/schema.js";
 
-const usage = `Usage: donly lint --rules <rules.json> [--output|-o default|json] <file.donly>`;
+const topLevelUsage = `Usage: donly <command> [options]
+
+Commands:
+  lint --rules <rules.json> [--output|-o default|json] <file.donly>
+  inspect [--strategy|-s nested|tuple|raw] <file.donly>`;
+
+const lintUsage = `Usage: donly lint --rules <rules.json> [--output|-o default|json] <file.donly>`;
 
 type OutputFormat = "default" | "json";
 
@@ -16,7 +25,7 @@ interface LintArgs {
 
 const parseOutputFormat = (value: string | undefined): OutputFormat => {
   if (value !== "default" && value !== "json") {
-    throw new Error(usage);
+    throw new Error(lintUsage);
   }
   return value;
 };
@@ -38,7 +47,7 @@ const parseLintArgs = (args: string[]): LintArgs => {
   }
 
   if (!rulesPath || positionals.length !== 1) {
-    throw new Error(usage);
+    throw new Error(lintUsage);
   }
 
   return { rulesPath, filePath: positionals[0]!, output };
@@ -67,14 +76,77 @@ const runLint = async (args: string[]): Promise<number> => {
   return hasErrors ? 1 : 0;
 };
 
+const inspectUsage = `Usage: donly inspect [--strategy|-s nested|tuple|raw] <file.donly>`;
+
+type InspectStrategy = "nested" | "tuple" | "raw";
+
+interface InspectArgs {
+  filePath: string;
+  strategy: InspectStrategy;
+}
+
+const parseInspectStrategy = (value: string | undefined): InspectStrategy => {
+  if (value !== "nested" && value !== "tuple" && value !== "raw") {
+    throw new Error(inspectUsage);
+  }
+  return value;
+};
+
+const parseInspectArgs = (args: string[]): InspectArgs => {
+  let strategy: InspectStrategy = "nested";
+  const positionals: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    if (arg === "--strategy" || arg === "-s") {
+      strategy = parseInspectStrategy(args[++index]);
+    } else {
+      positionals.push(arg!);
+    }
+  }
+
+  if (positionals.length !== 1) {
+    throw new Error(inspectUsage);
+  }
+
+  return { filePath: positionals[0]!, strategy };
+};
+
+const reducerOf = (strategy: InspectStrategy): DirectiveReducer | null => {
+  switch (strategy) {
+    case "nested":
+      return DirectiveJSONEncoder.nestedReducer;
+    case "tuple":
+      return DirectiveJSONEncoder.tupleReducer;
+    case "raw":
+      return null;
+  }
+};
+
+const runInspect = async (args: string[]): Promise<number> => {
+  const { filePath, strategy } = parseInspectArgs(args);
+
+  const source = await readFile(filePath, "utf8");
+  const directive = DON.parse(source);
+  const encoded = new DirectiveJSONEncoder().encode(directive, {
+    reducer: reducerOf(strategy),
+  });
+
+  console.log(JSON.stringify(encoded, null, 2));
+
+  return 0;
+};
+
 const main = async (): Promise<number> => {
   const [command, ...rest] = process.argv.slice(2);
 
   switch (command) {
     case "lint":
       return runLint(rest);
+    case "inspect":
+      return runInspect(rest);
     default:
-      console.error(usage);
+      console.error(topLevelUsage);
       return 1;
   }
 };

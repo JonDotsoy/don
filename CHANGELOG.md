@@ -56,4 +56,8 @@ documentation.
   a `.donly` file using a `LintRuleDocument` JSON file, prints an ESLint-style
   report via `renderReport`, and exits non-zero when any issue is an error.
   Accepts `--output`/`-o` `default | json` to switch between `renderReport`'s
-  text report (default) and `renderJSONReport`'s `JSONReport`.
+  text report (default) and `renderJSONReport`'s `JSONReport`. Also adds a
+  `donly inspect [--strategy|-s nested|tuple|raw] <file>` command: parses a
+  `.donly` file and prints it as JSON via `DirectiveJSONEncoder`, defaulting
+  to the `nested` reducer (`tuple` and `raw`, the lossless
+  `{ name, args, children }` shape, are also available).

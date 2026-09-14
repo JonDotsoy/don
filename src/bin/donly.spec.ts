@@ -65,18 +65,6 @@ describe("donly lint", () => {
       expect(stdout).toContain("1 error 0 warnings 0 info");
     }));
 
-  test("prints usage and exits 1 for an unknown command", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "donly-cli-"));
-    try {
-      const { stderr, exitCode } = await runCli(["unknown"], dir);
-
-      expect(exitCode).toBe(1);
-      expect(stderr).toContain("Usage: donly lint");
-    } finally {
-      await rm(dir, { recursive: true, force: true });
-    }
-  });
-
   test("--output json prints a JSONReport and exits 1 on errors", () =>
     withFixtures(async (dir) => {
       await writeFile(join(dir, "file.donly"), 'server {\n  port "3000"\n}\n');
@@ -131,4 +119,97 @@ describe("donly lint", () => {
       expect(exitCode).toBe(1);
       expect(stderr).toContain("Usage: donly lint");
     }));
+});
+
+describe("donly inspect", () => {
+  const withDonlyFile = async (
+    fn: (dir: string) => Promise<void>,
+  ): Promise<void> => {
+    const dir = await mkdtemp(join(tmpdir(), "donly-cli-"));
+    try {
+      await writeFile(
+        join(dir, "file.donly"),
+        'route /users GET {\n  respond 200 "Ok"\n}\n',
+      );
+      await fn(dir);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  };
+
+  test("defaults to the nested strategy", () =>
+    withDonlyFile(async (dir) => {
+      const { stdout, exitCode } = await runCli(
+        ["inspect", "file.donly"],
+        dir,
+      );
+
+      expect(exitCode).toBe(0);
+      expect(JSON.parse(stdout)).toEqual({
+        route: { "/users": { GET: { respond: { "200": "Ok" } } } },
+      });
+    }));
+
+  test("--strategy tuple keeps args as an array", () =>
+    withDonlyFile(async (dir) => {
+      const { stdout, exitCode } = await runCli(
+        ["inspect", "--strategy", "tuple", "file.donly"],
+        dir,
+      );
+
+      expect(exitCode).toBe(0);
+      expect(JSON.parse(stdout)).toEqual({
+        route: ["/users", "GET", { respond: [200, "Ok"] }],
+      });
+    }));
+
+  test("-s raw returns the lossless {name, args, children} shape", () =>
+    withDonlyFile(async (dir) => {
+      const { stdout, exitCode } = await runCli(
+        ["inspect", "-s", "raw", "file.donly"],
+        dir,
+      );
+
+      expect(exitCode).toBe(0);
+      expect(JSON.parse(stdout)).toEqual([
+        {
+          name: "route",
+          args: ["/users", "GET"],
+          children: [
+            {
+              name: "respond",
+              args: [200, "Ok"],
+              children: [],
+            },
+          ],
+        },
+      ]);
+    }));
+
+  test("rejects an unknown --strategy value", () =>
+    withDonlyFile(async (dir) => {
+      const { stderr, exitCode } = await runCli(
+        ["inspect", "--strategy", "bogus", "file.donly"],
+        dir,
+      );
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain("Usage: donly inspect");
+    }));
+});
+
+describe("donly (unknown command)", () => {
+  test("prints usage listing every command and exits 1", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "donly-cli-"));
+    try {
+      const { stderr, exitCode } = await runCli(["unknown"], dir);
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain("Usage: donly <command>");
+      expect(stderr).toContain("lint --rules");
+      expect(stderr).toContain("inspect");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });

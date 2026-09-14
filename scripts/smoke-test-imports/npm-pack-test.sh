@@ -65,6 +65,18 @@ EOF
       echo "Expected 'bunx donly lint' to exit non-zero on a lint error" >&2
       exit 1
     fi
+
+    echo "==> Running 'bunx donly inspect file.donly' against the installed package"
+    INSPECT_OUTPUT="$(bunx donly inspect file.donly)"
+    echo "$INSPECT_OUTPUT"
+    if [ "$INSPECT_OUTPUT" != '{
+  "server": {
+    "port": "3000"
+  }
+}' ]; then
+      echo "Unexpected 'bunx donly inspect' output" >&2
+      exit 1
+    fi
     ;;
   *)
     echo "Unknown mode: $MODE (expected 'node', 'bun', 'types', or 'cli')" >&2
