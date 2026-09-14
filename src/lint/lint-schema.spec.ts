@@ -1,6 +1,8 @@
 import { describe, test, expect } from "bun:test";
 import { lintSchema } from "./lint-schema";
 import type { LintRuleDocument, RuleAndEntry } from "./schema";
+import type { Directive } from "../don";
+import type { LintIssue } from "./types";
 
 describe("lint schema runtime", () => {
   test("accepts an argument selector constraint", () => {
@@ -613,5 +615,96 @@ server {
       rule,
     );
     expect(invalidIssues.length).toBeGreaterThan(0);
+  });
+
+  test("accepts a custom evaluation at the document root", () => {
+    const rule = {
+      *evaluation(directive: Directive): Iterable<LintIssue> {
+        if (directive.children.length === 0) {
+          yield {
+            message: "el documento no puede estar vacío",
+            severity: "error",
+          };
+        }
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema("server {\n  port 3000\n}\n", rule);
+    expect(validIssues).toHaveLength(0);
+
+    const invalidIssues = lintSchema("", rule);
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: "el documento no puede estar vacío",
+    });
+  });
+
+  test("accepts a custom evaluation on a rule body", () => {
+    const rule = {
+      "/server/port": {
+        *evaluation(directive: Directive): Iterable<LintIssue> {
+          if (
+            typeof directive.args[0] === "number" &&
+            directive.args[0] < 1024
+          ) {
+            yield { message: "port privilegiado", severity: "warning" };
+          }
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema("server {\n  port 8080\n}\n", rule);
+    expect(validIssues).toHaveLength(0);
+
+    const invalidIssues = lintSchema("server {\n  port 80\n}\n", rule);
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: "port privilegiado",
+      severity: "warning",
+    });
+  });
+
+  test("accepts a custom evaluation on an argument constraint", () => {
+    const rule = {
+      "/server/port[1]": {
+        *evaluation(argument: unknown): Iterable<LintIssue> {
+          if (argument === 8080) {
+            yield { message: "8080 está reservado", severity: "error" };
+          }
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema("server {\n  port 3000\n}\n", rule);
+    expect(validIssues).toHaveLength(0);
+
+    const invalidIssues = lintSchema("server {\n  port 8080\n}\n", rule);
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: "8080 está reservado",
+    });
+  });
+
+  test("runs an argument constraint's evaluation alongside its declarative checks", () => {
+    const rule = {
+      "/server/port[1]": {
+        type: "number",
+        *evaluation(argument: unknown): Iterable<LintIssue> {
+          if (typeof argument === "number" && argument > 65535) {
+            yield { message: "fuera de rango", severity: "error" };
+          }
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema("server {\n  port 3000\n}\n", rule);
+    expect(validIssues).toHaveLength(0);
+
+    const wrongTypeIssues = lintSchema('server {\n  port "x"\n}\n', rule);
+    expect(wrongTypeIssues).toHaveLength(1);
+
+    const outOfRangeIssues = lintSchema("server {\n  port 70000\n}\n", rule);
+    expect(outOfRangeIssues).toHaveLength(1);
+    expect(outOfRangeIssues[0]).toMatchObject({ message: "fuera de rango" });
   });
 });

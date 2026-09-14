@@ -45,6 +45,7 @@ const BODY_META_KEYS = new Set([
   "message",
   "severity",
   "and",
+  "evaluation",
 ]);
 
 const bodyKeyEntries = (
@@ -175,6 +176,12 @@ const evaluateArgumentConstraint = (
       loc: argumentLoc(directive, argIndex - 1),
     });
   }
+
+  if (constraint.evaluation) {
+    for (const issue of constraint.evaluation(value, directive)) {
+      issues.push(issue);
+    }
+  }
 };
 
 const checkOccurrence = (
@@ -236,6 +243,14 @@ const applyValue = (
     }
   }
 
+  if (body.evaluation) {
+    for (const directive of matches) {
+      for (const issue of body.evaluation(directive)) {
+        issues.push(issue);
+      }
+    }
+  }
+
   for (const directive of matches) {
     for (const [key, subValue] of bodyKeyEntries(body)) {
       const { segments, argIndex: subArgIndex } = parseSelectorKey(key);
@@ -291,7 +306,14 @@ const evaluateDocumentKeys = (
   issues: LintIssue[],
 ): void => {
   for (const [key, value] of Object.entries(doc)) {
-    if (key === "or" || key === "and" || key === "not") continue;
+    if (
+      key === "or" ||
+      key === "and" ||
+      key === "not" ||
+      key === "evaluation"
+    ) {
+      continue;
+    }
     const { segments, argIndex } = parseSelectorKey(key);
     matchAndEvaluate(
       [root],
@@ -331,6 +353,12 @@ const evaluateDocument = (
         message: "document must not match the given rule",
         severity: "error",
       });
+    }
+  }
+
+  if (doc.evaluation) {
+    for (const issue of doc.evaluation(root)) {
+      issues.push(issue);
     }
   }
 

@@ -939,3 +939,42 @@ instead of repeating the key:
   }
 }
 ```
+
+## `evaluation`: an escape hatch for custom logic
+
+A function can't be serialized to JSON, so `evaluation` only makes sense
+when a rule document is authored directly in code (TypeScript/JavaScript)
+rather than loaded from a `.json`/`.yaml` file — it's the same escape hatch
+`LintRule.evaluation` in [`src/lint.ts`](../../src/lint.ts) already offers,
+adapted to slot into this declarative design at three levels:
+
+- On the document root itself: `{ evaluation(directive) { ... } }` — runs
+  once, receiving the document's root directive (mirrors a function-based
+  `LintRule` with no `path`).
+- On a rule body: `{ "/path": { evaluation(directive) { ... } } }` — runs
+  once per directive the path matches, receiving that directive.
+- On an argument constraint: `{ "/path[1]": { evaluation(argument,
+directive) { ... } } }` — runs once per matching directive, receiving the
+  argument's value and the directive it belongs to.
+
+Each `evaluation` returns (or yields, as a generator) zero or more
+`LintIssue`s. It runs _in addition to_ — not instead of — whatever else is
+declared alongside it (`type`/`gte`/`required`/`and`/sub-paths/etc.), so a
+constraint can mix a simple declarative check with custom logic:
+
+```ts
+import type { LintRuleDocument } from "./lint-rule-schema";
+
+const rule = {
+  "/server/port": {
+    "[1]": {
+      type: "number",
+      *evaluation(argument) {
+        if (typeof argument === "number" && argument < 1024) {
+          yield { message: "port privilegiado", severity: "warning" };
+        }
+      },
+    },
+  },
+} satisfies LintRuleDocument;
+```

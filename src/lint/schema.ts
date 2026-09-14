@@ -3,6 +3,8 @@
  * `docs/lint/rules.md`. This module is types only — there is no
  * runtime behavior here, only the shapes a lint rule document may take.
  */
+import type { Directive } from "../don.js";
+import type { LintIssue } from "./types.js";
 
 /** Mirrors `LintIssue["severity"]` in `./lint.ts`. */
 export type RuleSeverity = "error" | "warning" | "info";
@@ -27,6 +29,13 @@ export interface BaseArgumentConstraint {
   not?: ArgumentConstraint;
   message?: string;
   severity?: RuleSeverity;
+  /**
+   * Escape hatch: arbitrary custom logic for this argument, e.g.
+   * `{ "/path[1]": { evaluation: (argument, directive) => [...] } }`. Runs
+   * in addition to (not instead of) `type`/`enum`/`pattern`/etc. on the same
+   * constraint, and to `and`/`or`/`not` alternatives.
+   */
+  evaluation?: (argument: unknown, directive: Directive) => Iterable<LintIssue>;
 }
 
 /** A constraint on a `"string"` argument. */
@@ -113,6 +122,13 @@ export interface RuleBody {
   severity?: RuleSeverity;
   /** Combines full, independently-addressed rules — see "`and` at the rule level". */
   and?: readonly RuleAndEntry[];
+  /**
+   * Escape hatch: arbitrary custom logic for every directive this body's
+   * path matches, e.g. `{ "/path": { evaluation: (directive) => [...] } }`.
+   * Runs in addition to (not instead of) `required`/`max`/`min`/`and`/
+   * sub-paths/argument selectors on the same body.
+   */
+  evaluation?: (directive: Directive) => Iterable<LintIssue>;
   /** `"[N]"`/`"/name[N]"` keys: constraints on the argument at that 1-based position. */
   readonly [argument: ArgumentSelector]: ArgumentConstraint;
   /** `"/name"` keys: a nested rule body for that child directive. */
@@ -144,6 +160,12 @@ export interface LintRuleDocument {
   or?: readonly LintRuleDocument[];
   and?: readonly LintRuleDocument[];
   not?: LintRuleDocument;
+  /**
+   * Escape hatch: arbitrary custom logic for the document root itself, e.g.
+   * `{ evaluation: (directive) => [...] }` — mirrors `RuleBody.evaluation`,
+   * scoped to the root instead of some sub-path's matches.
+   */
+  evaluation?: (directive: Directive) => Iterable<LintIssue>;
   readonly [path: SubPathSelector]: RuleBody | ArgumentConstraint;
 }
 
