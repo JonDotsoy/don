@@ -583,6 +583,14 @@ bunx donly lint --rules rules.json file.donly
 with `renderReport`, and exits with a non-zero status code when any
 reported issue is an `"error"`.
 
+- `--output`/`-o` `default | json` — output format, defaults to `default`
+  (the `renderReport` text report). `json` prints the `renderJSONReport`
+  `JSONReport` instead:
+
+  ```sh
+  bunx donly lint --rules rules.json -o json file.donly
+  ```
+
 ## Demos
 
 - [`donly/demo/http-proxy`](./src/demo/proxy/README.md) — a hot-reloading

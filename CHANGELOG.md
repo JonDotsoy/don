@@ -55,3 +55,5 @@ documentation.
   `donly lint --rules <rules.json> <file>` command: runs `lintSchema` against
   a `.donly` file using a `LintRuleDocument` JSON file, prints an ESLint-style
   report via `renderReport`, and exits non-zero when any issue is an error.
+  Accepts `--output`/`-o` `default | json` to switch between `renderReport`'s
+  text report (default) and `renderJSONReport`'s `JSONReport`.

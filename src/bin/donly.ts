@@ -1,24 +1,37 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import { lintSchema } from "../lint/lint.js";
-import { renderReport } from "../lint/report.js";
+import { renderReport, renderJSONReport } from "../lint/report.js";
 import type { LintRuleDocument } from "../lint/schema.js";
 
-const usage = `Usage: donly lint --rules <rules.json> <file.donly>`;
+const usage = `Usage: donly lint --rules <rules.json> [--output|-o default|json] <file.donly>`;
+
+type OutputFormat = "default" | "json";
 
 interface LintArgs {
   rulesPath: string;
   filePath: string;
+  output: OutputFormat;
 }
+
+const parseOutputFormat = (value: string | undefined): OutputFormat => {
+  if (value !== "default" && value !== "json") {
+    throw new Error(usage);
+  }
+  return value;
+};
 
 const parseLintArgs = (args: string[]): LintArgs => {
   let rulesPath: string | undefined;
+  let output: OutputFormat = "default";
   const positionals: string[] = [];
 
   for (let index = 0; index < args.length; index++) {
     const arg = args[index];
     if (arg === "--rules") {
       rulesPath = args[++index];
+    } else if (arg === "--output" || arg === "-o") {
+      output = parseOutputFormat(args[++index]);
     } else {
       positionals.push(arg!);
     }
@@ -28,11 +41,11 @@ const parseLintArgs = (args: string[]): LintArgs => {
     throw new Error(usage);
   }
 
-  return { rulesPath, filePath: positionals[0]! };
+  return { rulesPath, filePath: positionals[0]!, output };
 };
 
 const runLint = async (args: string[]): Promise<number> => {
-  const { rulesPath, filePath } = parseLintArgs(args);
+  const { rulesPath, filePath, output } = parseLintArgs(args);
 
   const rules = JSON.parse(
     await readFile(rulesPath, "utf8"),
@@ -40,10 +53,13 @@ const runLint = async (args: string[]): Promise<number> => {
   const source = await readFile(filePath, "utf8");
 
   const issues = lintSchema(source, rules);
-  const report = renderReport(issues, {
-    filePath,
-    asciiColor: process.stdout.isTTY ?? false,
-  });
+  const report =
+    output === "json"
+      ? renderJSONReport(issues, { filePath })
+      : renderReport(issues, {
+          filePath,
+          asciiColor: process.stdout.isTTY ?? false,
+        });
 
   console.log(report);
 
