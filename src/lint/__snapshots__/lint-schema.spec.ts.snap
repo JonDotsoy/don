@@ -428,3 +428,9 @@ exports[`lint schema runtime runs an argument constraint's evaluation alongside 
   },
 ]
 `;
+
+exports[`lint schema runtime accepts an or combinator on port or socket, satisfied by socket alone 1`] = `
+"server.donly
+
+0 errors 0 warnings 0 info"
+`;
