@@ -46,4 +46,36 @@ describe("renderReport", () => {
       ["my-file.donly", "", "0 errors 0 warnings 0 info"].join("\n"),
     );
   });
+
+  test("colors the header, severities, and non-zero summary counts when asciiColor is true", () => {
+    const issues: LintIssue[] = [
+      { message: "puerto debe ser un número", severity: "error" },
+      { message: "nombre en minúsculas recomendado", severity: "warning" },
+    ];
+
+    const report = renderReport(issues, {
+      filePath: "My-File.donly",
+      asciiColor: true,
+    });
+
+    expect(report).toBe(
+      [
+        "\x1b[1mMy-File.donly\x1b[0m",
+        "  \x1b[2m-\x1b[0m  \x1b[31merror  \x1b[0m  puerto debe ser un número",
+        "  \x1b[2m-\x1b[0m  \x1b[33mwarning\x1b[0m  nombre en minúsculas recomendado",
+        "",
+        "\x1b[31m1 error\x1b[0m \x1b[33m1 warning\x1b[0m 0 info",
+      ].join("\n"),
+    );
+  });
+
+  test("omits color codes by default", () => {
+    const issues: LintIssue[] = [
+      { message: "puerto debe ser un número", severity: "error" },
+    ];
+
+    expect(renderReport(issues, { filePath: "my-file.donly" })).not.toContain(
+      "\x1b[",
+    );
+  });
 });

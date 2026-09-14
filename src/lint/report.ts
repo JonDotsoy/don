@@ -8,12 +8,36 @@
  * 1 error 0 warnings 0 info
  * ```
  */
-import type { LintIssue } from "./issue.js";
+import type { LintIssue, LintSeverity } from "./issue.js";
 
 export interface RenderReportOptions {
   /** Shown as the report's header line, e.g. the linted file's path. */
   filePath: string;
+  /**
+   * Colors the header, each row's severity, and the summary line with ANSI
+   * escape codes.
+   * @default false
+   */
+  asciiColor?: boolean;
 }
+
+const ANSI = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  red: "\x1b[31m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
+} as const;
+
+const SEVERITY_COLOR: Record<LintSeverity, string> = {
+  error: ANSI.red,
+  warning: ANSI.yellow,
+  info: ANSI.cyan,
+};
+
+const colorize = (text: string, color: string): string =>
+  `${color}${text}${ANSI.reset}`;
 
 /** `"line:column"` (1-based) from an issue's `loc`, or `"-"` when it has none. */
 const locationOf = (issue: LintIssue): string => {
@@ -34,6 +58,8 @@ export const renderReport = (
   issues: LintIssue[],
   options: RenderReportOptions,
 ): string => {
+  const asciiColor = options.asciiColor ?? false;
+
   const rows = issues.map((issue) => ({
     location: locationOf(issue),
     severity: issue.severity,
@@ -43,12 +69,13 @@ export const renderReport = (
   const locationWidth = Math.max(0, ...rows.map((row) => row.location.length));
   const severityWidth = Math.max(0, ...rows.map((row) => row.severity.length));
 
-  const lines = rows.map(
-    (row) =>
-      `  ${row.location.padStart(locationWidth)}  ${row.severity.padEnd(
-        severityWidth,
-      )}  ${row.message}`,
-  );
+  const lines = rows.map((row) => {
+    const location = row.location.padStart(locationWidth);
+    const severity = row.severity.padEnd(severityWidth);
+    return `  ${asciiColor ? colorize(location, ANSI.dim) : location}  ${
+      asciiColor ? colorize(severity, SEVERITY_COLOR[row.severity]) : severity
+    }  ${row.message}`;
+  });
 
   const errors = issues.filter((issue) => issue.severity === "error").length;
   const warnings = issues.filter(
@@ -56,10 +83,22 @@ export const renderReport = (
   ).length;
   const infos = issues.filter((issue) => issue.severity === "info").length;
 
+  const summary = [
+    asciiColor && errors > 0
+      ? colorize(pluralize(errors, "error"), ANSI.red)
+      : pluralize(errors, "error"),
+    asciiColor && warnings > 0
+      ? colorize(pluralize(warnings, "warning"), ANSI.yellow)
+      : pluralize(warnings, "warning"),
+    asciiColor && infos > 0
+      ? colorize(`${infos} info`, ANSI.cyan)
+      : `${infos} info`,
+  ].join(" ");
+
   return [
-    options.filePath,
+    asciiColor ? colorize(options.filePath, ANSI.bold) : options.filePath,
     ...lines,
     "",
-    `${pluralize(errors, "error")} ${pluralize(warnings, "warning")} ${infos} info`,
+    summary,
   ].join("\n");
 };
