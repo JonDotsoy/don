@@ -526,6 +526,54 @@ route /users {
     expect(invalidIssues).toHaveLength(2);
   });
 
+  /* TODO: docs/lint/rules.md ("JSON example: `and` grouping rules for
+   * unrelated paths") documents each rule-level `and` entry addressed by an
+   * explicit `path` field, e.g. `{ "path": "/server/port", "required": true }`.
+   * `lintSchema` never reads such a field — only `RuleAndEntry`s whose own
+   * keys are all sub-paths (`/server/port`) are routed to the document root
+   * (see `isSubPathOnlyEntry` in `./lint-schema.ts`); an entry keyed by
+   * `path` instead falls through `applyValue` against the *enclosing* key's
+   * (empty) matches, so only the first entry's `required` check ever fires.
+   * Either `lintSchema` needs to support the documented `path` field, or the
+   * doc's example needs to switch to the sub-path-keyed form the tests above
+   * already cover. Skipped until that's decided. */
+  test.skip("accepts and grouping rules for unrelated paths via an explicit `path` field (as documented)", () => {
+    const rule: LintRuleDocument = JSON.parse(`
+{
+  "/server-config": {
+    "and": [
+      {
+        "path": "/server/port",
+        "required": true,
+        "message": "server debe declarar un port"
+      },
+      {
+        "path": "/route/respond",
+        "[1]": {
+          "type": "number",
+          "gte": 100,
+          "lte": 599,
+          "message": "el status code de respond debe estar entre 100 y 599"
+        }
+      }
+    ]
+  }
+}
+`);
+
+    const invalidIssues = lintSchema(
+      `
+server {
+}
+route /users {
+  respond 999 "Bad"
+}
+`,
+      rule,
+    );
+    expect(invalidIssues).toHaveLength(2);
+  });
+
   test("makes /respond required only when /server/route exists", () => {
     const rule = {
       "/server/route": {
