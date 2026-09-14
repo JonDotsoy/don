@@ -158,3 +158,39 @@ exports[`lint schema runtime accepts an argument selector constraint 1`] = `
   },
 ]
 `;
+
+exports[`lint schema runtime accepts a custom evaluation at the document root 1`] = `
+[
+  {
+    "message": "el documento no puede estar vacío",
+    "severity": "error",
+  },
+]
+`;
+
+exports[`lint schema runtime accepts a custom evaluation on a rule body 1`] = `
+[
+  {
+    "message": "port privilegiado",
+    "severity": "warning",
+  },
+]
+`;
+
+exports[`lint schema runtime accepts a custom evaluation on an argument constraint 1`] = `
+[
+  {
+    "message": "argumento 1: 8080 está reservado",
+    "severity": "error",
+  },
+]
+`;
+
+exports[`lint schema runtime runs an argument constraint's evaluation alongside its declarative checks 1`] = `
+[
+  {
+    "message": "argumento 1: fuera de rango",
+    "severity": "error",
+  },
+]
+`;

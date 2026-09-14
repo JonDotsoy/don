@@ -642,6 +642,7 @@ server {
     expect(invalidIssues[0]).toMatchObject({
       message: "el documento no puede estar vacío",
     });
+    expect(JSON.parse(JSON.stringify(invalidIssues))).toMatchSnapshot();
   });
 
   test("accepts a custom evaluation on a rule body", () => {
@@ -667,6 +668,7 @@ server {
       message: "port privilegiado",
       severity: "warning",
     });
+    expect(JSON.parse(JSON.stringify(invalidIssues))).toMatchSnapshot();
   });
 
   test("accepts a custom evaluation on an argument constraint", () => {
@@ -691,6 +693,7 @@ server {
     expect(invalidIssues[0]).toMatchObject({
       message: "argumento 1: 8080 está reservado",
     });
+    expect(JSON.parse(JSON.stringify(invalidIssues))).toMatchSnapshot();
   });
 
   test("runs an argument constraint's evaluation alongside its declarative checks", () => {
@@ -719,5 +722,6 @@ server {
     expect(outOfRangeIssues[0]).toMatchObject({
       message: "argumento 1: fuera de rango",
     });
+    expect(JSON.parse(JSON.stringify(outOfRangeIssues))).toMatchSnapshot();
   });
 });
