@@ -179,7 +179,11 @@ const evaluateArgumentConstraint = (
 
   if (constraint.evaluation) {
     for (const issue of constraint.evaluation(value, argIndex, directive)) {
-      issues.push(issue);
+      issues.push(
+        issue.loc
+          ? issue
+          : { ...issue, loc: argumentLoc(directive, argIndex - 1) },
+      );
     }
   }
 };
@@ -246,7 +250,9 @@ const applyValue = (
   if (body.evaluation) {
     for (const directive of matches) {
       for (const issue of body.evaluation(directive)) {
-        issues.push(issue);
+        issues.push(
+          issue.loc ? issue : { ...issue, loc: directiveLoc(directive) },
+        );
       }
     }
   }
@@ -358,7 +364,7 @@ const evaluateDocument = (
 
   if (doc.evaluation) {
     for (const issue of doc.evaluation(root)) {
-      issues.push(issue);
+      issues.push(issue.loc ? issue : { ...issue, loc: directiveLoc(root) });
     }
   }
 

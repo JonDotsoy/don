@@ -171,6 +171,84 @@ exports[`lint schema runtime accepts a custom evaluation at the document root 1`
 exports[`lint schema runtime accepts a custom evaluation on a rule body 1`] = `
 [
   {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 9,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 2,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "80",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 9,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 2,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "80",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 6,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 11,
+              "length": 4,
+              "startLocation": {
+                "column": 2,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "port",
+            "type": 1,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 6,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 11,
+          "length": 4,
+          "startLocation": {
+            "column": 2,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "port",
+        "type": 11,
+      },
+    },
     "message": "port privilegiado",
     "severity": "warning",
   },
@@ -180,6 +258,84 @@ exports[`lint schema runtime accepts a custom evaluation on a rule body 1`] = `
 exports[`lint schema runtime accepts a custom evaluation on an argument constraint 1`] = `
 [
   {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 11,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 4,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "8080",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 11,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 4,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "8080",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 11,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 4,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "8080",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 11,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 4,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "8080",
+        "type": 13,
+      },
+    },
     "message": "argumento 1: 8080 está reservado",
     "severity": "error",
   },
@@ -189,6 +345,84 @@ exports[`lint schema runtime accepts a custom evaluation on an argument constrai
 exports[`lint schema runtime runs an argument constraint's evaluation alongside its declarative checks 1`] = `
 [
   {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 5,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "70000",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 12,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 5,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "70000",
+        "type": 13,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 1,
+                "paddingLine": 2,
+              },
+              "index": 16,
+              "length": 5,
+              "startLocation": {
+                "column": 7,
+                "line": 1,
+                "paddingLine": 2,
+              },
+            },
+            "text": "70000",
+            "type": 2,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 12,
+            "line": 1,
+            "paddingLine": 2,
+          },
+          "index": 16,
+          "length": 5,
+          "startLocation": {
+            "column": 7,
+            "line": 1,
+            "paddingLine": 2,
+          },
+        },
+        "text": "70000",
+        "type": 13,
+      },
+    },
     "message": "argumento 1: fuera de rango",
     "severity": "error",
   },
