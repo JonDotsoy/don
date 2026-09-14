@@ -51,3 +51,13 @@ documentation.
   and `ssl` settings), built on `donly/lint` and `Bun.serve()`. Also exports
   `proxyLintRules`, its schema's `LintRule[]`. See `src/demo/proxy/README.md`
   for the schema and usage.
+- `donly` CLI (`bin/donly.js`, invoke with `npx donly`/`bunx donly`) with a
+  `donly lint --rules <rules.json> <file>` command: runs `lintSchema` against
+  a `.donly` file using a `LintRuleDocument` JSON file, prints an ESLint-style
+  report via `renderReport`, and exits non-zero when any issue is an error.
+  Accepts `--output`/`-o` `default | json` to switch between `renderReport`'s
+  text report (default) and `renderJSONReport`'s `JSONReport`. Also adds a
+  `donly inspect [--strategy|-s nested|tuple|raw] <file>` command: parses a
+  `.donly` file and prints it as JSON via `DirectiveJSONEncoder`, defaulting
+  to the `nested` reducer (`tuple` and `raw`, the lossless
+  `{ name, args, children }` shape, are also available).

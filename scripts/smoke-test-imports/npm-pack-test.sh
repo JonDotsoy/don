@@ -6,10 +6,12 @@
 # exercises the real npm `exports`/`files` resolution consumers will hit,
 # including whether "files" actually ships everything the package needs.
 #
-# Usage: scripts/smoke-test-imports/npm-pack-test.sh <node|bun|types>
+# Usage: scripts/smoke-test-imports/npm-pack-test.sh <node|bun|types|cli>
 #   node|bun  runs run.mjs with that runtime against the installed package
 #   types     type-checks check-types.ts against the installed package's
 #             .d.ts files, using this repo's own installed typescript
+#   cli       runs the packaged `donly` bin with `bunx donly` against the
+#             installed package, exercising the `donly lint` command
 
 set -euo pipefail
 
@@ -45,8 +47,39 @@ case "$MODE" in
     echo "==> Type-checking against the installed package's declaration files"
     "$REPO_ROOT/node_modules/.bin/tsc" -p ./tsconfig.json
     ;;
+  cli)
+    cat > rules.json <<'EOF'
+{
+  "/server/port": {
+    "[1]": { "type": "number", "message": "port must be a number" }
+  }
+}
+EOF
+    cat > file.donly <<'EOF'
+server {
+  port "3000"
+}
+EOF
+    echo "==> Running 'bunx donly lint --rules rules.json file.donly' against the installed package"
+    if bunx donly lint --rules rules.json file.donly; then
+      echo "Expected 'bunx donly lint' to exit non-zero on a lint error" >&2
+      exit 1
+    fi
+
+    echo "==> Running 'bunx donly inspect file.donly' against the installed package"
+    INSPECT_OUTPUT="$(bunx donly inspect file.donly)"
+    echo "$INSPECT_OUTPUT"
+    if [ "$INSPECT_OUTPUT" != '{
+  "server": {
+    "port": "3000"
+  }
+}' ]; then
+      echo "Unexpected 'bunx donly inspect' output" >&2
+      exit 1
+    fi
+    ;;
   *)
-    echo "Unknown mode: $MODE (expected 'node', 'bun', or 'types')" >&2
+    echo "Unknown mode: $MODE (expected 'node', 'bun', 'types', or 'cli')" >&2
     exit 1
     ;;
 esac
