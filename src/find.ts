@@ -16,14 +16,26 @@ interface PathSegment {
 /**
  * Splits an absolute directive path into its `/`-separated segments,
  * treating a segment's `(...)` argument group as part of that segment even
- * when the group itself contains a `/` (e.g. `route(/home)`).
+ * when the group itself contains a `/` (e.g. `route(/home)`), and treating
+ * `\` followed by any character as that literal character rather than a
+ * separator or group delimiter (e.g. `\/user` is the single segment
+ * `/user`, matching a directive whose own name contains a `/` — DON
+ * identifiers may include `/`, see spec §2.3).
  */
 const splitPathSegments = (path: string): string[] => {
   const segments: string[] = [];
   let current = "";
   let depth = 0;
 
-  for (const char of path) {
+  for (let i = 0; i < path.length; i++) {
+    const char = path[i]!;
+
+    if (char === "\\" && i + 1 < path.length) {
+      current += char + path[i + 1];
+      i++;
+      continue;
+    }
+
     if (char === "(") depth++;
     if (char === ")") depth--;
 
@@ -39,7 +51,13 @@ const splitPathSegments = (path: string): string[] => {
   return segments;
 };
 
-const segmentPattern = /^([^/()]+)(?:\(([^)]*)\))?$/;
+// The name/args halves still carry their `\`-escapes at this point (e.g. a
+// name of `\/user`) — the character classes below only need to exclude an
+// *unescaped* `/`, `(`, or `)`, so `\\.` (an escaped pair) is accepted as a
+// unit alongside any other single character outside that exclusion set.
+const segmentPattern = /^((?:\\.|[^/()])+)(?:\(((?:\\.|[^)])*)\))?$/;
+
+const unescape = (value: string): string => value.replace(/\\(.)/g, "$1");
 
 const parseSegment = (segment: string): PathSegment => {
   const match = segmentPattern.exec(segment);
@@ -53,13 +71,13 @@ const parseSegment = (segment: string): PathSegment => {
   const trimmedArgsGroup = argsGroup?.trim();
 
   return {
-    name: name!,
+    name: unescape(name!),
     argPatterns:
       trimmedArgsGroup === undefined
         ? undefined
         : trimmedArgsGroup.length === 0
           ? []
-          : trimmedArgsGroup.split(/\s+/),
+          : trimmedArgsGroup.split(/\s+/).map(unescape),
   };
 };
 
@@ -115,6 +133,10 @@ const topLevelDirectives = (root: Directive): Directive[] =>
  *   is exactly `"/home"`.
  * - `"/server/route(* /api/user)"` — `route` children with any first
  *   argument and a second argument exactly `"/api/user"`.
+ * - `"/server/\/user"` — a `/user` child, i.e. a directive whose own name is
+ *   `/user` (DON identifiers may contain `/`, see spec §2.3); `\` escapes
+ *   the character that follows it so it's read literally instead of as a
+ *   path separator or a `(`/`)` group delimiter.
  */
 export const findAllDirectives = (
   root: Directive,
