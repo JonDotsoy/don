@@ -116,6 +116,37 @@ route /health {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  port 3000
+}
+route /health {
+  respond 200 "Ok"
+}
+`,
+  {
+    "/*": {
+      max: 1,
+      message: "el documento no puede tener más de una directiva en el root",
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  5:1  error  el documento no puede tener más de una directiva en el root
+
+1 error 0 warnings 0 info
+```
+
 ## Argument selectors: `[N]`
 
 A rule body's keys also select an argument position directly, written
@@ -373,6 +404,37 @@ config {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "config.donly";
+const issues = lintSchema(
+  `
+config {
+  maxSize 0n
+}
+`,
+  {
+    "/config/maxSize": {
+      "[1]": {
+        type: "bigint",
+        gt: 0,
+        message: "maxSize debe ser un bigint positivo",
+      },
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+config.donly
+  3:11  error  maxSize debe ser un bigint positivo
+
+1 error 0 warnings 0 info
+```
+
 ## JSON example: `"heredoc"` with a `pattern` on its content
 
 ```json
@@ -483,6 +545,44 @@ server {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  route "/api" 50000
+}
+`,
+  {
+    "/server/route": {
+      "[2]": {
+        or: [
+          { type: "boolean" },
+          {
+            type: "number",
+            gte: 0,
+            lte: 30000,
+            message: "el número debe estar entre 0 y 30000",
+          },
+        ],
+        message: "el segundo argumento debe ser boolean o number",
+      },
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  3:16  error  el segundo argumento debe ser boolean o number
+
+1 error 0 warnings 0 info
+```
+
 ## `and`: requiring multiple full constraints together
 
 `and` is `or`'s counterpart: a constraint accepts an `and` property, an
@@ -585,6 +685,36 @@ server {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  strategy "big-bang"
+}
+`,
+  {
+    "/server/strategy": {
+      "[1]": {
+        not: { enum: ["big-bang"] },
+        message: "strategy no puede ser \"big-bang\"",
+      },
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  3:12  error  strategy no puede ser "big-bang"
+
+1 error 0 warnings 0 info
+```
+
 `not` composes with `and`/`or`: e.g. `{ "and": [{ "type": "string" }, { "not": { "pattern": "^/" } }] }`
 requires a `string` that does **not** start with `/`.
 
@@ -634,6 +764,37 @@ route /users {
   respond 200 "Ok"
   respond 404 "Not found"
 }
+```
+
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "route.donly";
+const issues = lintSchema(
+  `
+route /users {
+  respond 200 "Ok"
+  respond 404 "Not found"
+}
+`,
+  {
+    "/route": {
+      "/respond": {
+        max: 1,
+        message: "solo puede existir un respond dentro de route",
+      },
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+route.donly
+  4:3  error  solo puede existir un respond dentro de route
+
+1 error 0 warnings 0 info
 ```
 
 Because `max`/`min` live on the same sub-path body as everything else, an
@@ -698,6 +859,36 @@ server {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  route "/api" {
+    respond 200 "Ok"
+  }
+}
+`,
+  {
+    "/server/port": {
+      required: true,
+      message: "server debe declarar un port",
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  -  error  server debe declarar un port
+
+1 error 0 warnings 0 info
+```
+
 `required` composes with argument selectors and sub-paths on the same
 body: once the directive is confirmed to exist, the rest of the body still
 validates every match of it as usual.
@@ -747,6 +938,45 @@ server {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  port 70000
+}
+`,
+  {
+    "/server/port": {
+      and: [
+        {
+          required: true,
+          message: "server debe declarar un port",
+        },
+        {
+          "[1]": {
+            type: "number",
+            lte: 65535,
+            message: "port debe ser menor o igual a 65535",
+          },
+        },
+      ],
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  3:8  error  port debe ser menor o igual a 65535
+
+1 error 0 warnings 0 info
+```
+
 ## JSON example: `/respond` required only when `/route` exists, `/server` itself optional
 
 `min` on a sub-path already only applies "once its parent has already
@@ -786,6 +1016,38 @@ server {
     handler "ping"
   }
 }
+```
+
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  route /health {
+    handler "ping"
+  }
+}
+`,
+  {
+    "/server/route": {
+      "/respond": {
+        min: 1,
+        message: "respond es obligatorio dentro de un route",
+      },
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  3:3  error  respond es obligatorio dentro de un route
+
+1 error 0 warnings 0 info
 ```
 
 ## `and` at the rule level: composing full rules
@@ -851,6 +1113,50 @@ route /users {
 }
 ```
 
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+}
+route /users {
+  respond 999 "Bad"
+}
+`,
+  {
+    "/server-config": {
+      and: [
+        {
+          path: "/server/port",
+          required: true,
+          message: "server debe declarar un port",
+        },
+        {
+          path: "/route/respond",
+          "[1]": {
+            type: "number",
+            gte: 100,
+            lte: 599,
+            message: "el status code de respond debe estar entre 100 y 599",
+          },
+        },
+      ],
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  -  error  server debe declarar un port
+
+1 error 0 warnings 0 info
+```
+
 ## JSON example: sub-paths and occurrence constraints nested under `/server`
 
 Sub-paths nest to arbitrary depth and each level can freely mix its own
@@ -908,6 +1214,34 @@ but invalid — neither is declared:
 server {
   timeout 30
 }
+```
+
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  timeout 30
+}
+`,
+  {
+    or: [
+      { "/server/port": { required: true } },
+      { "/server/socket": { required: true } },
+    ],
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  -  error  required directive is missing
+
+1 error 0 warnings 0 info
 ```
 
 Every rule body above can also be written as one entry in an array of
