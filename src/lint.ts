@@ -1,21 +1,19 @@
+/**
+ * @deprecated This function-based lint engine is superseded by the
+ * declarative, object/JSON-format `LintRuleDocument` engine in
+ * `donly/lint/lint` (see `docs/lint/rules.md`). New rules should be
+ * written against `lintSchema`/`lint` from `./lint/lint.js` instead; this
+ * module is kept only for existing consumers and receives no new features.
+ */
 import { DON, Directive } from "./don.js";
 import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 import type { Token } from "./v1/compiler/token.js";
+import type { LintIssue } from "./lint/types.js";
 
-export type LintSeverity = "error" | "warning" | "info";
+export type { LintSeverity, LintLoc, LintIssue } from "./lint/types.js";
+export { directiveLoc, argumentLoc } from "./lint/types.js";
 
-export interface LintLoc {
-  readonly start: Token;
-  readonly end: Token;
-}
-
-export interface LintIssue {
-  message: string;
-  severity: LintSeverity;
-  trace?: string;
-  loc?: LintLoc;
-}
-
+/** @deprecated Use the declarative `LintRuleDocument` engine in `./lint/lint.js` instead. */
 export interface LintContext {
   /** The directive the rule matched. */
   directive: Directive;
@@ -25,6 +23,11 @@ export interface LintContext {
   namePath: string[];
 }
 
+/**
+ * @deprecated Superseded by `LintRuleDocument` (see `docs/lint/rules.md`
+ * and `./lint/schema.js`), evaluated with `lintSchema`/`lint` from
+ * `./lint/lint.js`.
+ */
 export interface LintRule {
   /**
    * Absolute, `/`-separated chain of directive names from the document root
@@ -37,6 +40,7 @@ export interface LintRule {
   evaluation: (context: LintContext) => Iterable<LintIssue>;
 }
 
+/** @deprecated Options for the deprecated `lint` function in this module. */
 export interface LintOptions {
   /**
    * Source name shown in a reported issue's `trace` (e.g. a file path).
@@ -44,37 +48,6 @@ export interface LintOptions {
    */
   payload?: string;
 }
-
-/**
- * The `{ start, end }` tokens of a directive's own name and args (not its
- * children's), or `undefined` for a directive with no backing tokens (e.g.
- * one built by hand rather than parsed by `DON.parse()`).
- */
-export const directiveLoc = (directive: Directive): LintLoc | undefined => {
-  const tokens = Directive.tokensByDirective(directive);
-  if (!tokens || tokens.length === 0) return undefined;
-
-  return { start: tokens[0]!, end: tokens[tokens.length - 1]! };
-};
-
-/**
- * The `loc` of one positional argument (`directive.args[index]`), or of a
- * range of them (`directive.args[startIndex..endIndex]`) when `endIndex` is
- * given. `undefined` for a directive with no backing tokens, or for an
- * out-of-range index.
- */
-export const argumentLoc = (
-  directive: Directive,
-  startIndex: number,
-  endIndex: number = startIndex,
-): LintLoc | undefined => {
-  const tokens = Directive.tokensByDirective(directive);
-  const start = tokens?.[startIndex + 1];
-  const end = tokens?.[endIndex + 1];
-  if (!start || !end) return undefined;
-
-  return { start, end };
-};
 
 const traceOfToken = (payload: string, token: Token): string => {
   const { line, column } = token.span.startLocation;
@@ -125,6 +98,9 @@ const matchesPath = (namePath: string[], components: string[]): boolean =>
  * Runs a set of `LintRule`s against a DON document and returns every issue
  * their `evaluation`s report, filling in `trace` from `loc.start` when the
  * rule didn't already set one.
+ *
+ * @deprecated Use `lintSchema`/`lint` from `./lint/lint.js` with a
+ * declarative `LintRuleDocument` instead (see `docs/lint/rules.md`).
  */
 export const lint = (
   input: string | Directive,
