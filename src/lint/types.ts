@@ -1,19 +1,7 @@
 import { Directive } from "../don.js";
-import type { Token } from "../v1/compiler/token.js";
+import type { LintLoc } from "./issue.js";
 
-export type LintSeverity = "error" | "warning" | "info";
-
-export interface LintLoc {
-  readonly start: Token;
-  readonly end: Token;
-}
-
-export interface LintIssue {
-  message: string;
-  severity: LintSeverity;
-  trace?: string;
-  loc?: LintLoc;
-}
+export type { LintSeverity, LintLoc, LintIssue } from "./issue.js";
 
 /**
  * The `{ start, end }` tokens of a directive's own name and args (not its
