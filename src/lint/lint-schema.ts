@@ -4,7 +4,7 @@
  */
 import { DON, Directive, HeredocValue } from "../don.js";
 import { ROOT_DIRECTIVE_NAME } from "../root-directive-name.js";
-import { argumentLoc, directiveLoc, type LintIssue } from "../lint.js";
+import { argumentLoc, directiveLoc, type LintIssue } from "./types.js";
 import type {
   ArgumentConstraint,
   ArgumentType,

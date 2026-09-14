@@ -1,5 +1,5 @@
-import { Directive } from "./don.js";
-import type { Token } from "./v1/compiler/token.js";
+import { Directive } from "../don.js";
+import type { Token } from "../v1/compiler/token.js";
 
 export type LintSeverity = "error" | "warning" | "info";
 

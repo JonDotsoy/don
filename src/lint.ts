@@ -1,10 +1,10 @@
 import { DON, Directive } from "./don.js";
 import { ROOT_DIRECTIVE_NAME } from "./root-directive-name.js";
 import type { Token } from "./v1/compiler/token.js";
-import type { LintIssue } from "./lint-types.js";
+import type { LintIssue } from "./lint/types.js";
 
-export type { LintSeverity, LintLoc, LintIssue } from "./lint-types.js";
-export { directiveLoc, argumentLoc } from "./lint-types.js";
+export type { LintSeverity, LintLoc, LintIssue } from "./lint/types.js";
+export { directiveLoc, argumentLoc } from "./lint/types.js";
 
 export interface LintContext {
   /** The directive the rule matched. */
