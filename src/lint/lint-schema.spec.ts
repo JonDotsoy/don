@@ -38,6 +38,11 @@ server {
       message: "port debe ser un número",
       severity: "error",
     });
+    // Snapshotted through a JSON round-trip: `Token`/`Part` carry a
+    // process-global `id` counter that a raw-object snapshot would print
+    // and that shifts with unrelated parses elsewhere in the test run,
+    // but `toJSON()` (invoked by `JSON.stringify`) omits it.
+    expect(JSON.parse(JSON.stringify(invalidIssues))).toMatchSnapshot();
   });
 
   test("accepts range checks, enum, and pattern on a constraint", () => {

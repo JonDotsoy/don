@@ -1,0 +1,160 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`lint schema runtime accepts an argument selector constraint 1`] = `
+[
+  {
+    "loc": {
+      "end": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 8,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 17,
+              "length": 1,
+              "startLocation": {
+                "column": 7,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 18,
+              "length": 4,
+              "startLocation": {
+                "column": 8,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": "3000",
+            "type": 2,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 13,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 22,
+              "length": 1,
+              "startLocation": {
+                "column": 12,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 13,
+            "line": 2,
+            "paddingLine": 2,
+          },
+          "index": 17,
+          "length": 6,
+          "startLocation": {
+            "column": 7,
+            "line": 2,
+            "paddingLine": 2,
+          },
+        },
+        "text": "3000",
+        "type": 12,
+      },
+      "start": {
+        "parts": [
+          {
+            "span": {
+              "endLocation": {
+                "column": 8,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 17,
+              "length": 1,
+              "startLocation": {
+                "column": 7,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 12,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 18,
+              "length": 4,
+              "startLocation": {
+                "column": 8,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": "3000",
+            "type": 2,
+          },
+          {
+            "span": {
+              "endLocation": {
+                "column": 13,
+                "line": 2,
+                "paddingLine": 2,
+              },
+              "index": 22,
+              "length": 1,
+              "startLocation": {
+                "column": 12,
+                "line": 2,
+                "paddingLine": 2,
+              },
+            },
+            "text": """,
+            "type": 8,
+          },
+        ],
+        "span": {
+          "endLocation": {
+            "column": 13,
+            "line": 2,
+            "paddingLine": 2,
+          },
+          "index": 17,
+          "length": 6,
+          "startLocation": {
+            "column": 7,
+            "line": 2,
+            "paddingLine": 2,
+          },
+        },
+        "text": "3000",
+        "type": 12,
+      },
+    },
+    "message": "port debe ser un número",
+    "severity": "error",
+  },
+]
+`;
