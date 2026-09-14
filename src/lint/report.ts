@@ -39,11 +39,19 @@ const SEVERITY_COLOR: Record<LintSeverity, string> = {
 const colorize = (text: string, color: string): string =>
   `${color}${text}${ANSI.reset}`;
 
-/** `"line:column"` (1-based) from an issue's `loc`, or `"-"` when it has none. */
-const locationOf = (issue: LintIssue): string => {
-  if (!issue.loc) return "-";
+/** 1-based `{ line, column }` from an issue's `loc`, or `null` when it has none. */
+const positionOf = (
+  issue: LintIssue,
+): { line: number; column: number } | null => {
+  if (!issue.loc) return null;
   const { line, column } = issue.loc.start.span.startLocation;
-  return `${line + 1}:${column + 1}`;
+  return { line: line + 1, column: column + 1 };
+};
+
+/** `"line:column"` from an issue's `loc`, or `"-"` when it has none. */
+const locationOf = (issue: LintIssue): string => {
+  const position = positionOf(issue);
+  return position ? `${position.line}:${position.column}` : "-";
 };
 
 const pluralize = (count: number, word: string): string =>
@@ -101,4 +109,53 @@ export const renderReport = (
     "",
     summary,
   ].join("\n");
+};
+
+export interface RenderJSONReportOptions {
+  /** Included as the report's `filePath`, e.g. the linted file's path. */
+  filePath: string;
+}
+
+export interface JSONReportIssue {
+  line: number | null;
+  column: number | null;
+  severity: LintSeverity;
+  message: string;
+}
+
+export interface JSONReport {
+  filePath: string;
+  issues: JSONReportIssue[];
+  summary: { errors: number; warnings: number; info: number };
+}
+
+/**
+ * Renders `issues` as a `JSONReport` (see that type), JSON-stringified with
+ * 2-space indentation: `filePath`, one `{ line, column, severity, message }`
+ * entry per issue (`line`/`column` are `null` when the issue has no `loc`),
+ * and a `summary` counting errors, warnings, and infos.
+ */
+export const renderJSONReport = (
+  issues: LintIssue[],
+  options: RenderJSONReportOptions,
+): string => {
+  const report: JSONReport = {
+    filePath: options.filePath,
+    issues: issues.map((issue) => {
+      const position = positionOf(issue);
+      return {
+        line: position?.line ?? null,
+        column: position?.column ?? null,
+        severity: issue.severity,
+        message: issue.message,
+      };
+    }),
+    summary: {
+      errors: issues.filter((issue) => issue.severity === "error").length,
+      warnings: issues.filter((issue) => issue.severity === "warning").length,
+      info: issues.filter((issue) => issue.severity === "info").length,
+    },
+  };
+
+  return JSON.stringify(report, null, 2);
 };

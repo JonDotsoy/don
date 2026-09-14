@@ -4,8 +4,13 @@
  * types from `./lint-schema.ts` / `./schema.ts`.
  */
 export { lintSchema, lintSchema as lint } from "./lint-schema.js";
-export { renderReport } from "./report.js";
-export type { RenderReportOptions } from "./report.js";
+export { renderReport, renderJSONReport } from "./report.js";
+export type {
+  RenderReportOptions,
+  RenderJSONReportOptions,
+  JSONReport,
+  JSONReportIssue,
+} from "./report.js";
 export type {
   RuleSeverity,
   ArgumentType,

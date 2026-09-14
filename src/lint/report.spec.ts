@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { renderReport } from "./report";
+import { renderReport, renderJSONReport } from "./report";
 import { lintSchema } from "./lint-schema";
 import type { LintRuleDocument } from "./schema";
 import type { LintIssue } from "./issue";
@@ -77,5 +77,64 @@ describe("renderReport", () => {
     expect(renderReport(issues, { filePath: "my-file.donly" })).not.toContain(
       "\x1b[",
     );
+  });
+});
+
+describe("renderJSONReport", () => {
+  test("renders issues with their line/column, and a summary", () => {
+    const rule = {
+      "/server/port[1]": { type: "number" },
+    } satisfies LintRuleDocument;
+
+    const issues = lintSchema('server {\n  port "80"\n}\n', rule);
+
+    expect(JSON.parse(renderJSONReport(issues, { filePath: "my-file.donly" }))).toEqual({
+      filePath: "my-file.donly",
+      issues: [
+        {
+          line: 2,
+          column: 8,
+          severity: "error",
+          message: "argument at position 1 must be of type number",
+        },
+      ],
+      summary: { errors: 1, warnings: 0, info: 0 },
+    });
+  });
+
+  test("uses null line/column for issues without a loc", () => {
+    const issues: LintIssue[] = [
+      { message: "puerto debe ser un número", severity: "error" },
+      { message: "considera agregar un comentario", severity: "info" },
+    ];
+
+    expect(
+      JSON.parse(renderJSONReport(issues, { filePath: "My-File.donly" })),
+    ).toEqual({
+      filePath: "My-File.donly",
+      issues: [
+        {
+          line: null,
+          column: null,
+          severity: "error",
+          message: "puerto debe ser un número",
+        },
+        {
+          line: null,
+          column: null,
+          severity: "info",
+          message: "considera agregar un comentario",
+        },
+      ],
+      summary: { errors: 1, warnings: 0, info: 1 },
+    });
+  });
+
+  test("renders a clean summary when there are no issues", () => {
+    expect(JSON.parse(renderJSONReport([], { filePath: "my-file.donly" }))).toEqual({
+      filePath: "my-file.donly",
+      issues: [],
+      summary: { errors: 0, warnings: 0, info: 0 },
+    });
   });
 });
