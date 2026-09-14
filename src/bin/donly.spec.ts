@@ -119,6 +119,24 @@ describe("donly lint", () => {
       expect(exitCode).toBe(1);
       expect(stderr).toContain("Usage: donly lint");
     }));
+
+  test("accepts rules written in DON syntax (.donly)", () =>
+    withFixtures(async (dir) => {
+      await writeFile(
+        join(dir, "rules.donly"),
+        '/server/port {\n  [1] {\n    type "number"\n    message "port must be a number"\n  }\n}\n',
+      );
+      await writeFile(join(dir, "file.donly"), 'server {\n  port "3000"\n}\n');
+
+      const { stdout, exitCode } = await runCli(
+        ["lint", "--rules", "rules.donly", "file.donly"],
+        dir,
+      );
+
+      expect(exitCode).toBe(1);
+      expect(stdout).toContain("port must be a number");
+      expect(stdout).toContain("1 error 0 warnings 0 info");
+    }));
 });
 
 describe("donly inspect", () => {

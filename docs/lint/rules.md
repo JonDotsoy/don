@@ -1277,6 +1277,145 @@ instead of repeating the key:
 }
 ```
 
+## Authoring rules in DON syntax: `.donly` rules files
+
+Every rule document above is written as JSON, but it can just as well be
+written directly in DON syntax — `donly lint --rules <rules.donly> <file>`
+(see [CLI](../../README.md#cli)) accepts a `.donly` (or `.don`) rules file
+in place of a `.json` one. The conversion from a DON directive tree to the
+`LintRuleDocument` shape is structural: each directive becomes one object
+entry, keyed by its own name — a path selector (`/server/port`), an
+argument selector (`[1]`), or a plain property (`required`, `type`,
+`message`, ...) — with its value built the same way, recursively:
+
+- A directive with neither arguments nor children is a bare boolean flag:
+  `required` becomes `true`.
+- A directive with arguments but no children is a scalar (`max 1` becomes
+  `1`, `type "number"` becomes `"number"`) or, given more than one
+  argument, an array (`enum "a" "b" "c"` becomes `["a", "b", "c"]`).
+- A directive with children becomes an object built from them, the same
+  way a rule body's `/name` sub-paths nest above. A leading _string_
+  argument alongside children is shorthand for `message`.
+
+The `or` example from [`or`, `and`, and `not` at the document
+root](#or-and-and-not-at-the-document-root) above,
+
+```json
+{
+  "or": [
+    { "/server/port": { "required": true } },
+    { "/server/socket": { "required": true } }
+  ]
+}
+```
+
+is written in DON syntax as:
+
+```don
+or {
+  /server/port { required }
+  /server/socket { required }
+}
+```
+
+and the `min`-with-`message` example from [Sub-paths: `/name`
+keys](#sub-paths-name-keys) above,
+
+```json
+{
+  "/server/route": {
+    "/respond": {
+      "min": 1,
+      "message": "respond es obligatorio dentro de un route"
+    }
+  }
+}
+```
+
+is written as:
+
+```don
+/server/route {
+  /respond "respond es obligatorio dentro de un route" {
+    min 1
+  }
+}
+```
+
+Each child of `or`/`and` becomes one array entry (`not` takes a single
+child the same way). A child named with a path (`/...`), an argument
+selector (`[N]`), or a recognized property (`type`, `required`, `max`,
+`min`, `message`, `severity`, `enum`, `pattern`, `flags`, `gte`, `gt`,
+`lte`, `lt`, `or`, `and`, `not`) wraps itself under that name, as in the
+`or` example above. Any other name is treated as an anonymous grouping
+label for an alternative with more than one property — its own children
+become that alternative's keys, and the label itself is discarded. The
+idiomatic label is a bare `/` (the root selector — reserved for this use
+_inside_ `or`/`and`; see below), annotated with a `# comment` above it so
+each alternative still reads clearly.
+
+`or`/`and`/`not` themselves also take the leading-string-argument-as-
+`message` shorthand — since their own value is always an array (or, for
+`not`, a single entry), the argument becomes `message` on the _enclosing_
+object instead, the same place a sibling `message` child would put it:
+
+```don
+/server/port {
+  [1] {
+    or 'port debe ser un número entre 1024 y 65535, o "auto"' {
+      # range
+      / {
+        type "number"
+        gt 1024
+        lte 65535
+      }
+      # auto
+      / {
+        type "string"
+        enum "auto"
+      }
+    }
+  }
+}
+```
+
+which parses to the same `or` array as the [ranged-branch
+example](#json-example-or-with-a-ranged-branch-boolean-or-a-bounded-number)
+above. The fused `path[N]` shorthand (see [Shorthand:
+`path[N]`](#shorthand-pathn-as-a-single-key) above) composes the same way:
+
+```don
+/server/port[1] {
+  or 'port debe ser un número entre 1024 y 65535, o "auto"' {
+    # range
+    / {
+      type "number"
+      gt 1024
+      lte 65535
+    }
+    # auto
+    / {
+      type "string"
+      enum "auto"
+    }
+  }
+}
+```
+
+Because `/*` (the wildcard sub-path selector) collides with DON's own
+`/* ... */` block-comment syntax, write it quoted — `"/*"` — the same way
+any directive name with special characters can be quoted. The bare root
+selector `/` still addresses the document root everywhere _except_ as a
+direct child of `or`/`and`, where it's reserved as the anonymous grouping
+label described above (quoting it doesn't change the underlying name, so
+`"/"` is reserved there too) — an alternative that targets the root
+itself is rare enough that this DSL doesn't have a spelling for it inside
+`or`/`and`; author that one rule in JSON instead if it's ever needed.
+
+`evaluation` has no DON-syntax form, since a `.donly` rules file can't
+embed a function — it's only ever available to a rule document authored
+directly in TypeScript/JavaScript (see below).
+
 ## `evaluation`: an escape hatch for custom logic
 
 A function can't be serialized to JSON, so `evaluation` only makes sense

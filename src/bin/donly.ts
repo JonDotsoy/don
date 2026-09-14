@@ -4,16 +4,17 @@ import { DON } from "../don.js";
 import { DirectiveJSONEncoder } from "../directive-json.js";
 import type { DirectiveReducer } from "../directive-json.js";
 import { lintSchema } from "../lint/lint.js";
+import { parseLintRulesDonly } from "../lint/rules-dsl.js";
 import { renderReport, renderJSONReport } from "../lint/report.js";
 import type { LintRuleDocument } from "../lint/schema.js";
 
 const topLevelUsage = `Usage: donly <command> [options]
 
 Commands:
-  lint --rules <rules.json> [--output|-o default|json] <file.donly>
+  lint --rules <rules.json|rules.donly> [--output|-o default|json] <file.donly>
   inspect [--strategy|-s nested|tuple|raw] <file.donly>`;
 
-const lintUsage = `Usage: donly lint --rules <rules.json> [--output|-o default|json] <file.donly>`;
+const lintUsage = `Usage: donly lint --rules <rules.json|rules.donly> [--output|-o default|json] <file.donly>`;
 
 type OutputFormat = "default" | "json";
 
@@ -53,12 +54,21 @@ const parseLintArgs = (args: string[]): LintArgs => {
   return { rulesPath, filePath: positionals[0]!, output };
 };
 
+const parseRulesDocument = (
+  rulesPath: string,
+  rulesSource: string,
+): LintRuleDocument =>
+  rulesPath.endsWith(".donly") || rulesPath.endsWith(".don")
+    ? parseLintRulesDonly(rulesSource)
+    : (JSON.parse(rulesSource) as LintRuleDocument);
+
 const runLint = async (args: string[]): Promise<number> => {
   const { rulesPath, filePath, output } = parseLintArgs(args);
 
-  const rules = JSON.parse(
+  const rules = parseRulesDocument(
+    rulesPath,
     await readFile(rulesPath, "utf8"),
-  ) as LintRuleDocument;
+  );
   const source = await readFile(filePath, "utf8");
 
   const issues = lintSchema(source, rules);

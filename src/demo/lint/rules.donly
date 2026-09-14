@@ -1,0 +1,167 @@
+# ============================================================
+# rules.donly — ejemplo multinivel de reglas de lint escritas en
+# sintaxis DON (ver "Authoring rules in DON syntax" en
+# docs/lint/rules.md), pensado para ejercitar la mayor cantidad
+# posible de la sintaxis: required, max/min, [N], path[N]
+# fusionado, enum, pattern/flags, los seis `type` (string,
+# number, bigint, boolean, null, heredoc), or/and/not (a nivel
+# de documento, de rule body y de constraint de argumento), la
+# etiqueta anónima `/` dentro de or/and, severity, el shorthand
+# de `message` por argumento string, y el selector wildcard
+# "/*" (citado, porque /* colisiona con los comentarios de
+# bloque de DON).
+#
+# Todo cuelga de un único `and` en la raíz: `or` en la raíz del
+# documento es exclusivo (evalúa solo sus alternativas y corta
+# ahí — ver `evaluateDocument` en src/lint/lint-schema.ts), así
+# que para combinarlo con las demás reglas de este archivo debe
+# vivir como una entrada más de ese `and`, no como un hermano
+# suelto.
+#
+# Uso:
+#   bunx donly lint --rules rules.donly example.donly
+# ============================================================
+
+and {
+  # a lo más 6 directivas en el nivel raíz del documento lintado
+  "/*" {
+    max 6
+    message "el documento no puede tener más de 6 directivas en el root"
+  }
+
+  # server debe declarar port o socket (al menos uno de los dos);
+  # message/severity van agrupados con el or bajo la etiqueta `/`
+  # porque son las únicas otras claves permitidas junto a un `or`.
+  / {
+    or {
+      /server/port { required }
+      /server/socket { required }
+    }
+    message "el server debe declarar port o socket"
+    severity "warning"
+  }
+
+  # el server no puede declarar el flag legacy 'legacyMode'
+  not {
+    /server/legacyMode { required }
+  }
+
+  # dos reglas para rutas no relacionadas entre sí
+  /config/maxSize {
+    required
+    message "config debe declarar un maxSize"
+  }
+  /server/route/respond {
+    [1] {
+      not {
+        enum 404
+      }
+      message "respond no puede responder 404 directamente; usa un route catch-all"
+    }
+  }
+
+  /server "el documento debe declarar un server" {
+    required
+
+    /port {
+      [1] {
+        type "number"
+        gte 1
+        lte 65535
+        message "port debe ser un número entre 1 y 65535"
+      }
+    }
+
+    /socket {
+      [1] {
+        type "string"
+        pattern "^/"
+        flags "i"
+        message "socket debe ser una ruta absoluta"
+      }
+    }
+
+    # a lo más 10 route, cada uno con un path válido y al menos un respond
+    /route {
+      max 10
+      message "un server admite a lo más 10 route"
+
+      [1] {
+        and {
+          # debe ser un string
+          / {
+            type "string"
+          }
+          # debe empezar con /
+          / {
+            pattern "^/"
+          }
+          # sin // repetidos
+          / {
+            pattern "^(?!.*//).*$"
+          }
+        }
+        message "el path de route es inválido: debe ser un string, empezar con / y no repetir //"
+      }
+
+      /respond {
+        min 1
+        message "respond es obligatorio dentro de un route"
+
+        [1] {
+          type "number"
+          gte 100
+          lte 599
+          message "el status code de respond debe estar entre 100 y 599"
+        }
+      }
+    }
+
+    # fused path[N]: strategy debería ser uno de estos tres valores
+    # (severity "warning" en vez del "error" por defecto)
+    /strategy[1] {
+      enum "rolling" "recreate" "blue-green"
+      severity "warning"
+      message "strategy debería ser uno de: rolling, recreate, blue-green"
+    }
+
+    /deprecated[1] {
+      or {
+        type "boolean"
+        type "null"
+      }
+      message "deprecated debe ser true, false, o null"
+    }
+
+    /template[1] {
+      type "heredoc"
+      pattern "<html"
+      message "template debe contener un documento HTML"
+    }
+  }
+
+  /config {
+    /maxSize[1] {
+      type "bigint"
+      gt 0
+      message "maxSize debe ser un bigint positivo"
+    }
+
+    /timeout[1] {
+      or {
+        # rango en segundos
+        / {
+          type "number"
+          gte 1
+          lte 3600
+        }
+        # valor especial
+        / {
+          type "string"
+          enum "infinite"
+        }
+      }
+      message 'timeout debe ser un número entre 1 y 3600, o "infinite"'
+    }
+  }
+}

@@ -4,6 +4,7 @@
  * types from `./lint-schema.ts` / `./schema.ts`.
  */
 export { lintSchema, lintSchema as lint } from "./lint-schema.js";
+export { parseLintRulesDonly } from "./rules-dsl.js";
 export { renderReport, renderJSONReport } from "./report.js";
 export type {
   RenderReportOptions,
