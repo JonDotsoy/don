@@ -721,6 +721,11 @@ server {
 
   test("a mutating route (POST|PUT|DELETE|PATCH) requires both server ssl and its own authorized", () => {
     const rule = {
+      "/server/route[1]": {
+        enum: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        message:
+          "el método de route debe ser uno de: GET, POST, PUT, DELETE, PATCH",
+      },
       "/server{/route(POST|PUT|DELETE|PATCH *)}": {
         "/ssl": {
           min: 1,
@@ -809,6 +814,27 @@ server {
       rule,
     );
     expect(noMutatingRouteIssues).toHaveLength(0);
+
+    // A method outside the enum, e.g. `OPTIONS`, is flagged even though
+    // it isn't one of the mutating methods the other two rules care about.
+    const invalidMethodIssues = lintSchema(
+      `
+server {
+    port 3000
+    ssl on
+
+    route OPTIONS /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(invalidMethodIssues).toHaveLength(1);
+    expect(invalidMethodIssues[0]).toMatchObject({
+      message:
+        "el método de route debe ser uno de: GET, POST, PUT, DELETE, PATCH",
+    });
   });
 
   test("accepts an or between two alternative documents at the root", () => {
