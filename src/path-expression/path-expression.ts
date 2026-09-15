@@ -110,14 +110,18 @@ const splitUnescaped = (raw: string, separator: string): string[] => {
  * Parses a single `*`-tokenized value — a plain path segment, or one
  * whitespace-separated token inside an `(...)` args group — into a
  * `ValueNode`: no `*` is a literal, a lone `*` is a wildcard, one `*` with
- * a non-empty side is a prefix/suffix pattern, and more than one `*` is a
- * multi-pattern of the chunks between them.
+ * content on exactly one side is a prefix/suffix pattern, and anything
+ * with content on both sides of a `*` — one `*` with both a prefix and a
+ * suffix, or more than one `*` — is a multi-pattern of the chunks between
+ * them (a one-sided `pattern` is really just the two-chunk case of that
+ * with one chunk empty, so `pattern` stays reserved for it instead of
+ * overlapping with `multi_pattern`).
  */
 const parseValueToken = (raw: string): ValueNode => {
-  const chunks = splitUnescaped(raw, "*");
+  const chunks = splitUnescaped(raw, "*").map(unescape);
 
   if (chunks.length === 1) {
-    return { type: "literal", value: unescape(chunks[0]!) };
+    return { type: "literal", value: chunks[0]! };
   }
 
   if (chunks.length === 2) {
@@ -126,13 +130,11 @@ const parseValueToken = (raw: string): ValueNode => {
       return { type: "wildcard" };
     }
 
-    const node: PatternNode = { type: "pattern" };
-    if (prefix !== "") node.prefix = unescape(prefix);
-    if (suffix !== "") node.suffix = unescape(suffix);
-    return node;
+    if (prefix === "") return { type: "pattern", suffix };
+    if (suffix === "") return { type: "pattern", prefix };
   }
 
-  return { type: "multi_pattern", chunks: chunks.map(unescape) };
+  return { type: "multi_pattern", chunks };
 };
 
 const segmentWithArgsPattern = /^((?:\\.|[^/()])+)\(((?:\\.|[^)])*)\)$/;

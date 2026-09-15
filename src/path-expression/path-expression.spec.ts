@@ -24,9 +24,9 @@ describe("PathExpression.parse", () => {
     expect(parts("/*bar")).toEqual([{ type: "pattern", suffix: "bar" }]);
   });
 
-  it("parses a prefix+suffix pattern", () => {
+  it("parses content on both sides of a `*` as a multi_pattern", () => {
     expect(parts("/foo*biz")).toEqual([
-      { type: "pattern", prefix: "foo", suffix: "biz" },
+      { type: "multi_pattern", chunks: ["foo", "biz"] },
     ]);
   });
 
@@ -62,7 +62,7 @@ describe("PathExpression.parse", () => {
           { type: "wildcard" },
           { type: "pattern", prefix: "tar" },
           { type: "pattern", suffix: "biz" },
-          { type: "pattern", prefix: "foo", suffix: "viz" },
+          { type: "multi_pattern", chunks: ["foo", "viz"] },
         ],
       },
     ]);
@@ -82,9 +82,9 @@ describe("PathExpression.parse", () => {
     ]);
   });
 
-  it("parses a multi-segment path combined with a pattern", () => {
+  it("parses a multi-segment path combined with a multi_pattern", () => {
     expect(parts("/foo*biz/lol")).toEqual([
-      { type: "pattern", prefix: "foo", suffix: "biz" },
+      { type: "multi_pattern", chunks: ["foo", "biz"] },
       { type: "literal", value: "lol" },
     ]);
   });
