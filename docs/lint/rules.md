@@ -147,6 +147,72 @@ server.donly
 1 error 0 warnings 0 info
 ```
 
+## Selecting by pattern or argument: reusing path expressions
+
+A sub-path key isn't limited to a literal name or the bare `"*"` wildcard
+above — it accepts the same path-expression syntax `find`/`at` use (see
+[Path Expressions](../concepts/path-expression.md)), applied one segment
+at a time: a `*`-pattern on the name (`"/route*"`, `"/*_users"`, ...), and
+a `(...)` group right after the name to also match the directive's
+arguments — by exact value, by `*`-pattern, or purely by argument
+**count** (e.g. `"(* * *)"`).
+
+### JSON example: matching a sub-path by an exact argument, `"/route(GET)"`
+
+```json
+{
+  "/server/route(GET)": {
+    "/respond": {
+      "required": true,
+      "message": "route GET debe declarar un respond"
+    }
+  }
+}
+```
+
+This matches only `route` children of `server` whose sole argument is
+exactly `"GET"` — a sibling `route POST` is untouched by this rule
+entirely, whether or not it declares a `respond`. Valid:
+
+```don
+server {
+  route GET {
+    respond 200 "Ok"
+  }
+  route POST {
+  }
+}
+```
+
+### JSON example: matching a sub-path by an argument pattern, `"/route(* text-*)"`
+
+```json
+{
+  "/server/route(* text-*)": {
+    "/respond": {
+      "required": true,
+      "message": "un route de tipo text-* debe declarar un respond"
+    }
+  }
+}
+```
+
+The group's first token, a bare `*`, matches any single argument; its
+second, `text-*`, matches any argument starting with `"text-"`. Together
+they also require exactly two arguments (a `(...)` group's token count
+must match `args.length` exactly). This matches `route GET text-plain`
+but not `route GET json-plain` (second argument doesn't start with
+`text-`) or a bare `route GET` (only one argument).
+
+`max`/`min` on a pattern or argument-group sub-path count the same way
+`"/*"` does above — every directive the pattern/group matches at that
+level, combined, not one count per distinct name or argument value.
+
+See [Path Expressions](../concepts/path-expression.md) for the full
+syntax, including how a `(...)` group made only of `*`s (e.g.
+`"(* * *)"`) matches purely by argument count, regardless of their
+values.
+
 ## Argument selectors: `[N]`
 
 A rule body's keys also select an argument position directly, written
@@ -273,6 +339,12 @@ useful when a path has a single argument constraint and no sub-paths of its
 own. It cannot be combined with a `/`-prefixed sub-path on the same key —
 that still needs the nested form, since `path[N]`'s value _is_ the
 constraint object, not a rule body.
+
+The `path` half of `path[N]` can itself use a `(...)` group (see [Selecting
+by pattern or argument](#selecting-by-pattern-or-argument-reusing-path-expressions)
+above), e.g. `"/server(us-central-*)/port[1]"` — the argument constraint
+only applies to a `port` under a `server` whose own argument starts with
+`us-central-`.
 
 ## JSON example: `gte`, `gt`, `lte`, and `lt` range checks
 
