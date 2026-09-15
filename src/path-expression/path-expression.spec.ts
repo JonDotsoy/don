@@ -122,6 +122,34 @@ describe("PathExpression.parse", () => {
       expect(second).not.toBe(first);
     });
   });
+
+  describe("a trailing `[N]` argument selector", () => {
+    it("is parsed off into selectArgument, informative only", () => {
+      expect(PathExpression.parse("/foo[1]")).toEqual({
+        parts: [{ segment: { type: "literal", value: "foo" } }],
+        selectArgument: 1,
+      });
+    });
+
+    it("is absent when the path has no trailing [N]", () => {
+      expect(PathExpression.parse("/foo").selectArgument).toBeUndefined();
+    });
+
+    it("still applies to the segment's own (...) args", () => {
+      expect(PathExpression.parse("/foo(tar biz)[0]")).toEqual({
+        parts: [
+          {
+            segment: { type: "literal", value: "foo" },
+            args: [
+              { type: "literal", value: "tar" },
+              { type: "literal", value: "biz" },
+            ],
+          },
+        ],
+        selectArgument: 0,
+      });
+    });
+  });
 });
 
 /**

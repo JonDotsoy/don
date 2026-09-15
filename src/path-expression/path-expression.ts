@@ -32,6 +32,14 @@ export type PathNode = {
 /** The root structure returned by the parser. */
 export type PathExpression = {
   parts: PathNode[];
+  /**
+   * An argument index parsed from a trailing `[N]` on the path string
+   * (e.g. `/foo[1]`), absent when there is none. It's purely informative
+   * — carried along for a caller that wants to select an argument off
+   * whatever directive ends up matching `parts` — and plays no part in
+   * `PathExpression`'s own matching rules.
+   */
+  selectArgument?: number;
 };
 
 const unescape = (value: string): string => value.replace(/\\(.)/g, "$1");
@@ -151,6 +159,8 @@ const isPathExpression = (value: unknown): value is PathExpression =>
   value !== null &&
   Array.isArray((value as { parts?: unknown }).parts);
 
+const trailingArgIndexPattern = /\[(\d+)\]$/;
+
 export const PathExpression = {
   /**
    * Parses a path string into a `PathExpression`, or returns `input`
@@ -159,6 +169,13 @@ export const PathExpression = {
    */
   parse(input: string | PathExpression): PathExpression {
     if (isPathExpression(input)) return input;
-    return { parts: splitPathSegments(input).map(parseSegment) };
+
+    const match = trailingArgIndexPattern.exec(input);
+    if (!match) return { parts: splitPathSegments(input).map(parseSegment) };
+
+    return {
+      parts: splitPathSegments(input.slice(0, match.index)).map(parseSegment),
+      selectArgument: Number(match[1]),
+    };
   },
 };
