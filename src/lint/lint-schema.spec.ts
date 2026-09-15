@@ -833,4 +833,108 @@ server {
     });
     expect(JSON.parse(JSON.stringify(outOfRangeIssues))).toMatchSnapshot();
   });
+
+  test("matches a sub-path with an exact argument group selector, e.g. /server/route(GET)", () => {
+    const rule = {
+      "/server/route(GET)": {
+        "/respond": {
+          required: true,
+          message: "route GET debe declarar un respond",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema(
+      `
+server {
+  route GET {
+    respond 200 "Ok"
+  }
+}
+`,
+      rule,
+    );
+    expect(validIssues).toHaveLength(0);
+
+    const missingRespondIssues = lintSchema(
+      `
+server {
+  route GET {
+    handler "ping"
+  }
+}
+`,
+      rule,
+    );
+    expect(missingRespondIssues).toHaveLength(1);
+    expect(missingRespondIssues[0]).toMatchObject({
+      message: "route GET debe declarar un respond",
+    });
+
+    // `route POST` never matches `/server/route(GET)` — its own missing
+    // `respond` is irrelevant to this rule.
+    const otherMethodIssues = lintSchema(
+      `
+server {
+  route POST {
+    handler "ping"
+  }
+}
+`,
+      rule,
+    );
+    expect(otherMethodIssues).toHaveLength(0);
+  });
+
+  test("matches a sub-path with a wildcard/pattern argument group selector, e.g. /server/route(* text-*)", () => {
+    const rule = {
+      "/server/route(* text-*)": {
+        "/respond": {
+          required: true,
+          message: "un route de tipo text-* debe declarar un respond",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema(
+      `
+server {
+  route GET text-plain {
+    respond 200 "Ok"
+  }
+}
+`,
+      rule,
+    );
+    expect(validIssues).toHaveLength(0);
+
+    const missingRespondIssues = lintSchema(
+      `
+server {
+  route GET text-html {
+    handler "ping"
+  }
+}
+`,
+      rule,
+    );
+    expect(missingRespondIssues).toHaveLength(1);
+    expect(missingRespondIssues[0]).toMatchObject({
+      message: "un route de tipo text-* debe declarar un respond",
+    });
+
+    // The second argument doesn't start with "text-", so the selector
+    // itself doesn't match — the missing `respond` is irrelevant here.
+    const otherContentTypeIssues = lintSchema(
+      `
+server {
+  route GET json-plain {
+    handler "ping"
+  }
+}
+`,
+      rule,
+    );
+    expect(otherContentTypeIssues).toHaveLength(0);
+  });
 });
