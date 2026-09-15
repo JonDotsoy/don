@@ -57,7 +57,9 @@ const requireStringName = (name: string | symbol): string => {
 const toDirectiveJSON = (directive: Directive): DirectiveJSON => ({
   name: requireStringName(directive.name),
   args: directive.args.map((arg) =>
-    arg instanceof HeredocValue ? arg.toJSON() : arg,
+    arg instanceof HeredocValue
+      ? { delimiter: arg.delimiter, content: arg.content }
+      : arg,
   ),
   children: directive.children.map(toDirectiveJSON),
 });

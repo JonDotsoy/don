@@ -32,7 +32,7 @@ export class HeredocValue {
   }
 
   toJSON() {
-    return { delimiter: this.delimiter, content: this.content };
+    return this.content;
   }
 
   [inspectSymbol]() {
