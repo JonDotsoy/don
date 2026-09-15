@@ -9,42 +9,56 @@ describe("PathExpression.parse", () => {
   });
 
   it("parses a static literal segment", () => {
-    expect(parts("/foo")).toEqual([{ type: "literal", value: "foo" }]);
+    expect(parts("/foo")).toEqual([
+      { segment: { type: "literal", value: "foo" } },
+    ]);
   });
 
   it("parses a full single-segment wildcard as an empty pattern", () => {
-    expect(parts("/*")).toEqual([{ type: "pattern" }]);
+    expect(parts("/*")).toEqual([{ segment: { type: "pattern" } }]);
   });
 
   it("parses a prefix pattern", () => {
-    expect(parts("/foo*")).toEqual([{ type: "pattern", prefix: "foo" }]);
+    expect(parts("/foo*")).toEqual([
+      { segment: { type: "pattern", prefix: "foo" } },
+    ]);
   });
 
   it("parses a suffix pattern", () => {
-    expect(parts("/*bar")).toEqual([{ type: "pattern", suffix: "bar" }]);
+    expect(parts("/*bar")).toEqual([
+      { segment: { type: "pattern", suffix: "bar" } },
+    ]);
   });
 
   it("parses a prefix+suffix pattern", () => {
     expect(parts("/foo*biz")).toEqual([
-      { type: "pattern", prefix: "foo", suffix: "biz" },
+      { segment: { type: "pattern", prefix: "foo", suffix: "biz" } },
     ]);
   });
 
   it("parses multiple intermediate wildcards as chunks", () => {
     expect(parts("/foo*biz*tar")).toEqual([
-      { type: "pattern", prefix: "foo", chunks: ["biz"], suffix: "tar" },
+      {
+        segment: {
+          type: "pattern",
+          prefix: "foo",
+          chunks: ["biz"],
+          suffix: "tar",
+        },
+      },
     ]);
   });
 
   it("unescapes a `\\/` so it's read as a literal `/` instead of a separator", () => {
-    expect(parts("/\\/tar")).toEqual([{ type: "literal", value: "/tar" }]);
+    expect(parts("/\\/tar")).toEqual([
+      { segment: { type: "literal", value: "/tar" } },
+    ]);
   });
 
   it("parses a segment with literal arguments", () => {
     expect(parts("/foo(tar biz)")).toEqual([
       {
-        type: "args",
-        segment: "foo",
+        segment: { type: "literal", value: "foo" },
         args: [
           { type: "literal", value: "tar" },
           { type: "literal", value: "biz" },
@@ -58,8 +72,7 @@ describe("PathExpression.parse", () => {
       parts("/foo(* tar* *biz foo*viz *biz* foo*tar*viz*liz*)"),
     ).toEqual([
       {
-        type: "args",
-        segment: "foo",
+        segment: { type: "literal", value: "foo" },
         args: [
           { type: "pattern" },
           { type: "pattern", prefix: "tar" },
@@ -74,22 +87,22 @@ describe("PathExpression.parse", () => {
 
   it("parses a segment with no arguments as an empty args list", () => {
     expect(parts("/foo()")).toEqual([
-      { type: "args", segment: "foo", args: [] },
+      { segment: { type: "literal", value: "foo" }, args: [] },
     ]);
   });
 
   it("parses a multi-segment path combined with a wildcard", () => {
     expect(parts("/foo/*/tar")).toEqual([
-      { type: "literal", value: "foo" },
-      { type: "pattern" },
-      { type: "literal", value: "tar" },
+      { segment: { type: "literal", value: "foo" } },
+      { segment: { type: "pattern" } },
+      { segment: { type: "literal", value: "tar" } },
     ]);
   });
 
   it("parses a multi-segment path combined with a pattern", () => {
     expect(parts("/foo*biz/lol")).toEqual([
-      { type: "pattern", prefix: "foo", suffix: "biz" },
-      { type: "literal", value: "lol" },
+      { segment: { type: "pattern", prefix: "foo", suffix: "biz" } },
+      { segment: { type: "literal", value: "lol" } },
     ]);
   });
 

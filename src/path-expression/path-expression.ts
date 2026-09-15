@@ -16,17 +16,18 @@ export type LiteralNode = {
   value: string;
 };
 
-/** Nodes valid as arguments, or as a plain (parenthesis-free) path segment. */
+/** Nodes valid as a path segment's name, or as one of its arguments. */
 export type ValueNode = LiteralNode | PatternNode;
 
-export type ArgsNode = {
-  type: "args";
-  segment: string;
-  args: ValueNode[];
+/**
+ * One segment within a path: `segment` is its name, `args` is its
+ * `(...)` argument list when the segment carries one (absent otherwise,
+ * as opposed to `[]` for an explicit, empty `()`).
+ */
+export type PathNode = {
+  segment: ValueNode;
+  args?: ValueNode[];
 };
-
-/** A node representing any one segment within a path. */
-export type PathNode = ValueNode | ArgsNode;
 
 /** The root structure returned by the parser. */
 export type PathExpression = {
@@ -131,14 +132,13 @@ const segmentWithArgsPattern = /^((?:\\.|[^/()])+)\(((?:\\.|[^)])*)\)$/;
 
 const parseSegment = (segment: string): PathNode => {
   const match = segmentWithArgsPattern.exec(segment);
-  if (!match) return parseValueToken(segment);
+  if (!match) return { segment: parseValueToken(segment) };
 
   const [, name, argsGroup] = match;
   const trimmedArgsGroup = argsGroup!.trim();
 
   return {
-    type: "args",
-    segment: unescape(name!),
+    segment: parseValueToken(name!),
     args:
       trimmedArgsGroup === ""
         ? []
