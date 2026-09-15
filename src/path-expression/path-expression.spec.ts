@@ -162,8 +162,27 @@ describe("PathExpression.parse", () => {
  * empty one), `directive.args` must have the same length and each
  * argument must match pairwise — a node with no `args` at all matches any
  * `directive.args`, ignoring them entirely.
+ *
+ * An expression with no parts at all — `"/"`, `""`, or a bare `[N]`
+ * selector with nothing before it — imposes no constraint, so it always
+ * matches, for any directive and any positionSegment (including one past
+ * where `parts` would otherwise end).
  */
 describe("PathExpression.match", () => {
+  it.each(["/", "", "[1]"])(
+    "always matches when the expression has no parts (%j)",
+    (path) => {
+      const expression = PathExpression.parse(path);
+
+      expect(
+        PathExpression.match(new Directive("anything", ["a", "b"]), expression, 0),
+      ).toBe(true);
+      expect(
+        PathExpression.match(new Directive("route", []), expression, 5),
+      ).toBe(true);
+    },
+  );
+
   it("matches a literal segment by directive name", () => {
     const directive = new Directive("route", []);
     const expression = PathExpression.parse("/route");
