@@ -619,6 +619,224 @@ server {
     });
   });
 
+  test("requires every /server/route targeting /user to declare authorized", () => {
+    const rule = {
+      "/server/route(* /user)": {
+        "/authorized": {
+          min: 1,
+          message: "todo route de /user debe declarar authorized",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const issues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+    route PUT /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route POST /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+
+    // `route GET /user` and `route POST /user` are missing `authorized` —
+    // `route PUT /user` already declares it, so it reports no issue of its own.
+    expect(issues).toHaveLength(2);
+    expect(
+      issues.every(
+        (issue) =>
+          issue.message === "todo route de /user debe declarar authorized",
+      ),
+    ).toBe(true);
+  });
+
+  test("requires ssl on a server that has any route targeting /user", () => {
+    const rule = {
+      "/server{/route(* /user)}": {
+        "/ssl": {
+          min: 1,
+          message: "server con route de /user debe declarar ssl",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const missingSslIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(missingSslIssues).toHaveLength(1);
+    expect(missingSslIssues[0]).toMatchObject({
+      message: "server con route de /user debe declarar ssl",
+    });
+
+    const withSslIssues = lintSchema(
+      `
+server {
+    port 3000
+    ssl on
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(withSslIssues).toHaveLength(0);
+
+    // No `route` targets `/user` at all, so `{/route(* /user)}` doesn't
+    // match this `server` — the `/ssl` requirement never even applies.
+    const noUserRouteIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /health {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(noUserRouteIssues).toHaveLength(0);
+  });
+
+  test("a mutating route (POST|PUT|DELETE|PATCH) requires both server ssl and its own authorized", () => {
+    const rule = {
+      "/server/route[1]": {
+        enum: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        message:
+          "el método de route debe ser uno de: GET, POST, PUT, DELETE, PATCH",
+      },
+      "/server{/route(POST|PUT|DELETE|PATCH *)}": {
+        "/ssl": {
+          min: 1,
+          message: "server con route POST|PUT|DELETE|PATCH debe declarar ssl",
+        },
+      },
+      "/server/route(POST|PUT|DELETE|PATCH *)": {
+        "/authorized": {
+          min: 1,
+          message: "route POST|PUT|DELETE|PATCH debe declarar authorized",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const invalidIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+    route POST /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route PUT /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+
+    // no \`ssl\` on the server (only one issue, not one per mutating route),
+    // and \`route PUT /user\` is missing \`authorized\` — \`route POST /user\`
+    // already has it, and \`route GET /user\` isn't mutating at all.
+    expect(invalidIssues).toHaveLength(2);
+    expect(invalidIssues.map((issue) => issue.message)).toEqual([
+      "server con route POST|PUT|DELETE|PATCH debe declarar ssl",
+      "route POST|PUT|DELETE|PATCH debe declarar authorized",
+    ]);
+
+    const validIssues = lintSchema(
+      `
+server {
+    port 3000
+    ssl on
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+    route POST /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route PUT /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route DELETE /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route PATCH /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(validIssues).toHaveLength(0);
+
+    // Only GET/HEAD-style routes — neither requirement even applies.
+    const noMutatingRouteIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(noMutatingRouteIssues).toHaveLength(0);
+
+    // A method outside the enum, e.g. `OPTIONS`, is flagged even though
+    // it isn't one of the mutating methods the other two rules care about.
+    const invalidMethodIssues = lintSchema(
+      `
+server {
+    port 3000
+    ssl on
+
+    route OPTIONS /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(invalidMethodIssues).toHaveLength(1);
+    expect(invalidMethodIssues[0]).toMatchObject({
+      message:
+        "el método de route debe ser uno de: GET, POST, PUT, DELETE, PATCH",
+    });
+  });
+
   test("accepts an or between two alternative documents at the root", () => {
     const orDocuments: LintRuleDocument[] = [
       { "/server/port": { required: true } },

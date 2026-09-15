@@ -21,13 +21,27 @@ const search = (
       );
 };
 
+/** Runs `search` for one `|`-free alternative (ignores `alternatives` itself). */
+const searchAlternative = (
+  root: Directive,
+  alternative: PathExpression,
+): Directive[] =>
+  alternative.parts.length === 0
+    ? [root]
+    : search(topLevelDirectives(root), alternative, 0);
+
+/**
+ * Runs `searchAlternative` for `expression` and, in order, every one of
+ * its `alternatives` (from a top-level `/foo|/biz` in the source path),
+ * concatenating the results — the OR of several whole paths.
+ */
 const findAllFromExpression = (
   root: Directive,
   expression: PathExpression,
 ): Directive[] =>
-  expression.parts.length === 0
-    ? [root]
-    : search(topLevelDirectives(root), expression, 0);
+  [expression, ...(expression.alternatives ?? [])].flatMap((alternative) =>
+    searchAlternative(root, alternative),
+  );
 
 /**
  * Finds every directive matching an absolute path from the document root
@@ -47,6 +61,19 @@ const findAllFromExpression = (
  * - `"/server/route(api*)"` and friends — a segment or argument name may
  *   itself contain `*` for a prefix/suffix/multi-chunk pattern instead of
  *   an exact match; see `PathExpression`'s `PatternNode`.
+ * - `"/server/route{/auth(on)}"` — `route` children of `server` that have
+ *   some descendant matching `/auth(on)`; the `{...}` group filters which
+ *   `route`s match without changing what's returned — it's still the
+ *   `route`, not the `auth` directive itself.
+ * - `"/server/route{/auth}{/respond}"` — stacking `{...}` groups is an
+ *   AND: only `route`s that have both an `auth` and a `respond` descendant.
+ * - `"/server/route(GET)(text/*)"` — stacking `(...)` groups is likewise an
+ *   AND: every group independently constrains `directive.args` in full.
+ * - `"/server/route|/server/proxy"` — a top-level `|` (outside any
+ *   `(...)`/`{...}` group) is an OR of whole paths: every `route` and every
+ *   `proxy` child of `server`, concatenated in that order.
+ * - `"/server/route(GET|POST)"` — `|` inside a segment name or a single
+ *   `(...)` token is an OR of alternative values for that one name/argument.
  */
 export const findAllDirectives = (root: Directive, path: string): Directive[] =>
   findAllFromExpression(root, PathExpression.parse(path));
@@ -95,11 +122,17 @@ export const atDirective = <P extends string>(
   path: P,
 ): AtPathResult<P> => {
   const expression = PathExpression.parse(path);
-  const directive = findAllFromExpression(root, expression)[0];
 
-  return (
-    expression.selectArgument === undefined
-      ? directive
-      : directive?.args[expression.selectArgument - 1]
-  ) as AtPathResult<P>;
+  for (const alternative of [expression, ...(expression.alternatives ?? [])]) {
+    const directive = searchAlternative(root, alternative)[0];
+    if (!directive) continue;
+
+    return (
+      alternative.selectArgument === undefined
+        ? directive
+        : directive.args[alternative.selectArgument - 1]
+    ) as AtPathResult<P>;
+  }
+
+  return undefined as AtPathResult<P>;
 };

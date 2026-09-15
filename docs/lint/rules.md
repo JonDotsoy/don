@@ -1122,6 +1122,93 @@ server.donly
 1 error 0 warnings 0 info
 ```
 
+## JSON example: a sibling requirement via `{...}` — `/ssl` required only when a `/user` route exists
+
+The `min`-on-a-sub-path pattern above only reaches _descendants_ of
+whatever matched the enclosing key (`/respond` under `/server/route`).
+When the condition and the requirement are instead **siblings** —
+"if `/server` has any `route` targeting `/user`, `/server` itself must
+declare `ssl`" — key the rule on `/server{...}` instead, using the
+[`{...}` nested-directive filter](../concepts/path-expression.md#filtering-by-a-nested-directive-)
+to select only servers that contain such a route, then nest the sibling
+requirement (`/ssl`) under that same key, same as any other sub-path:
+
+```json
+{
+  "/server{/route(* /user)}": {
+    "/ssl": {
+      "min": 1,
+      "message": "server con route de /user debe declarar ssl"
+    }
+  }
+}
+```
+
+`{/route(* /user)}` doesn't change which directive the rule matches — it
+still matches `server` itself, just filtered to those with a `route`
+whose second argument is exactly `/user` (any first argument, the
+method). `/ssl` then applies to that same matched `server`, requiring at
+least one `ssl` child. A `server` with no `/user` route never matches the
+filter, so it's exempt regardless of whether it declares `ssl`. Valid —
+the `route /user` server also declares `ssl`:
+
+```don
+server {
+  port 3000
+  ssl on
+
+  route GET /user {
+    proxy_pass http://localhost:4000
+  }
+}
+```
+
+but invalid — `route GET /user` exists and `ssl` doesn't:
+
+```don
+server {
+  port 3000
+
+  route GET /user {
+    proxy_pass http://localhost:4000
+  }
+}
+```
+
+<!-- render-block
+import { lintSchema, renderReport } from "donly/lint";
+
+const filePath = "server.donly";
+const issues = lintSchema(
+  `
+server {
+  port 3000
+
+  route GET /user {
+    proxy_pass http://localhost:4000
+  }
+}
+`,
+  {
+    "/server{/route(* /user)}": {
+      "/ssl": {
+        min: 1,
+        message: "server con route de /user debe declarar ssl",
+      },
+    },
+  },
+);
+
+const result = renderReport(issues, { filePath, asciiColor: false });
+-->
+
+```txt
+server.donly
+  2:1  error  server con route de /user debe declarar ssl
+
+1 error 0 warnings 0 info
+```
+
 ## `and` at the rule level: composing full rules
 
 `and` isn't limited to constraints on an argument selector — a rule body

@@ -61,8 +61,10 @@ describe("PathExpression.parse", () => {
       {
         segment: { type: "literal", value: "foo" },
         args: [
-          { type: "literal", value: "tar" },
-          { type: "literal", value: "biz" },
+          [
+            { type: "literal", value: "tar" },
+            { type: "literal", value: "biz" },
+          ],
         ],
       },
     ]);
@@ -75,21 +77,65 @@ describe("PathExpression.parse", () => {
       {
         segment: { type: "literal", value: "foo" },
         args: [
-          { type: "pattern" },
-          { type: "pattern", prefix: "tar" },
-          { type: "pattern", suffix: "biz" },
-          { type: "pattern", prefix: "foo", suffix: "viz" },
-          { type: "pattern", chunks: ["biz"] },
-          { type: "pattern", prefix: "foo", chunks: ["tar", "viz", "liz"] },
+          [
+            { type: "pattern" },
+            { type: "pattern", prefix: "tar" },
+            { type: "pattern", suffix: "biz" },
+            { type: "pattern", prefix: "foo", suffix: "viz" },
+            { type: "pattern", chunks: ["biz"] },
+            { type: "pattern", prefix: "foo", chunks: ["tar", "viz", "liz"] },
+          ],
         ],
       },
     ]);
   });
 
-  it("parses a segment with no arguments as an empty args list", () => {
+  it("parses a segment with no arguments as a single empty args group", () => {
     expect(parts("/foo()")).toEqual([
-      { segment: { type: "literal", value: "foo" }, args: [] },
+      { segment: { type: "literal", value: "foo" }, args: [[]] },
     ]);
+  });
+
+  describe("stacking multiple `(...)` args groups", () => {
+    it("collects each group into args, one entry per group", () => {
+      expect(parts("/foo(GET)(text/*)")).toEqual([
+        {
+          segment: { type: "literal", value: "foo" },
+          args: [
+            [{ type: "literal", value: "GET" }],
+            [{ type: "pattern", prefix: "text/" }],
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe("`|` alternation on a single argument token", () => {
+    it("parses an argument token with `|` into an OrNode, patterns included", () => {
+      expect(parts("/foo(GET|POST api*|*admin)")).toEqual([
+        {
+          segment: { type: "literal", value: "foo" },
+          args: [
+            [
+              {
+                type: "or",
+                options: [
+                  { type: "literal", value: "GET" },
+                  { type: "literal", value: "POST" },
+                ],
+              },
+              {
+                type: "or",
+                options: [
+                  { type: "pattern", prefix: "api" },
+                  { type: "pattern", suffix: "admin" },
+                ],
+              },
+            ],
+          ],
+        },
+      ]);
+    });
   });
 
   it("parses a multi-segment path combined with a wildcard", () => {
@@ -105,6 +151,141 @@ describe("PathExpression.parse", () => {
       { segment: { type: "pattern", prefix: "foo", suffix: "biz" } },
       { segment: { type: "literal", value: "lol" } },
     ]);
+  });
+
+  describe("a trailing `{...}` nested-path group", () => {
+    it("is parsed into contains, absent when there is no group", () => {
+      expect(parts("/route")).toEqual([
+        { segment: { type: "literal", value: "route" } },
+      ]);
+    });
+
+    it("parses a bare name into contains as a list of one nested PathExpression", () => {
+      expect(parts("/route{/auth}")).toEqual([
+        {
+          segment: { type: "literal", value: "route" },
+          contains: [
+            {
+              parts: [{ segment: { type: "literal", value: "auth" } }],
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("composes with a `(...)` args group on the same segment", () => {
+      expect(parts("/route(GET){/auth(on)}")).toEqual([
+        {
+          segment: { type: "literal", value: "route" },
+          args: [[{ type: "literal", value: "GET" }]],
+          contains: [
+            {
+              parts: [
+                {
+                  segment: { type: "literal", value: "auth" },
+                  args: [[{ type: "literal", value: "on" }]],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("supports a multi-segment nested path", () => {
+      expect(parts("/server{/route/auth}")).toEqual([
+        {
+          segment: { type: "literal", value: "server" },
+          contains: [
+            {
+              parts: [
+                { segment: { type: "literal", value: "route" } },
+                { segment: { type: "literal", value: "auth" } },
+              ],
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("stacking multiple `{...}` groups collects each into contains, one entry per group", () => {
+      expect(parts("/route{/auth}{/respond}")).toEqual([
+        {
+          segment: { type: "literal", value: "route" },
+          contains: [
+            { parts: [{ segment: { type: "literal", value: "auth" } }] },
+            { parts: [{ segment: { type: "literal", value: "respond" } }] },
+          ],
+        },
+      ]);
+    });
+
+    it("supports `|` alternation inside a group as alternatives on the nested expression", () => {
+      const [node] = parts("/route{/auth(on)|/auth(strict)}");
+
+      expect(node!.contains).toEqual([
+        {
+          parts: [
+            {
+              segment: { type: "literal", value: "auth" },
+              args: [[{ type: "literal", value: "on" }]],
+            },
+          ],
+          alternatives: [
+            {
+              parts: [
+                {
+                  segment: { type: "literal", value: "auth" },
+                  args: [[{ type: "literal", value: "strict" }]],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe("a top-level `|` between whole paths", () => {
+    it("parses into alternatives on the returned PathExpression", () => {
+      expect(PathExpression.parse("/foo|/biz")).toEqual({
+        parts: [{ segment: { type: "literal", value: "foo" } }],
+        alternatives: [
+          { parts: [{ segment: { type: "literal", value: "biz" } }] },
+        ],
+      });
+    });
+
+    it("supports more than two alternatives, and multi-segment paths", () => {
+      expect(PathExpression.parse("/a/b|/c|/d/e")).toEqual({
+        parts: [
+          { segment: { type: "literal", value: "a" } },
+          { segment: { type: "literal", value: "b" } },
+        ],
+        alternatives: [
+          { parts: [{ segment: { type: "literal", value: "c" } }] },
+          {
+            parts: [
+              { segment: { type: "literal", value: "d" } },
+              { segment: { type: "literal", value: "e" } },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("is absent for a path with no top-level `|`", () => {
+      expect(PathExpression.parse("/foo").alternatives).toBeUndefined();
+    });
+
+    it("does not split a `|` inside a `(...)` or `{...}` group", () => {
+      const expression = PathExpression.parse("/foo(a|b){/tar|/biz}");
+
+      expect(expression.alternatives).toBeUndefined();
+      expect(expression.parts[0]!.args).toEqual([
+        [{ type: "or", options: [{ type: "literal", value: "a" }, { type: "literal", value: "b" }] }],
+      ]);
+    });
   });
 
   describe("PathExpression.parse(str | PathExpression)", () => {
@@ -141,8 +322,10 @@ describe("PathExpression.parse", () => {
           {
             segment: { type: "literal", value: "foo" },
             args: [
-              { type: "literal", value: "tar" },
-              { type: "literal", value: "biz" },
+              [
+                { type: "literal", value: "tar" },
+                { type: "literal", value: "biz" },
+              ],
             ],
           },
         ],
@@ -329,6 +512,128 @@ describe("PathExpression.match", () => {
     expect(
       PathExpression.match(new Directive("route", []), expression, 5),
     ).toBe(false);
+  });
+
+  describe("a `{...}` nested-path filter", () => {
+    it("matches a directive with a descendant satisfying the nested path", () => {
+      const routeHome = new Directive("Route", ["home"], [
+        new Directive("Auth", ["on"]),
+      ]);
+      const routeSettings = new Directive("Route", ["settings"], []);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(routeHome, expression, 0)).toBe(true);
+      expect(PathExpression.match(routeSettings, expression, 0)).toBe(false);
+    });
+
+    it("still returns the outer directive, not the nested match", () => {
+      const auth = new Directive("Auth", ["on"]);
+      const route = new Directive("Route", ["home"], [auth]);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(route, expression, 0)).toBe(true);
+    });
+
+    it("looks past direct children when the nested path has multiple segments", () => {
+      const auth = new Directive("Auth", ["on"]);
+      const route = new Directive("Route", [], [auth]);
+      const server = new Directive("Server", [], [route]);
+      const expression = PathExpression.parse("/Server{/Route/Auth(on)}");
+
+      expect(PathExpression.match(server, expression, 0)).toBe(true);
+    });
+
+    it("does not match when no descendant satisfies the nested path", () => {
+      const route = new Directive("Route", [], [new Directive("Auth", ["off"])]);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(route, expression, 0)).toBe(false);
+    });
+
+    it("does not match a directive with no children at all", () => {
+      const route = new Directive("Route", []);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(route, expression, 0)).toBe(false);
+    });
+  });
+
+  describe("stacked `(...)` args groups (AND)", () => {
+    it("matches only when the directive's args satisfy every group", () => {
+      const expression = PathExpression.parse("/foo(* tar)(biz)");
+
+      expect(
+        PathExpression.match(new Directive("foo", ["biz"]), expression, 0),
+      ).toBe(false);
+      expect(
+        PathExpression.match(new Directive("foo", ["x", "tar"]), expression, 0),
+      ).toBe(false);
+    });
+
+    it("matches when a single collapsed group would already match", () => {
+      const expression = PathExpression.parse("/foo(biz tar)");
+
+      expect(
+        PathExpression.match(new Directive("foo", ["biz", "tar"]), expression, 0),
+      ).toBe(true);
+    });
+  });
+
+  describe("an `|`-alternation value node", () => {
+    it("matches any one of its literal options", () => {
+      const expression = PathExpression.parse("/route(GET|POST)");
+
+      expect(
+        PathExpression.match(new Directive("route", ["GET"]), expression, 0),
+      ).toBe(true);
+      expect(
+        PathExpression.match(new Directive("route", ["POST"]), expression, 0),
+      ).toBe(true);
+      expect(
+        PathExpression.match(new Directive("route", ["PUT"]), expression, 0),
+      ).toBe(false);
+    });
+
+    it("matches any one of its pattern options", () => {
+      const expression = PathExpression.parse("/route(api*|*admin)");
+
+      expect(
+        PathExpression.match(new Directive("route", ["api_users"]), expression, 0),
+      ).toBe(true);
+      expect(
+        PathExpression.match(new Directive("route", ["site_admin"]), expression, 0),
+      ).toBe(true);
+      expect(
+        PathExpression.match(new Directive("route", ["other"]), expression, 0),
+      ).toBe(false);
+    });
+  });
+
+  describe("stacked `{...}` groups (AND) and `|` alternatives inside one", () => {
+    it("requires every group's descendant to be present", () => {
+      const expression = PathExpression.parse("/route{/auth}{/respond}");
+
+      const both = new Directive("route", [], [
+        new Directive("auth", []),
+        new Directive("respond", []),
+      ]);
+      const onlyAuth = new Directive("route", [], [new Directive("auth", [])]);
+
+      expect(PathExpression.match(both, expression, 0)).toBe(true);
+      expect(PathExpression.match(onlyAuth, expression, 0)).toBe(false);
+    });
+
+    it("matches a group when any one of its `|` alternatives is satisfied", () => {
+      const expression = PathExpression.parse("/route{/auth(on)|/auth(strict)}");
+
+      const on = new Directive("route", [], [new Directive("auth", ["on"])]);
+      const strict = new Directive("route", [], [new Directive("auth", ["strict"])]);
+      const off = new Directive("route", [], [new Directive("auth", ["off"])]);
+
+      expect(PathExpression.match(on, expression, 0)).toBe(true);
+      expect(PathExpression.match(strict, expression, 0)).toBe(true);
+      expect(PathExpression.match(off, expression, 0)).toBe(false);
+    });
   });
 
   it("only checks the node at positionSegment, independent of the other parts", () => {
