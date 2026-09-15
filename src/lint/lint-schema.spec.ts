@@ -652,7 +652,71 @@ server {
     // `route GET /user` and `route POST /user` are missing `authorized` —
     // `route PUT /user` already declares it, so it reports no issue of its own.
     expect(issues).toHaveLength(2);
-    expect(issues.every((issue) => issue.message === "todo route de /user debe declarar authorized")).toBe(true);
+    expect(
+      issues.every(
+        (issue) =>
+          issue.message === "todo route de /user debe declarar authorized",
+      ),
+    ).toBe(true);
+  });
+
+  test("requires ssl on a server that has any route targeting /user", () => {
+    const rule = {
+      "/server{/route(* /user)}": {
+        "/ssl": {
+          min: 1,
+          message: "server con route de /user debe declarar ssl",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const missingSslIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(missingSslIssues).toHaveLength(1);
+    expect(missingSslIssues[0]).toMatchObject({
+      message: "server con route de /user debe declarar ssl",
+    });
+
+    const withSslIssues = lintSchema(
+      `
+server {
+    port 3000
+    ssl on
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(withSslIssues).toHaveLength(0);
+
+    // No `route` targets `/user` at all, so `{/route(* /user)}` doesn't
+    // match this `server` — the `/ssl` requirement never even applies.
+    const noUserRouteIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /health {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(noUserRouteIssues).toHaveLength(0);
   });
 
   test("accepts an or between two alternative documents at the root", () => {
