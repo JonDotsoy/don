@@ -308,6 +308,7 @@ The path syntax:
 - `"/server/route"` — `route` children of a matched `server`.
 - `"/server/route(/home)"` — `route` children whose args are exactly `["/home"]`.
 - `"/server/route(* /api/user)"` — `route` children with any first argument and a second argument exactly `"/api/user"` (`*` wildcards a single argument; a directive only matches a `(...)` group when its `args.length` equals the number of space-separated patterns).
+- `"/server/\/user"` — a `/user` child, i.e. a directive whose own name is `/user` (DON identifiers may contain `/`, see the [spec](./docs/specs/v1/spec.md#23-identifiers)); `\` escapes the character that follows it so it's read literally instead of as a path separator or a `(`/`)` group delimiter.
 
 `find` returns the first match (or `undefined`), `findAll` returns every match. `findDirective`/`findAllDirectives` are also exported from `donly/find` for the same lookup against any `Directive`, not just as instance methods.
 

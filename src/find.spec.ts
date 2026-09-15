@@ -97,6 +97,39 @@ describe("find", () => {
     expect(directives).toEqual([]);
   });
 
+  describe("escaping a `/` that's part of a directive's own name", () => {
+    const slashText = ""
+      + "server {\n"
+      + "  /user {\n"
+      + "    respond 200\n"
+      + "  }\n"
+      + "}\n";
+
+    const slashRoot = DON.parse(slashText);
+
+    it("resolves a directive named `/user` via `\\/user`", () => {
+      const directive = findDirective(slashRoot, "/server/\\/user");
+
+      expect(directive?.name).toBe("/user");
+    });
+
+    it("resolves a descendant of that directive", () => {
+      const directive = findDirective(slashRoot, "/server/\\/user/respond");
+
+      expect(directive?.args).toEqual([200]);
+    });
+
+    it("does not match without the escape", () => {
+      expect(findDirective(slashRoot, "/server/user")).toBeUndefined();
+    });
+
+    it("also unescapes an arg pattern's `/`, though it's redundant there since `(...)` already isn't split on `/`", () => {
+      const directive = findDirective(root, "/server/route(\\/home)");
+
+      expect(directive?.args).toEqual(["/home"]);
+    });
+  });
+
   describe("Directive#find / Directive#findAll", () => {
     it("mirror findDirective/findAllDirectives, using `this` as the root", () => {
       expect(root.find("/server/route(/home)")).toEqual(
