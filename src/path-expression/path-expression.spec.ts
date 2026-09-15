@@ -54,7 +54,9 @@ describe("PathExpression.parse", () => {
   });
 
   it("parses a segment with complex/dynamic arguments", () => {
-    expect(parts("/foo(* tar* *biz foo*viz)")).toEqual([
+    expect(
+      parts("/foo(* tar* *biz foo*viz *biz* foo*tar*viz*liz*)"),
+    ).toEqual([
       {
         type: "args",
         segment: "foo",
@@ -63,6 +65,8 @@ describe("PathExpression.parse", () => {
           { type: "pattern", prefix: "tar" },
           { type: "pattern", suffix: "biz" },
           { type: "pattern", prefix: "foo", suffix: "viz" },
+          { type: "pattern", chunks: ["biz"] },
+          { type: "pattern", prefix: "foo", chunks: ["tar", "viz", "liz"] },
         ],
       },
     ]);
