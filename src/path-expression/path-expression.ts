@@ -1,3 +1,5 @@
+import type { Directive } from "../don.js";
+
 /**
  * A `*`-tokenized value: `prefix`/`suffix` are the text before the first
  * and after the last `*` (absent when empty), and `chunks` are the pieces
@@ -161,6 +163,26 @@ const isPathExpression = (value: unknown): value is PathExpression =>
 
 const trailingArgIndexPattern = /\[(\d+)\]$/;
 
+const escapeRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Builds the regex a `PatternNode` stands for: `prefix` anchored at the
+ * start, `suffix` anchored at the end, and `chunks` required to occur (in
+ * order) somewhere in between — the same shape `parseValueToken` split the
+ * original `*`-tokenized string into, reassembled with `.*` standing in
+ * for each `*`. A bare pattern (all three absent) becomes `^.*$`.
+ */
+const patternToRegExp = (node: PatternNode): RegExp => {
+  const pieces = [node.prefix ?? "", ...(node.chunks ?? []), node.suffix ?? ""];
+  return new RegExp(`^${pieces.map(escapeRegExp).join(".*")}$`);
+};
+
+const matchesValue = (value: string, node: ValueNode): boolean =>
+  node.type === "literal"
+    ? value === node.value
+    : patternToRegExp(node).test(value);
+
 export const PathExpression = {
   /**
    * Parses a path string into a `PathExpression`, or returns `input`
@@ -177,5 +199,39 @@ export const PathExpression = {
       parts: splitPathSegments(input.slice(0, match.index)).map(parseSegment),
       selectArgument: Number(match[1]),
     };
+  },
+
+  /**
+   * Checks a single `directive` against the one `PathNode` at
+   * `expression.parts[positionSegment]` — it doesn't walk
+   * `directive.children` or advance through the rest of `parts` itself;
+   * that's left to whatever traversal calls this once per level.
+   *
+   * An expression with no parts at all (`"/"`, `""`, or a bare `[N]`
+   * selector) imposes no constraint and always matches. Otherwise,
+   * `directive.name` must match the node's `segment`; when the node also
+   * carries `args` (its source had a `(...)` group, even an empty one),
+   * `directive.args` must have the same length and match pairwise —
+   * a node with no `args` at all matches regardless of `directive.args`.
+   */
+  match(
+    directive: Directive,
+    expression: PathExpression,
+    positionSegment: number,
+  ): boolean {
+    if (expression.parts.length === 0) return true;
+
+    const node = expression.parts[positionSegment];
+    if (!node) return false;
+
+    if (!matchesValue(String(directive.name), node.segment)) return false;
+    if (node.args === undefined) return true;
+
+    return (
+      directive.args.length === node.args.length &&
+      node.args.every((argNode, index) =>
+        matchesValue(String(directive.args[index]), argNode),
+      )
+    );
   },
 };

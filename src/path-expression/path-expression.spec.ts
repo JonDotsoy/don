@@ -171,7 +171,7 @@ describe("PathExpression.parse", () => {
 describe("PathExpression.match", () => {
   it.each(["/", "", "[1]", "/[1]"])(
     "always matches when the expression has no parts (%j)",
-    (path) => {
+    (path: string) => {
       const expression = PathExpression.parse(path);
 
       expect(
