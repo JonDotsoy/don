@@ -3,6 +3,7 @@
  * described in `docs/lint/rules.md` (types: `./schema.ts`).
  */
 import { DON, Directive, HeredocValue } from "../don.js";
+import { PathExpression } from "../path-expression/path-expression.js";
 import { ROOT_DIRECTIVE_NAME } from "../root-directive-name.js";
 import { argumentLoc, directiveLoc, type LintIssue } from "./types.js";
 import type {
@@ -11,31 +12,6 @@ import type {
   LintRuleDocument,
   RuleBody,
 } from "./schema.js";
-
-/** Splits an absolute or relative `/a/b` path into `["a", "b"]`. */
-const pathComponents = (path: string): string[] =>
-  path.split("/").filter((component) => component.length > 0);
-
-/**
- * Parses a document/body key into the sub-path it descends (possibly empty,
- * for a bare `"[N]"` selector or the root selector `"/"`) and the 1-based
- * argument position it selects, if any (bare `"[N]"` or fused `"/name[N]"`).
- */
-const parseSelectorKey = (
-  key: string,
-): { segments: string[]; argIndex?: number } => {
-  const fused = key.match(/^(\/.*)\[(\d+)\]$/);
-  if (fused) {
-    return { segments: pathComponents(fused[1]!), argIndex: Number(fused[2]) };
-  }
-
-  const bare = key.match(/^\[(\d+)\]$/);
-  if (bare) {
-    return { segments: [], argIndex: Number(bare[1]) };
-  }
-
-  return { segments: pathComponents(key) };
-};
 
 /** Keys on a `RuleBody` that are metadata, not a sub-path/argument selector. */
 const BODY_META_KEYS = new Set([
@@ -266,11 +242,12 @@ const applyValue = (
 
   for (const directive of matches) {
     for (const [key, subValue] of bodyKeyEntries(body)) {
-      const { segments, argIndex: subArgIndex } = parseSelectorKey(key);
+      const expression = PathExpression.parse(key);
       matchAndEvaluate(
         [directive],
-        segments,
-        subArgIndex,
+        expression,
+        0,
+        expression.selectArgument,
         subValue,
         issues,
         root,
@@ -279,26 +256,35 @@ const applyValue = (
   }
 };
 
+/**
+ * Walks `parents` down `expression.parts` one `positionSegment` at a time,
+ * matching each level's children with `PathExpression.match` — the same
+ * matcher `findAllDirectives` (`../find.js`) uses — so a sub-path selector
+ * gets its `*`/pattern/`(args)` semantics for free instead of lint-schema
+ * re-implementing its own. `checkOccurrence` still runs per immediate
+ * parent at the final segment, since `max`/`min` count occurrences under
+ * each parent individually rather than across the flattened match set.
+ */
 const matchAndEvaluate = (
   parents: Directive[],
-  segments: string[],
+  expression: PathExpression,
+  positionSegment: number,
   argIndex: number | undefined,
   value: RuleBody | ArgumentConstraint,
   issues: LintIssue[],
   root: Directive,
 ): void => {
-  if (segments.length === 0) {
+  if (positionSegment >= expression.parts.length) {
     applyValue(parents, argIndex, value, issues, root);
     return;
   }
 
-  const [segment, ...rest] = segments as [string, ...string[]];
-  const isFinal = rest.length === 0;
+  const isFinal = positionSegment === expression.parts.length - 1;
   const nextParents: Directive[] = [];
 
   for (const parent of parents) {
-    const matchingChildren = parent.children.filter(
-      (child) => segment === "*" || child.name === segment,
+    const matchingChildren = parent.children.filter((child) =>
+      PathExpression.match(child, expression, positionSegment),
     );
     if (isFinal && argIndex === undefined) {
       checkOccurrence(parent, matchingChildren, value as RuleBody, issues);
@@ -309,7 +295,15 @@ const matchAndEvaluate = (
   if (isFinal) {
     applyValue(nextParents, argIndex, value, issues, root, parents);
   } else {
-    matchAndEvaluate(nextParents, rest, argIndex, value, issues, root);
+    matchAndEvaluate(
+      nextParents,
+      expression,
+      positionSegment + 1,
+      argIndex,
+      value,
+      issues,
+      root,
+    );
   }
 };
 
@@ -327,11 +321,12 @@ const evaluateDocumentKeys = (
     ) {
       continue;
     }
-    const { segments, argIndex } = parseSelectorKey(key);
+    const expression = PathExpression.parse(key);
     matchAndEvaluate(
       [root],
-      segments,
-      argIndex,
+      expression,
+      0,
+      expression.selectArgument,
       value as RuleBody | ArgumentConstraint,
       issues,
       root,

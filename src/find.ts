@@ -83,9 +83,12 @@ export type AtPathResult<P extends string> = string extends P
 /**
  * Resolves an absolute path (see `findAllDirectives` for the path syntax),
  * optionally suffixed with `[N]` on the final segment (e.g.
- * `"/server/route(/home)[0]"`) to return that directive's `N`th argument
- * instead of the directive itself. Returns `undefined` when the directive
- * isn't found, or when the argument index is out of range.
+ * `"/server/route(/home)[1]"`) to return that directive's argument at
+ * position `N` instead of the directive itself. **Positions are 1-based**
+ * — `[1]` is the first argument, matching `directive.args[0]` — the same
+ * convention the lint rule schema's own `[N]` selectors use (see
+ * `docs/lint/rules.md`). Returns `undefined` when the directive isn't
+ * found, or when the argument position is out of range.
  */
 export const atDirective = <P extends string>(
   root: Directive,
@@ -97,6 +100,6 @@ export const atDirective = <P extends string>(
   return (
     expression.selectArgument === undefined
       ? directive
-      : directive?.args[expression.selectArgument]
+      : directive?.args[expression.selectArgument - 1]
   ) as AtPathResult<P>;
 };

@@ -90,9 +90,10 @@ export class Directive {
   /**
    * Resolves an absolute path from `this` directive (treated as the
    * document root); see `findAllDirectives` for the path syntax. A path
-   * ending in `[N]` (e.g. `"/server/route(/home)[0]"`) returns that
-   * directive's `N`th argument instead of the directive itself — reflected
-   * in the return type for a string-literal path.
+   * ending in `[N]` (e.g. `"/server/route(/home)[1]"`) returns that
+   * directive's argument at position `N` instead of the directive itself
+   * — reflected in the return type for a string-literal path.
+   * **Positions are 1-based**: `[1]` is the first argument.
    */
   at<P extends string>(path: P): AtPathResult<P> {
     return atDirective(this, path);
