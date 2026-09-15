@@ -50,6 +50,26 @@ It returns a `ProxyDemoServer`:
 - `servers: Bun.Server[]` — the live server instances, one per `server` block.
 - `stop(): Promise<void>` — stops watching the file and stops every server.
 
+### Validation
+
+`serve()` validates the file against the schema below before starting
+anything. The syntax above keeps working exactly as shown as long as the
+file is well-formed; if it isn't, `serve()` rejects instead of starting a
+broken server:
+
+```ts
+try {
+  const server = await serve("./my-donly-server-file.donly");
+} catch (error) {
+  // e.g. missing `port`, invalid `proxy_pass` URL, a `route` without
+  // `respond`/`proxy_pass`, ...
+  console.error(error);
+}
+```
+
+See [Lint](#lint) below for the full list of rules and how they're
+re-checked on every hot reload.
+
 ## Schema
 
 - `server { ... }` — one per listening instance; declare as many as you need.
