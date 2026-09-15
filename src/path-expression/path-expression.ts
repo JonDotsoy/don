@@ -24,11 +24,17 @@ export type ValueNode = LiteralNode | PatternNode;
 /**
  * One segment within a path: `segment` is its name, `args` is its
  * `(...)` argument list when the segment carries one (absent otherwise,
- * as opposed to `[]` for an explicit, empty `()`).
+ * as opposed to `[]` for an explicit, empty `()`), and `contains` is a
+ * nested `PathExpression` parsed from a trailing `{...}` group, when the
+ * segment carries one. `contains` doesn't change which directive matches
+ * — it's a filter: the directive must have some descendant, reachable by
+ * walking `children` the same way a normal path does, that matches
+ * `contains` (see `PathExpression.match`).
  */
 export type PathNode = {
   segment: ValueNode;
   args?: ValueNode[];
+  contains?: PathExpression;
 };
 
 /** The root structure returned by the parser. */
@@ -51,9 +57,10 @@ const unescape = (value: string): string => value.replace(/\\(.)/g, "$1");
 
 /**
  * Splits a `/`-separated path into its top-level segments, treating a
- * segment's `(...)` argument group as part of that segment even when the
- * group itself contains a `/`, and treating `\` followed by any character
- * as that literal character rather than a separator or a group delimiter.
+ * segment's `(...)` argument group and `{...}` nested-path group as part
+ * of that segment even when the group itself contains a `/`, and treating
+ * `\` followed by any character as that literal character rather than a
+ * separator or a group delimiter.
  */
 const splitPathSegments = (path: string): string[] => {
   const segments: string[] = [];
@@ -69,8 +76,8 @@ const splitPathSegments = (path: string): string[] => {
       continue;
     }
 
-    if (char === "(") depth++;
-    if (char === ")") depth--;
+    if (char === "(" || char === "{") depth++;
+    if (char === ")" || char === "}") depth--;
 
     if (char === "/" && depth === 0) {
       if (current.length > 0) segments.push(current);
@@ -141,21 +148,110 @@ const parseValueToken = (raw: string): ValueNode => {
   };
 };
 
-const segmentWithArgsPattern = /^((?:\\.|[^/()])+)\(((?:\\.|[^)])*)\)$/;
+/**
+ * Scans past a `\`-escaped-aware balanced group opened by `open` (its
+ * matching close is `close`), starting right after `openIndex` (which
+ * must point at `open`). Returns the group's inner text and the index of
+ * the character right after its closing delimiter. Nested `open`/`close`
+ * pairs inside the group are tracked so an inner group's own delimiters
+ * don't end the outer one early.
+ */
+const scanBalancedGroup = (
+  raw: string,
+  openIndex: number,
+  open: string,
+  close: string,
+): { content: string; nextIndex: number } => {
+  let depth = 1;
+  let content = "";
+  let i = openIndex + 1;
+
+  while (i < raw.length && depth > 0) {
+    const char = raw[i]!;
+
+    if (char === "\\" && i + 1 < raw.length) {
+      content += char + raw[i + 1];
+      i += 2;
+      continue;
+    }
+
+    if (char === open) depth++;
+    if (char === close) {
+      depth--;
+      if (depth === 0) {
+        i++;
+        break;
+      }
+    }
+
+    content += char;
+    i++;
+  }
+
+  return { content, nextIndex: i };
+};
+
+/**
+ * Splits one path segment into its name, an optional `(...)` args group,
+ * and an optional trailing `{...}` nested-path group — `name(args){nested}`,
+ * with `args`/`nested` each absent when the segment carries no such group.
+ * `\` escapes the character right after it throughout, including inside
+ * `name`, so a literal `(`, `)`, `{`, or `}` can be part of a name.
+ */
+const scanSegment = (
+  segment: string,
+): { name: string; argsGroup?: string; nestedGroup?: string } => {
+  let name = "";
+  let i = 0;
+
+  while (i < segment.length) {
+    const char = segment[i]!;
+
+    if (char === "\\" && i + 1 < segment.length) {
+      name += char + segment[i + 1];
+      i += 2;
+      continue;
+    }
+
+    if (char === "(" || char === "{") break;
+    name += char;
+    i++;
+  }
+
+  let argsGroup: string | undefined;
+  if (segment[i] === "(") {
+    const { content, nextIndex } = scanBalancedGroup(segment, i, "(", ")");
+    argsGroup = content;
+    i = nextIndex;
+  }
+
+  let nestedGroup: string | undefined;
+  if (segment[i] === "{") {
+    const { content, nextIndex } = scanBalancedGroup(segment, i, "{", "}");
+    nestedGroup = content;
+    i = nextIndex;
+  }
+
+  return { name, argsGroup, nestedGroup };
+};
 
 const parseSegment = (segment: string): PathNode => {
-  const match = segmentWithArgsPattern.exec(segment);
-  if (!match) return { segment: parseValueToken(segment) };
-
-  const [, name, argsGroup] = match;
-  const trimmedArgsGroup = argsGroup!.trim();
+  const { name, argsGroup, nestedGroup } = scanSegment(segment);
+  const trimmedArgsGroup = argsGroup?.trim();
 
   return {
-    segment: parseValueToken(name!),
-    args:
-      trimmedArgsGroup === ""
-        ? []
-        : trimmedArgsGroup.split(/\s+/).map(parseValueToken),
+    segment: parseValueToken(name),
+    ...(argsGroup !== undefined
+      ? {
+          args:
+            trimmedArgsGroup === ""
+              ? []
+              : trimmedArgsGroup!.split(/\s+/).map(parseValueToken),
+        }
+      : {}),
+    ...(nestedGroup !== undefined
+      ? { contains: parsePathExpression(nestedGroup) }
+      : {}),
   };
 };
 
@@ -165,6 +261,22 @@ const isPathExpression = (value: unknown): value is PathExpression =>
   Array.isArray((value as { parts?: unknown }).parts);
 
 const trailingArgIndexPattern = /\[(\d+)\]$/;
+
+/**
+ * Parses a raw path string into a `PathExpression` (see `PathExpression.parse`
+ * for the string-or-already-parsed public entry point). Hoisted so it can be
+ * called from `parseSegment`/`scanSegment` above, for a `{...}` group's own
+ * nested path — the same syntax, parsed the same way, one level down.
+ */
+function parsePathExpression(input: string): PathExpression {
+  const match = trailingArgIndexPattern.exec(input);
+  if (!match) return { parts: splitPathSegments(input).map(parseSegment) };
+
+  return {
+    parts: splitPathSegments(input.slice(0, match.index)).map(parseSegment),
+    selectArgument: Number(match[1]),
+  };
+}
 
 const escapeRegExp = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -186,6 +298,33 @@ const matchesValue = (value: string, node: ValueNode): boolean =>
     ? value === node.value
     : patternToRegExp(node).test(value);
 
+/**
+ * Checks whether `directive` has a descendant matching `expression` in
+ * full, reached by walking `children` down through each of its parts in
+ * turn — the same way a path descends from the document root, but
+ * starting one level down, at `directive`'s own children. Backs a
+ * `{...}` group's `contains` filter: it only reports whether such a
+ * descendant exists, it doesn't select or return it.
+ */
+function matchesContains(
+  directive: Directive,
+  expression: PathExpression,
+): boolean {
+  if (expression.parts.length === 0) return true;
+
+  const search = (directives: Directive[], positionSegment: number): boolean =>
+    directives.some((child) => {
+      if (!PathExpression.match(child, expression, positionSegment))
+        return false;
+
+      return positionSegment === expression.parts.length - 1
+        ? true
+        : search(child.children, positionSegment + 1);
+    });
+
+  return search(directive.children, 0);
+}
+
 export const PathExpression = {
   /**
    * Parses a path string into a `PathExpression`, or returns `input`
@@ -193,15 +332,7 @@ export const PathExpression = {
    * string or an already-parsed expression without checking themselves.
    */
   parse(input: string | PathExpression): PathExpression {
-    if (isPathExpression(input)) return input;
-
-    const match = trailingArgIndexPattern.exec(input);
-    if (!match) return { parts: splitPathSegments(input).map(parseSegment) };
-
-    return {
-      parts: splitPathSegments(input.slice(0, match.index)).map(parseSegment),
-      selectArgument: Number(match[1]),
-    };
+    return isPathExpression(input) ? input : parsePathExpression(input);
   },
 
   /**
@@ -214,8 +345,12 @@ export const PathExpression = {
    * selector) imposes no constraint and always matches. Otherwise,
    * `directive.name` must match the node's `segment`; when the node also
    * carries `args` (its source had a `(...)` group, even an empty one),
-   * `directive.args` must have the same length and match pairwise —
-   * a node with no `args` at all matches regardless of `directive.args`.
+   * `directive.args` must have the same length and match pairwise — a
+   * node with no `args` at all matches regardless of `directive.args`.
+   * When the node also carries `contains` (its source had a trailing
+   * `{...}` group), `directive` must additionally have some descendant
+   * matching it (see `matchesContains`) — the group filters which
+   * directives match, it doesn't change which one does.
    */
   match(
     directive: Directive,
@@ -228,13 +363,23 @@ export const PathExpression = {
     if (!node) return false;
 
     if (!matchesValue(String(directive.name), node.segment)) return false;
-    if (node.args === undefined) return true;
 
-    return (
-      directive.args.length === node.args.length &&
-      node.args.every((argNode, index) =>
-        matchesValue(String(directive.args[index]), argNode),
-      )
-    );
+    if (node.args !== undefined) {
+      const argsMatch =
+        directive.args.length === node.args.length &&
+        node.args.every((argNode, index) =>
+          matchesValue(String(directive.args[index]), argNode),
+        );
+      if (!argsMatch) return false;
+    }
+
+    if (
+      node.contains !== undefined &&
+      !matchesContains(directive, node.contains)
+    ) {
+      return false;
+    }
+
+    return true;
   },
 };

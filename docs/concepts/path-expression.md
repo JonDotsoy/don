@@ -170,6 +170,48 @@ above (two arguments) doesn't match `(* * *)` (three tokens) even though
 every token is a wildcard — add or remove a `*` to require more or fewer
 arguments, regardless of their content.
 
+## Filtering by a nested directive: `{...}`
+
+A segment can also carry a `{...}` group right after its name (and after
+a `(...)` args group, when there's one) to require the directive to have
+some **descendant** matching a nested path expression — the same syntax
+described on this whole page, applied one level down. Unlike `/`, a
+`{...}` group is a **filter**: it doesn't change which directive matches
+or advance the result into the descendant — the outer directive is still
+what's returned, only now restricted to those that contain a match
+somewhere inside:
+
+```ts
+const root = DON.parse(`
+Server {
+  Route home {
+    Auth on
+  }
+  Route settings {
+  }
+}
+`);
+
+root.findAll("/Server/Route{/Auth(on)}");
+// ? [ Directive { name: "Route", args: ["home"], children: [...] } ]
+// `Route settings` has no `Auth on` child, so it's filtered out —
+// `Route home` is still what's returned, not the `Auth` directive itself.
+```
+
+The path inside `{...}` is resolved the same way `/server`/`/*`/etc. are
+resolved from the document root, except it starts one level down, from
+the outer segment's own `children` — so a leading `/` there addresses a
+direct child, and `/route/auth` addresses a grandchild, matching through
+however many intermediate directives its own segments name. It accepts
+everything else on this page too — wildcards, `(...)` argument groups,
+and even its own nested `{...}` group, to arbitrary depth.
+
+`{`, `}`, `(`, `)`, `*`, and `/` are all special inside a segment; a
+directive whose own name needs one of them literally (see the [spec, §2.3
+Identifiers](../specs/v1/spec.md#23-identifiers) — `${name}` is a valid
+identifier) needs it escaped with `\`, the same as any other special
+character on this page.
+
 ## Selecting an argument: a trailing `[N]`
 
 A path can end in `[N]` to additionally select one argument off whatever
@@ -196,15 +238,16 @@ root.at("/server/route(GET /api)/respond[1]");
 
 ## Summary
 
-| Syntax                                   | Meaning                                                                              |
-| ---------------------------------------- | ------------------------------------------------------------------------------------ |
-| `/` or `""`                              | No constraint — matches the starting directive itself                                |
-| `/name`                                  | A `/`-separated segment — descends into a child by name                              |
-| `\c`                                     | Escapes `c` (a `/`, `(`, `)`, or `*`) so it's read literally                         |
-| `*`                                      | Wildcard — matches any name (as a segment) or any single value (as an argument)      |
-| `pre*`, `*suf`, `pre*suf`, `pre*mid*suf` | Prefix/suffix/chunk pattern, on a segment name or an argument                        |
-| `name(a b c)`                            | Matches only when `args` has exactly 3 entries, each matching `a`, `b`, `c` pairwise |
-| `name(* * *)`                            | Matches only by argument **count** (here, exactly 3) — every token is a wildcard     |
-| `name()`                                 | Matches only a directive with zero arguments                                         |
-| `name` (no `(...)`)                      | Matches regardless of arguments — they aren't checked at all                         |
-| `...[N]`                                 | Selects argument `N` off the matched directive (informative — see note above)        |
+| Syntax                                   | Meaning                                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `/` or `""`                              | No constraint — matches the starting directive itself                                             |
+| `/name`                                  | A `/`-separated segment — descends into a child by name                                           |
+| `\c`                                     | Escapes `c` (a `/`, `(`, `)`, or `*`) so it's read literally                                      |
+| `*`                                      | Wildcard — matches any name (as a segment) or any single value (as an argument)                   |
+| `pre*`, `*suf`, `pre*suf`, `pre*mid*suf` | Prefix/suffix/chunk pattern, on a segment name or an argument                                     |
+| `name(a b c)`                            | Matches only when `args` has exactly 3 entries, each matching `a`, `b`, `c` pairwise              |
+| `name(* * *)`                            | Matches only by argument **count** (here, exactly 3) — every token is a wildcard                  |
+| `name()`                                 | Matches only a directive with zero arguments                                                      |
+| `name` (no `(...)`)                      | Matches regardless of arguments — they aren't checked at all                                      |
+| `name{path}`                             | Filters to directives with a descendant matching `path`; still returns `name`, not the descendant |
+| `...[N]`                                 | Selects argument `N` off the matched directive (informative — see note above)                     |

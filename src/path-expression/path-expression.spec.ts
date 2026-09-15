@@ -107,6 +107,56 @@ describe("PathExpression.parse", () => {
     ]);
   });
 
+  describe("a trailing `{...}` nested-path group", () => {
+    it("is parsed into contains, absent when there is no group", () => {
+      expect(parts("/route")).toEqual([
+        { segment: { type: "literal", value: "route" } },
+      ]);
+    });
+
+    it("parses a bare name into contains as a nested PathExpression", () => {
+      expect(parts("/route{/auth}")).toEqual([
+        {
+          segment: { type: "literal", value: "route" },
+          contains: {
+            parts: [{ segment: { type: "literal", value: "auth" } }],
+          },
+        },
+      ]);
+    });
+
+    it("composes with a `(...)` args group on the same segment", () => {
+      expect(parts("/route(GET){/auth(on)}")).toEqual([
+        {
+          segment: { type: "literal", value: "route" },
+          args: [{ type: "literal", value: "GET" }],
+          contains: {
+            parts: [
+              {
+                segment: { type: "literal", value: "auth" },
+                args: [{ type: "literal", value: "on" }],
+              },
+            ],
+          },
+        },
+      ]);
+    });
+
+    it("supports a multi-segment nested path", () => {
+      expect(parts("/server{/route/auth}")).toEqual([
+        {
+          segment: { type: "literal", value: "server" },
+          contains: {
+            parts: [
+              { segment: { type: "literal", value: "route" } },
+              { segment: { type: "literal", value: "auth" } },
+            ],
+          },
+        },
+      ]);
+    });
+  });
+
   describe("PathExpression.parse(str | PathExpression)", () => {
     it("returns an already-parsed PathExpression unchanged", () => {
       const parsed = PathExpression.parse("/foo/*/tar");
@@ -329,6 +379,50 @@ describe("PathExpression.match", () => {
     expect(
       PathExpression.match(new Directive("route", []), expression, 5),
     ).toBe(false);
+  });
+
+  describe("a `{...}` nested-path filter", () => {
+    it("matches a directive with a descendant satisfying the nested path", () => {
+      const routeHome = new Directive("Route", ["home"], [
+        new Directive("Auth", ["on"]),
+      ]);
+      const routeSettings = new Directive("Route", ["settings"], []);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(routeHome, expression, 0)).toBe(true);
+      expect(PathExpression.match(routeSettings, expression, 0)).toBe(false);
+    });
+
+    it("still returns the outer directive, not the nested match", () => {
+      const auth = new Directive("Auth", ["on"]);
+      const route = new Directive("Route", ["home"], [auth]);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(route, expression, 0)).toBe(true);
+    });
+
+    it("looks past direct children when the nested path has multiple segments", () => {
+      const auth = new Directive("Auth", ["on"]);
+      const route = new Directive("Route", [], [auth]);
+      const server = new Directive("Server", [], [route]);
+      const expression = PathExpression.parse("/Server{/Route/Auth(on)}");
+
+      expect(PathExpression.match(server, expression, 0)).toBe(true);
+    });
+
+    it("does not match when no descendant satisfies the nested path", () => {
+      const route = new Directive("Route", [], [new Directive("Auth", ["off"])]);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(route, expression, 0)).toBe(false);
+    });
+
+    it("does not match a directive with no children at all", () => {
+      const route = new Directive("Route", []);
+      const expression = PathExpression.parse("/Route{/Auth(on)}");
+
+      expect(PathExpression.match(route, expression, 0)).toBe(false);
+    });
   });
 
   it("only checks the node at positionSegment, independent of the other parts", () => {

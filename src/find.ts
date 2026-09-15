@@ -47,6 +47,10 @@ const findAllFromExpression = (
  * - `"/server/route(api*)"` and friends — a segment or argument name may
  *   itself contain `*` for a prefix/suffix/multi-chunk pattern instead of
  *   an exact match; see `PathExpression`'s `PatternNode`.
+ * - `"/server/route{/auth(on)}"` — `route` children of `server` that have
+ *   some descendant matching `/auth(on)`; the `{...}` group filters which
+ *   `route`s match without changing what's returned — it's still the
+ *   `route`, not the `auth` directive itself.
  */
 export const findAllDirectives = (root: Directive, path: string): Directive[] =>
   findAllFromExpression(root, PathExpression.parse(path));
