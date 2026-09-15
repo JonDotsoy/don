@@ -937,4 +937,61 @@ server {
     );
     expect(otherContentTypeIssues).toHaveLength(0);
   });
+
+  test("fuses a pattern argument-group selector with a nested argument selector, e.g. /server(us-central-*)/port[1]", () => {
+    const rule = {
+      "/server(us-central-*)/port[1]": {
+        type: "number",
+        message: "el port de un server us-central-* debe ser un número",
+      },
+    } satisfies LintRuleDocument;
+
+    const validIssues = lintSchema(
+      `
+server "us-central-1" {
+  port 8080
+}
+`,
+      rule,
+    );
+    expect(validIssues).toHaveLength(0);
+
+    const invalidIssues = lintSchema(
+      `
+server "us-central-1" {
+  port "8080"
+}
+`,
+      rule,
+    );
+    expect(invalidIssues).toHaveLength(1);
+    expect(invalidIssues[0]).toMatchObject({
+      message: "el port de un server us-central-* debe ser un número",
+    });
+
+    // `server` here has no argument at all, so it never matches the
+    // `(us-central-*)` argument group — the constraint isn't evaluated,
+    // even though its own `port` is the wrong type.
+    const noArgumentIssues = lintSchema(
+      `
+server {
+  port "8080"
+}
+`,
+      rule,
+    );
+    expect(noArgumentIssues).toHaveLength(0);
+
+    // A `server` whose argument doesn't start with "us-central-" doesn't
+    // match either, regardless of its `port`'s type.
+    const otherRegionIssues = lintSchema(
+      `
+server "eu-west-1" {
+  port "8080"
+}
+`,
+      rule,
+    );
+    expect(otherRegionIssues).toHaveLength(0);
+  });
 });
