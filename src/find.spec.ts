@@ -7,7 +7,7 @@ import { atDirective, findAllDirectives, findDirective } from "./find";
 // literal ends in `[N]` (an argument value) or not (a Directive).
 function typeAssertions(directive: Directive) {
   const argType: string | number | boolean | HeredocValue | undefined =
-    directive.at("/server/route(/home)[0]");
+    directive.at("/server/route(/home)[1]");
   const directiveType: Directive | undefined = directive.at(
     "/server/route(/home)",
   );
@@ -16,14 +16,14 @@ function typeAssertions(directive: Directive) {
     directive.at(dynamicPath);
 
   const fnArgType: string | number | boolean | HeredocValue | undefined =
-    atDirective(directive, "/server/route(/home)[0]");
+    atDirective(directive, "/server/route(/home)[1]");
   const fnDirectiveType: Directive | undefined = atDirective(
     directive,
     "/server/route(/home)",
   );
 
   // @ts-expect-error a `[N]`-suffixed path never resolves to a Directive.
-  const notADirective: Directive = directive.at("/server/route(/home)[0]");
+  const notADirective: Directive = directive.at("/server/route(/home)[1]");
 
   // @ts-expect-error a plain path never resolves to a raw argument value.
   const notAnArg: string = directive.at("/server/route(/home)");
@@ -148,27 +148,31 @@ describe("find", () => {
       );
     });
 
-    it("returns the Nth argument when the path ends with [N]", () => {
-      expect(atDirective(root, "/server/route(* /api/user)[0]")).toBe("GET");
-      expect(atDirective(root, "/server/route(* /api/user)[1]")).toBe(
+    it("returns the argument at position N when the path ends with [N] (1-based)", () => {
+      expect(atDirective(root, "/server/route(* /api/user)[1]")).toBe("GET");
+      expect(atDirective(root, "/server/route(* /api/user)[2]")).toBe(
         "/api/user",
       );
     });
 
     it("returns undefined when the directive isn't found", () => {
-      expect(atDirective(root, "/server/missing[0]")).toBeUndefined();
+      expect(atDirective(root, "/server/missing[1]")).toBeUndefined();
     });
 
-    it("returns undefined when the argument index is out of range", () => {
+    it("returns undefined when the argument position is out of range", () => {
       expect(atDirective(root, "/server/route(/home)[5]")).toBeUndefined();
+    });
+
+    it("returns undefined for position [0] — positions are 1-based", () => {
+      expect(atDirective(root, "/server/route(/home)[0]")).toBeUndefined();
     });
 
     it("Directive#at mirrors atDirective, using `this` as the root", () => {
       expect(root.at("/server/route(/home)")).toEqual(
         atDirective(root, "/server/route(/home)"),
       );
-      expect(root.at("/server/route(* /api/user)[0]")).toBe(
-        atDirective(root, "/server/route(* /api/user)[0]"),
+      expect(root.at("/server/route(* /api/user)[1]")).toBe(
+        atDirective(root, "/server/route(* /api/user)[1]"),
       );
     });
   });
@@ -198,10 +202,10 @@ describe("find", () => {
       };
 
       root.findAll("/server/route").map((route) => {
-        const method = route.at("[0]");
-        const path = route.at("[1]");
+        const method = route.at("[1]");
+        const path = route.at("[2]");
         const headers = Object.fromEntries(
-          route.findAll("/route/header").map((h) => [h.at("[0]"), h.at("[1]")]),
+          route.findAll("/route/header").map((h) => [h.at("[1]"), h.at("[2]")]),
         );
 
         server.listen({ method, path, headers });

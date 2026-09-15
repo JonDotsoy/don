@@ -174,25 +174,25 @@ arguments, regardless of their content.
 
 A path can end in `[N]` to additionally select one argument off whatever
 directive the rest of the path matches, instead of the directive itself.
-It's parsed off separately into `selectArgument` and plays no part in
-`PathExpression.match`'s own matching rules — it only matters to a caller
-like `at`/`atDirective` that wants to resolve it:
+**Positions are 1-based** — `[1]` is the first argument, `[2]` the second,
+and so on. It's parsed off separately into `selectArgument` (still
+1-based) and plays no part in `PathExpression.match`'s own matching rules
+— it only matters to a caller like `at`/`atDirective` that wants to
+resolve it:
 
 ```ts
-root.at("/server/route(GET /api)/respond[0]");
-// ? 200 — the respond directive's argument at index 0 (0-based here)
+root.at("/server/route(GET /api)/respond[1]");
+// ? 200 — the respond directive's argument at position 1, i.e. args[0]
 ```
 
 `[N]` composes with a `(...)` group on the very same segment:
-`"/foo(tar biz)[0]"` both constrains `foo`'s arguments to exactly `["tar",
-"biz"]` and, once matched, selects argument `0`.
+`"/foo(tar biz)[1]"` both constrains `foo`'s arguments to exactly `["tar",
+"biz"]` and, once matched, selects the argument at position `1` (`"tar"`).
 
-> **Note:** `find`/`at`/`findAll`/`atDirective` (this module) index `[N]`
-> **0-based**, matching `directive.args[N]` directly. The [lint rule
-> schema](../lint/rules.md#argument-selectors-n) reuses this same path
-> syntax for its `/name` sub-path keys but treats its own `[N]` argument
-> selectors as **1-based** — position `1` is the first argument. Match the
-> convention to whichever API you're calling into.
+> **Note:** `find`/`at`/`findAll`/`atDirective` (this module) and the
+> [lint rule schema](../lint/rules.md#argument-selectors-n)'s own `[N]`
+> argument selectors on `/name` sub-path keys both use this same
+> **1-based** convention — position `1` is `directive.args[0]`.
 
 ## Summary
 

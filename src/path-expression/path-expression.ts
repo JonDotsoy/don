@@ -35,11 +35,14 @@ export type PathNode = {
 export type PathExpression = {
   parts: PathNode[];
   /**
-   * An argument index parsed from a trailing `[N]` on the path string
-   * (e.g. `/foo[1]`), absent when there is none. It's purely informative
-   * — carried along for a caller that wants to select an argument off
-   * whatever directive ends up matching `parts` — and plays no part in
-   * `PathExpression`'s own matching rules.
+   * The 1-based argument position parsed from a trailing `[N]` on the
+   * path string (e.g. `/foo[1]` is that directive's first argument),
+   * absent when there is none. It's purely informative — carried along,
+   * still 1-based, for a caller that wants to select an argument off
+   * whatever directive ends up matching `parts` (see `atDirective` in
+   * `../find.js`, and the lint rule schema's own `[N]` selectors in
+   * `docs/lint/rules.md`) — and plays no part in `PathExpression`'s own
+   * matching rules.
    */
   selectArgument?: number;
 };

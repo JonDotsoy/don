@@ -312,13 +312,13 @@ The path syntax:
 
 `find` returns the first match (or `undefined`), `findAll` returns every match. `findDirective`/`findAllDirectives` are also exported from `donly/find` for the same lookup against any `Directive`, not just as instance methods.
 
-`at(path)` resolves the same path syntax, but a path ending in `[N]` returns that directive's `N`th argument instead of the directive itself:
+`at(path)` resolves the same path syntax, but a path ending in `[N]` returns that directive's argument at position `N` instead of the directive itself. **Positions are 1-based** — `[1]` is the first argument:
 
 ```ts
 const respond = root.at("/server/route(GET /api)/respond");
 // ? const respond = Directive { name: "respond", args: [200], children: [] }
 
-const status = root.at("/server/route(GET /api)/respond[0]");
+const status = root.at("/server/route(GET /api)/respond[1]");
 // ? const status = 200
 ```
 
@@ -344,11 +344,11 @@ const respond = root.at("/server/route(GET /api)/respond");
 respond?.args; // Directive["args"]
 
 // A path ending in "[N]" types as the argument value, not a Directive.
-const status = root.at("/server/route(GET /api)/respond[0]");
+const status = root.at("/server/route(GET /api)/respond[1]");
 //    ^? const status: string | number | boolean | HeredocValue | undefined
 
 // @ts-expect-error a "[N]"-suffixed path never resolves to a Directive.
-const notADirective: Directive = root.at("/server/route(GET /api)/respond[0]");
+const notADirective: Directive = root.at("/server/route(GET /api)/respond[1]");
 ```
 
 This only works when `path` is a string literal (or a literal type, e.g. from a `const` binding without a wider annotation) — TypeScript needs the exact string to check whether it ends in `[N]`. A path built at runtime (e.g. a `string` variable, or a template literal with a non-literal interpolation) can't be checked at compile time, so it types as the union of both possibilities:
