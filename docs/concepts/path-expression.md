@@ -77,13 +77,13 @@ into a **pattern**: the pieces around and between the `*`s become a
 and end with, respectively — pieces that are empty are simply not
 required.
 
-| Path segment | Matches directive names... |
-| --- | --- |
-| `foo` | equal to `foo` (a plain literal — no `*` at all) |
-| `*` | any name at all (an empty pattern — no prefix, chunks, or suffix) |
-| `foo*` | starting with `foo` |
-| `*foo` | ending with `foo` |
-| `foo*biz` | starting with `foo` and ending with `biz` |
+| Path segment  | Matches directive names...                                                    |
+| ------------- | ----------------------------------------------------------------------------- |
+| `foo`         | equal to `foo` (a plain literal — no `*` at all)                              |
+| `*`           | any name at all (an empty pattern — no prefix, chunks, or suffix)             |
+| `foo*`        | starting with `foo`                                                           |
+| `*foo`        | ending with `foo`                                                             |
+| `foo*biz`     | starting with `foo` and ending with `biz`                                     |
 | `foo*biz*tar` | starting with `foo`, ending with `tar`, containing `biz` somewhere in between |
 
 ```ts
@@ -196,15 +196,15 @@ root.at("/server/route(GET /api)/respond[1]");
 
 ## Summary
 
-| Syntax | Meaning |
-| --- | --- |
-| `/` or `""` | No constraint — matches the starting directive itself |
-| `/name` | A `/`-separated segment — descends into a child by name |
-| `\c` | Escapes `c` (a `/`, `(`, `)`, or `*`) so it's read literally |
-| `*` | Wildcard — matches any name (as a segment) or any single value (as an argument) |
-| `pre*`, `*suf`, `pre*suf`, `pre*mid*suf` | Prefix/suffix/chunk pattern, on a segment name or an argument |
-| `name(a b c)` | Matches only when `args` has exactly 3 entries, each matching `a`, `b`, `c` pairwise |
-| `name(* * *)` | Matches only by argument **count** (here, exactly 3) — every token is a wildcard |
-| `name()` | Matches only a directive with zero arguments |
-| `name` (no `(...)`) | Matches regardless of arguments — they aren't checked at all |
-| `...[N]` | Selects argument `N` off the matched directive (informative — see note above) |
+| Syntax                                   | Meaning                                                                              |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| `/` or `""`                              | No constraint — matches the starting directive itself                                |
+| `/name`                                  | A `/`-separated segment — descends into a child by name                              |
+| `\c`                                     | Escapes `c` (a `/`, `(`, `)`, or `*`) so it's read literally                         |
+| `*`                                      | Wildcard — matches any name (as a segment) or any single value (as an argument)      |
+| `pre*`, `*suf`, `pre*suf`, `pre*mid*suf` | Prefix/suffix/chunk pattern, on a segment name or an argument                        |
+| `name(a b c)`                            | Matches only when `args` has exactly 3 entries, each matching `a`, `b`, `c` pairwise |
+| `name(* * *)`                            | Matches only by argument **count** (here, exactly 3) — every token is a wildcard     |
+| `name()`                                 | Matches only a directive with zero arguments                                         |
+| `name` (no `(...)`)                      | Matches regardless of arguments — they aren't checked at all                         |
+| `...[N]`                                 | Selects argument `N` off the matched directive (informative — see note above)        |
