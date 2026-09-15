@@ -169,7 +169,7 @@ describe("PathExpression.parse", () => {
  * where `parts` would otherwise end).
  */
 describe("PathExpression.match", () => {
-  it.each(["/", "", "[1]"])(
+  it.each(["/", "", "[1]", "/[1]"])(
     "always matches when the expression has no parts (%j)",
     (path) => {
       const expression = PathExpression.parse(path);
