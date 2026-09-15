@@ -619,6 +619,42 @@ server {
     });
   });
 
+  test("requires every /server/route targeting /user to declare authorized", () => {
+    const rule = {
+      "/server/route(* /user)": {
+        "/authorized": {
+          min: 1,
+          message: "todo route de /user debe declarar authorized",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const issues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+    route PUT /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route POST /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+
+    // `route GET /user` and `route POST /user` are missing `authorized` —
+    // `route PUT /user` already declares it, so it reports no issue of its own.
+    expect(issues).toHaveLength(2);
+    expect(issues.every((issue) => issue.message === "todo route de /user debe declarar authorized")).toBe(true);
+  });
+
   test("accepts an or between two alternative documents at the root", () => {
     const orDocuments: LintRuleDocument[] = [
       { "/server/port": { required: true } },
