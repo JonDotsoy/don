@@ -12,8 +12,8 @@ describe("PathExpression.parse", () => {
     expect(parts("/foo")).toEqual([{ type: "literal", value: "foo" }]);
   });
 
-  it("parses a full single-segment wildcard", () => {
-    expect(parts("/*")).toEqual([{ type: "wildcard" }]);
+  it("parses a full single-segment wildcard as an empty pattern", () => {
+    expect(parts("/*")).toEqual([{ type: "pattern" }]);
   });
 
   it("parses a prefix pattern", () => {
@@ -24,15 +24,15 @@ describe("PathExpression.parse", () => {
     expect(parts("/*bar")).toEqual([{ type: "pattern", suffix: "bar" }]);
   });
 
-  it("parses content on both sides of a `*` as a multi_pattern", () => {
+  it("parses a prefix+suffix pattern", () => {
     expect(parts("/foo*biz")).toEqual([
-      { type: "multi_pattern", chunks: ["foo", "biz"] },
+      { type: "pattern", prefix: "foo", suffix: "biz" },
     ]);
   });
 
-  it("parses multiple intermediate wildcards as a multi_pattern", () => {
+  it("parses multiple intermediate wildcards as chunks", () => {
     expect(parts("/foo*biz*tar")).toEqual([
-      { type: "multi_pattern", chunks: ["foo", "biz", "tar"] },
+      { type: "pattern", prefix: "foo", chunks: ["biz"], suffix: "tar" },
     ]);
   });
 
@@ -59,10 +59,10 @@ describe("PathExpression.parse", () => {
         type: "args",
         segment: "foo",
         args: [
-          { type: "wildcard" },
+          { type: "pattern" },
           { type: "pattern", prefix: "tar" },
           { type: "pattern", suffix: "biz" },
-          { type: "multi_pattern", chunks: ["foo", "viz"] },
+          { type: "pattern", prefix: "foo", suffix: "viz" },
         ],
       },
     ]);
@@ -77,14 +77,14 @@ describe("PathExpression.parse", () => {
   it("parses a multi-segment path combined with a wildcard", () => {
     expect(parts("/foo/*/tar")).toEqual([
       { type: "literal", value: "foo" },
-      { type: "wildcard" },
+      { type: "pattern" },
       { type: "literal", value: "tar" },
     ]);
   });
 
-  it("parses a multi-segment path combined with a multi_pattern", () => {
+  it("parses a multi-segment path combined with a pattern", () => {
     expect(parts("/foo*biz/lol")).toEqual([
-      { type: "multi_pattern", chunks: ["foo", "biz"] },
+      { type: "pattern", prefix: "foo", suffix: "biz" },
       { type: "literal", value: "lol" },
     ]);
   });

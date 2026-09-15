@@ -1,16 +1,14 @@
-export type WildcardNode = {
-  type: "wildcard";
-};
-
+/**
+ * A `*`-tokenized value: `prefix`/`suffix` are the text before the first
+ * and after the last `*` (absent when empty), and `chunks` are the pieces
+ * between intermediate `*`s, for two or more wildcards (absent otherwise).
+ * A bare `*` is a `pattern` with all three absent.
+ */
 export type PatternNode = {
   type: "pattern";
   prefix?: string;
+  chunks?: string[];
   suffix?: string;
-};
-
-export type MultiPatternNode = {
-  type: "multi_pattern";
-  chunks: string[];
 };
 
 export type LiteralNode = {
@@ -19,11 +17,7 @@ export type LiteralNode = {
 };
 
 /** Nodes valid as arguments, or as a plain (parenthesis-free) path segment. */
-export type ValueNode =
-  | LiteralNode
-  | WildcardNode
-  | PatternNode
-  | MultiPatternNode;
+export type ValueNode = LiteralNode | PatternNode;
 
 export type ArgsNode = {
   type: "args";
@@ -109,32 +103,28 @@ const splitUnescaped = (raw: string, separator: string): string[] => {
 /**
  * Parses a single `*`-tokenized value — a plain path segment, or one
  * whitespace-separated token inside an `(...)` args group — into a
- * `ValueNode`: no `*` is a literal, a lone `*` is a wildcard, one `*` with
- * content on exactly one side is a prefix/suffix pattern, and anything
- * with content on both sides of a `*` — one `*` with both a prefix and a
- * suffix, or more than one `*` — is a multi-pattern of the chunks between
- * them (a one-sided `pattern` is really just the two-chunk case of that
- * with one chunk empty, so `pattern` stays reserved for it instead of
- * overlapping with `multi_pattern`).
+ * `ValueNode`: no `*` is a literal, any `*` is a `pattern` built from the
+ * piece before the first `*` (`prefix`), the piece after the last `*`
+ * (`suffix`), and the pieces between intermediate `*`s (`chunks`, when
+ * there are two or more wildcards) — each omitted when empty/absent.
  */
 const parseValueToken = (raw: string): ValueNode => {
-  const chunks = splitUnescaped(raw, "*").map(unescape);
+  const pieces = splitUnescaped(raw, "*").map(unescape);
 
-  if (chunks.length === 1) {
-    return { type: "literal", value: chunks[0]! };
+  if (pieces.length === 1) {
+    return { type: "literal", value: pieces[0]! };
   }
 
-  if (chunks.length === 2) {
-    const [prefix, suffix] = chunks as [string, string];
-    if (prefix === "" && suffix === "") {
-      return { type: "wildcard" };
-    }
+  const prefix = pieces[0]!;
+  const suffix = pieces[pieces.length - 1]!;
+  const chunks = pieces.slice(1, -1);
 
-    if (prefix === "") return { type: "pattern", suffix };
-    if (suffix === "") return { type: "pattern", prefix };
-  }
-
-  return { type: "multi_pattern", chunks };
+  return {
+    type: "pattern",
+    ...(prefix !== "" ? { prefix } : {}),
+    ...(chunks.length > 0 ? { chunks } : {}),
+    ...(suffix !== "" ? { suffix } : {}),
+  };
 };
 
 const segmentWithArgsPattern = /^((?:\\.|[^/()])+)\(((?:\\.|[^)])*)\)$/;
