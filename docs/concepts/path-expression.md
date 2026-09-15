@@ -65,9 +65,9 @@ root.find("/\\/user");
 
 Without the `\`, `/user` inside the path would be read as the separator
 `/` followed by the segment `user` — a different, unrelated directive. The
-same escaping applies inside a segment or an argument for `*`, `(`, and
-`)`, so any of those can be matched as a literal character instead of
-triggering wildcard or argument-group parsing.
+same escaping applies inside a segment or an argument for `*`, `(`, `)`,
+`{`, `}`, and `|`, so any of those can be matched as a literal character
+instead of triggering wildcard, group, or alternation parsing.
 
 ## Wildcards: `*`
 
@@ -206,11 +206,59 @@ however many intermediate directives its own segments name. It accepts
 everything else on this page too — wildcards, `(...)` argument groups,
 and even its own nested `{...}` group, to arbitrary depth.
 
-`{`, `}`, `(`, `)`, `*`, and `/` are all special inside a segment; a
+`{`, `}`, `(`, `)`, `*`, `|`, and `/` are all special inside a segment; a
 directive whose own name needs one of them literally (see the [spec, §2.3
 Identifiers](../specs/v1/spec.md#23-identifiers) — `${name}` is a valid
 identifier) needs it escaped with `\`, the same as any other special
 character on this page.
+
+## Combining conditions: AND by stacking, OR with `|`
+
+Both `(...)` and `{...}` groups can be **stacked** directly after each
+other on the same segment — `name(a)(b)`, `name{x}{y}` — with no operator
+needed, since juxtaposition already reads as **AND**: every group must
+match. `(...)` groups this way each still require an exact match against
+the _whole_ `args` array, so in practice a directive rarely satisfies two
+different `(...)` groups at once — usually you'd just write one group
+with every token (`(a b)` instead of `(a)(b)`), but the parser accepts
+either form. Stacking `{...}` groups is the common one — "must contain X
+**and** must contain Y":
+
+```ts
+root.findAll("/server/route{/auth}{/respond}");
+// only `route`s that have both an `auth` and a `respond` child
+```
+
+For **OR**, `|` separates alternatives, and means something slightly
+different depending on where it appears:
+
+- **Inside one `(...)` token, or a segment name**: an alternative _value_
+  for that one name/argument — `(GET|POST)` matches either exactly;
+  `(api*|admin*)` composes with `*`-patterns the same way.
+- **Inside one `{...}` group**: an alternative _nested path_ — "contains a
+  descendant matching this, **or** this" — `{/auth(on)|/auth(strict)}`.
+- **At the top level of a whole path** (outside every `(...)`/`{...}`
+  group): an alternative _whole path_ — `/server/route|/server/proxy`
+  matches every `route` **and** every `proxy` child of `server`, as if
+  both paths had been searched and their results concatenated.
+
+```ts
+root.findAll("/server/route(GET|POST)");
+// route children whose sole argument is exactly "GET" or "POST"
+
+root.findAll("/server/route{/auth(on)|/auth(strict)}");
+// route children with an `auth on` OR an `auth strict` descendant
+
+root.findAll("/server/route|/server/proxy");
+// every `route` child, then every `proxy` child, of `server`
+```
+
+`|` never crosses a `(...)`/`{...}` boundary on its own — a `|` written
+_inside_ one of those groups only alternates within that group, it
+doesn't split the surrounding path. There's no operator for AND _inside_
+a single `(...)` token or `{...}` group (only OR, via `|`) — reach for
+stacking (`(a)(b)`, `{x}{y}`) when every alternative must hold, and `|`
+when just one of them needs to.
 
 ## Selecting an argument: a trailing `[N]`
 
@@ -250,4 +298,8 @@ root.at("/server/route(GET /api)/respond[1]");
 | `name()`                                 | Matches only a directive with zero arguments                                                      |
 | `name` (no `(...)`)                      | Matches regardless of arguments — they aren't checked at all                                      |
 | `name{path}`                             | Filters to directives with a descendant matching `path`; still returns `name`, not the descendant |
+| `name(a)(b)`, `name{x}{y}`               | AND by stacking — every group must match                                                          |
+| `a\|b` (in a name/argument token)        | OR — matches either alternative value                                                             |
+| `name{x\|y}`                             | OR — has a descendant matching `x` or `y`                                                         |
+| `/foo\|/biz`                             | OR of whole paths — matches every `foo` and every `biz`, concatenated                             |
 | `...[N]`                                 | Selects argument `N` off the matched directive (informative — see note above)                     |

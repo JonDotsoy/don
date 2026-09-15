@@ -177,6 +177,33 @@ describe("find", () => {
     });
   });
 
+  describe("a top-level `|` between whole paths", () => {
+    it("concatenates matches from every alternative, in order", () => {
+      const orText = ""
+        + "server {\n"
+        + "  route /home\n"
+        + "}\n"
+        + "proxy /api\n";
+
+      const orRoot = DON.parse(orText);
+      const directives = findAllDirectives(orRoot, "/server/route|/proxy");
+
+      expect(directives.map((d) => d.name)).toEqual(["route", "proxy"]);
+    });
+
+    it("atDirective resolves [N] against whichever alternative actually matched", () => {
+      const orText = ""
+        + "server {\n"
+        + "  route /home\n"
+        + "}\n"
+        + "proxy /api\n";
+
+      const orRoot = DON.parse(orText);
+
+      expect(atDirective(orRoot, "/missing[1]|/proxy[1]")).toBe("/api");
+    });
+  });
+
   describe("usage: registering routes on a mock server", () => {
     it("drives server.listen from route/header directives using findAll + at", () => {
       const routesText = ""
