@@ -719,6 +719,98 @@ server {
     expect(noUserRouteIssues).toHaveLength(0);
   });
 
+  test("a mutating route (POST|PUT|DELETE|PATCH) requires both server ssl and its own authorized", () => {
+    const rule = {
+      "/server{/route(POST|PUT|DELETE|PATCH *)}": {
+        "/ssl": {
+          min: 1,
+          message: "server con route POST|PUT|DELETE|PATCH debe declarar ssl",
+        },
+      },
+      "/server/route(POST|PUT|DELETE|PATCH *)": {
+        "/authorized": {
+          min: 1,
+          message: "route POST|PUT|DELETE|PATCH debe declarar authorized",
+        },
+      },
+    } satisfies LintRuleDocument;
+
+    const invalidIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+    route POST /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route PUT /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+
+    // no \`ssl\` on the server (only one issue, not one per mutating route),
+    // and \`route PUT /user\` is missing \`authorized\` — \`route POST /user\`
+    // already has it, and \`route GET /user\` isn't mutating at all.
+    expect(invalidIssues).toHaveLength(2);
+    expect(invalidIssues.map((issue) => issue.message)).toEqual([
+      "server con route POST|PUT|DELETE|PATCH debe declarar ssl",
+      "route POST|PUT|DELETE|PATCH debe declarar authorized",
+    ]);
+
+    const validIssues = lintSchema(
+      `
+server {
+    port 3000
+    ssl on
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+    route POST /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route PUT /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route DELETE /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+    route PATCH /user {
+        authorized
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(validIssues).toHaveLength(0);
+
+    // Only GET/HEAD-style routes — neither requirement even applies.
+    const noMutatingRouteIssues = lintSchema(
+      `
+server {
+    port 3000
+
+    route GET /user {
+        proxy_pass http://localhost:4000
+    }
+}
+`,
+      rule,
+    );
+    expect(noMutatingRouteIssues).toHaveLength(0);
+  });
+
   test("accepts an or between two alternative documents at the root", () => {
     const orDocuments: LintRuleDocument[] = [
       { "/server/port": { required: true } },
