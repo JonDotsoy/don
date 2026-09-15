@@ -198,6 +198,32 @@ root.findAll("/Server/Route{/Auth(on)}");
 // `Route home` is still what's returned, not the `Auth` directive itself.
 ```
 
+A flag directive with no arguments works the same way — `{/name}` alone
+just checks that a child by that name exists, regardless of its own args:
+
+```ts
+const root = DON.parse(`
+server {
+  port 3000
+
+  route GET /user {
+    proxy_pass http://localhost:4000
+  }
+  route PUT /user {
+    authorized
+    proxy_pass http://localhost:4000
+  }
+  route POST /user {
+    proxy_pass http://localhost:4000
+  }
+}
+`);
+
+root.findAll("/server/route{/authorized}");
+// ? [ Directive { name: "route", args: ["PUT", "/user"], children: [...] } ]
+// only the `route` that declares `authorized` — GET and POST don't.
+```
+
 The path inside `{...}` is resolved the same way `/server`/`/*`/etc. are
 resolved from the document root, except it starts one level down, from
 the outer segment's own `children` — so a leading `/` there addresses a
