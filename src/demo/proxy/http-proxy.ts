@@ -2,7 +2,7 @@ import { watch, type FSWatcher } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { DON } from "../../don.js";
-import { lint, type LintIssue } from "../../lint.js";
+import { lintSchema, type LintIssue } from "../../lint/lint.js";
 import { proxyLintRules } from "./schema.js";
 
 export { proxyLintRules } from "./schema.js";
@@ -37,11 +37,16 @@ const severityConsole = {
   info: "log",
 } as const;
 
+const locationSuffix = (issue: LintIssue): string => {
+  if (!issue.loc) return "";
+  const { line, column } = issue.loc.start.span.startLocation;
+  return `:${line + 1}:${column + 1}`;
+};
+
 const logIssues = (payload: string, issues: LintIssue[]): void => {
   for (const issue of issues) {
-    const trace = issue.trace ?? payload;
     console[severityConsole[issue.severity]](
-      `[donly/demo/http-proxy] ${trace} ${issue.severity}: ${issue.message}`,
+      `[donly/demo/http-proxy] ${payload}${locationSuffix(issue)} ${issue.severity}: ${issue.message}`,
     );
   }
 };
@@ -163,8 +168,7 @@ export const serve = async (patch: string | URL): Promise<ProxyDemoServer> => {
 
   const load = async (): Promise<ServerConfig[] | null> => {
     const text = await readFile(filePath, "utf8");
-    const root = DON.parse(text);
-    const issues = lint(root, proxyLintRules, { payload: filePath });
+    const issues = lintSchema(text, proxyLintRules);
     logIssues(filePath, issues);
     if (issues.some((issue) => issue.severity === "error")) {
       console.error(
@@ -172,7 +176,7 @@ export const serve = async (patch: string | URL): Promise<ProxyDemoServer> => {
       );
       return null;
     }
-    return toServerConfigs(root);
+    return toServerConfigs(DON.parse(text));
   };
 
   const startAll = (nextConfigs: ServerConfig[]): void => {

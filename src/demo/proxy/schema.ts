@@ -1,4 +1,7 @@
-import { argumentLoc, directiveLoc, type LintRule } from "../../lint.js";
+import type { Directive } from "../../don.js";
+import { argumentLoc, directiveLoc } from "../../lint/types.js";
+import type { LintIssue } from "../../lint/types.js";
+import type { LintRuleDocument, RuleBody } from "../../lint/schema.js";
 
 /**
  * DON schema for the `donly/demo/http-proxy` example:
@@ -48,6 +51,12 @@ import { argumentLoc, directiveLoc, type LintRule } from "../../lint.js";
  * - `respond <status> <body>` — replies immediately with a fixed status and
  *   body.
  * - `proxy_pass <url>` — reverse-proxies the request to `url`.
+ *
+ * Written as a declarative `LintRuleDocument` (see `docs/lint/rules.md`),
+ * evaluated with `lintSchema` from `donly/lint`. A handful of checks — a
+ * `route`'s path sitting at a variable argument position, and the
+ * respond/proxy_pass mutual exclusivity — have no declarative primitive, so
+ * they use the `evaluation` escape hatch documented there.
  */
 
 const HTTP_METHODS = new Set([
@@ -62,48 +71,34 @@ const HTTP_METHODS = new Set([
   "PATCH",
 ]);
 
-const isBoolean = (value: unknown): value is boolean =>
-  typeof value === "boolean";
+const booleanRule = (name: string): RuleBody => ({
+  "[1]": { type: "boolean", message: `\`${name}\` debe ser un boolean` },
+});
 
-export const proxyLintRules: LintRule[] = [
-  {
-    // At least one `server` block must exist. A document with exactly one
-    // top-level directive is unwrapped by `DON.parse()`, so `directive`
-    // itself may already be the (only) `server` block.
-    *evaluation({ directive }) {
-      const hasServer =
-        directive.name === "server" ||
-        directive.children.some((c) => c.name === "server");
-      if (!hasServer) {
-        yield {
-          message: "el documento debe declarar al menos un directive `server`",
-          severity: "error",
-          loc: directiveLoc(directive),
-        };
-      }
-    },
+const stringRule = (message: string): RuleBody => ({
+  "[1]": { type: "string", message },
+});
+
+const headerRule: RuleBody = {
+  *evaluation(directive) {
+    if (directive.args.length !== 2) {
+      yield {
+        message: "`header` requiere exactamente 2 argumentos: nombre y valor",
+        severity: "error",
+        loc: directiveLoc(directive),
+      };
+    }
   },
-  {
-    path: "/server",
-    *evaluation({ directive }) {
-      const hasPort = directive.children.some((c) => c.name === "port");
-      if (!hasPort) {
-        yield {
-          message: "`server` requiere un directive `port`",
-          severity: "error",
-          loc: directiveLoc(directive),
-        };
-      }
+  "[1]": { type: "string", message: "el nombre del header debe ser un string" },
+  "[2]": { type: "string", message: "el valor del header debe ser un string" },
+};
 
-      const hasRoute = directive.children.some((c) => c.name === "route");
-      if (!hasRoute) {
-        yield {
-          message: "`server` debería declarar al menos un `route`",
-          severity: "warning",
-          loc: directiveLoc(directive),
-        };
-      }
+export const proxyLintRules = {
+  "/server": {
+    required: true,
+    message: "el documento debe declarar al menos un directive `server`",
 
+    *evaluation(directive: Directive): Iterable<LintIssue> {
       const http2 = directive.children.find((c) => c.name === "http2");
       const http3 = directive.children.find((c) => c.name === "http3");
       const hasSsl = directive.children.some((c) => c.name === "ssl");
@@ -119,203 +114,130 @@ export const proxyLintRules: LintRule[] = [
         };
       }
     },
-  },
-  {
-    path: "/server/host",
-    *evaluation({ directive }) {
-      if (typeof directive.args[0] !== "string") {
-        yield {
-          message: "`host` debe ser un string",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-      }
-    },
-  },
-  {
-    path: "/server/port",
-    *evaluation({ directive }) {
-      const value = directive.args[0];
-      if (typeof value !== "number") {
-        yield {
-          message: "`port` debe ser un número",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-        return;
-      }
-      if (value < 0 || value > 65535) {
-        yield {
-          message:
-            "`port` debe estar entre 0 y 65535 (0 asigna un puerto libre)",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-      }
-    },
-  },
-  ...(["http1", "http2", "http3"] as const).map(
-    (name): LintRule => ({
-      path: `/server/${name}`,
-      *evaluation({ directive }) {
-        if (!isBoolean(directive.args[0])) {
-          yield {
-            message: `\`${name}\` debe ser un boolean`,
-            severity: "error",
-            loc: argumentLoc(directive, 0),
-          };
-        }
+
+    "/host": stringRule("`host` debe ser un string"),
+
+    "/port": {
+      min: 1,
+      message: "`server` requiere un directive `port`",
+      "[1]": {
+        type: "number",
+        gte: 0,
+        lte: 65535,
+        message:
+          "`port` debe ser un número entre 0 y 65535 (0 asigna un puerto libre)",
       },
-    }),
-  ),
-  {
-    path: "/server/ssl/cert",
-    *evaluation({ directive }) {
-      if (typeof directive.args[0] !== "string") {
-        yield {
-          message: "`ssl/cert` debe ser un string (ruta al certificado)",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-      }
     },
-  },
-  {
-    path: "/server/ssl/key",
-    *evaluation({ directive }) {
-      if (typeof directive.args[0] !== "string") {
-        yield {
-          message: "`ssl/key` debe ser un string (ruta a la llave privada)",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-      }
+
+    "/http1": booleanRule("http1"),
+    "/http2": booleanRule("http2"),
+    "/http3": booleanRule("http3"),
+
+    "/ssl": {
+      "/cert": stringRule(
+        "`ssl/cert` debe ser un string (ruta al certificado)",
+      ),
+      "/key": stringRule(
+        "`ssl/key` debe ser un string (ruta a la llave privada)",
+      ),
     },
-  },
-  ...(["/server/header", "/server/route/header"] as const).map(
-    (path): LintRule => ({
-      path,
-      *evaluation({ directive }) {
-        if (directive.args.length !== 2) {
+
+    "/header": headerRule,
+
+    "/route": {
+      min: 1,
+      severity: "warning",
+      message: "`server` debería declarar al menos un `route`",
+
+      *evaluation(directive: Directive): Iterable<LintIssue> {
+        if (directive.args.length !== 1 && directive.args.length !== 2) {
           yield {
-            message:
-              "`header` requiere exactamente 2 argumentos: nombre y valor",
+            message: "`route` acepta `<path>` o `<method> <path>`",
             severity: "error",
             loc: directiveLoc(directive),
           };
-          return;
+        } else {
+          const path = directive.args[directive.args.length - 1];
+          if (typeof path !== "string" || !path.startsWith("/")) {
+            yield {
+              message:
+                "el path de `route` debe ser un string que empiece con `/`",
+              severity: "error",
+              loc: argumentLoc(directive, directive.args.length - 1),
+            };
+          }
+
+          if (directive.args.length === 2) {
+            const method = directive.args[0];
+            if (typeof method !== "string" || !HTTP_METHODS.has(method)) {
+              yield {
+                message: `método HTTP inválido, esperado uno de: ${[...HTTP_METHODS].join(", ")}`,
+                severity: "error",
+                loc: argumentLoc(directive, 0),
+              };
+            }
+          }
         }
-        if (typeof directive.args[0] !== "string") {
+
+        const respond = directive.children.filter((c) => c.name === "respond");
+        const proxyPass = directive.children.filter(
+          (c) => c.name === "proxy_pass",
+        );
+        if (respond.length + proxyPass.length === 0) {
           yield {
-            message: "el nombre del header debe ser un string",
+            message: "`route` requiere `respond` o `proxy_pass`",
             severity: "error",
-            loc: argumentLoc(directive, 0),
+            loc: directiveLoc(directive),
           };
         }
-        if (typeof directive.args[1] !== "string") {
+        if (respond.length + proxyPass.length > 1) {
           yield {
-            message: "el valor del header debe ser un string",
+            message:
+              "`route` no puede declarar más de un `respond`/`proxy_pass`",
             severity: "error",
-            loc: argumentLoc(directive, 1),
+            loc: directiveLoc(directive),
           };
         }
       },
-    }),
-  ),
-  {
-    path: "/server/route",
-    *evaluation({ directive }) {
-      if (directive.args.length !== 1 && directive.args.length !== 2) {
-        yield {
-          message: "`route` acepta `<path>` o `<method> <path>`",
-          severity: "error",
-          loc: directiveLoc(directive),
-        };
-        return;
-      }
 
-      const path = directive.args[directive.args.length - 1];
-      if (typeof path !== "string" || !path.startsWith("/")) {
-        yield {
-          message: "el path de `route` debe ser un string que empiece con `/`",
-          severity: "error",
-          loc: argumentLoc(directive, directive.args.length - 1),
-        };
-      }
-
-      if (directive.args.length === 2) {
-        const method = directive.args[0];
-        if (typeof method !== "string" || !HTTP_METHODS.has(method)) {
-          yield {
-            message: `método HTTP inválido, esperado uno de: ${[...HTTP_METHODS].join(", ")}`,
-            severity: "error",
-            loc: argumentLoc(directive, 0),
-          };
-        }
-      }
-
-      const respond = directive.children.filter((c) => c.name === "respond");
-      const proxyPass = directive.children.filter(
-        (c) => c.name === "proxy_pass",
-      );
-      if (respond.length + proxyPass.length === 0) {
-        yield {
-          message: "`route` requiere `respond` o `proxy_pass`",
-          severity: "error",
-          loc: directiveLoc(directive),
-        };
-      }
-      if (respond.length + proxyPass.length > 1) {
-        yield {
-          message: "`route` no puede declarar más de un `respond`/`proxy_pass`",
-          severity: "error",
-          loc: directiveLoc(directive),
-        };
-      }
-    },
-  },
-  {
-    path: "/server/route/respond",
-    *evaluation({ directive }) {
-      const [status, body] = directive.args;
-      if (typeof status !== "number") {
-        yield {
+      "/respond": {
+        *evaluation(directive: Directive): Iterable<LintIssue> {
+          const body = directive.args[1];
+          if (body !== undefined && typeof body !== "string") {
+            yield {
+              message: "el cuerpo de `respond` debe ser un string",
+              severity: "error",
+              loc: argumentLoc(directive, 1),
+            };
+          }
+        },
+        "[1]": {
+          type: "number",
           message:
             "`respond` requiere un status numérico como primer argumento",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-      }
-      if (body !== undefined && typeof body !== "string") {
-        yield {
-          message: "el cuerpo de `respond` debe ser un string",
-          severity: "error",
-          loc: argumentLoc(directive, 1),
-        };
-      }
-    },
-  },
-  {
-    path: "/server/route/proxy_pass",
-    *evaluation({ directive }) {
-      const target = directive.args[0];
-      if (typeof target !== "string") {
-        yield {
+        },
+      },
+
+      "/proxy_pass": {
+        "[1]": {
+          type: "string",
           message: "`proxy_pass` requiere una URL como string",
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-        return;
-      }
-      try {
-        new URL(target);
-      } catch {
-        yield {
-          message: `\`proxy_pass\` no es una URL válida: ${target}`,
-          severity: "error",
-          loc: argumentLoc(directive, 0),
-        };
-      }
+          *evaluation(argument, position, directive) {
+            if (typeof argument !== "string") return;
+            try {
+              new URL(argument);
+            } catch {
+              yield {
+                message: `\`proxy_pass\` no es una URL válida: ${argument}`,
+                severity: "error",
+                loc: argumentLoc(directive, position - 1),
+              };
+            }
+          },
+        },
+      },
+
+      "/header": headerRule,
     },
   },
-];
+} satisfies LintRuleDocument;

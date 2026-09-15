@@ -3,14 +3,14 @@ import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DON } from "../../don.js";
-import { lint } from "../../lint.js";
+import { lintSchema } from "../../lint/lint.js";
 import { proxyLintRules } from "./schema.js";
 import { toServerConfigs } from "./config.js";
 import { serve, type ProxyDemoServer } from "./http-proxy.js";
 
 describe("donly/demo/http-proxy schema", () => {
   it("accepts a valid document without errors", () => {
-    const issues = lint(
+    const issues = lintSchema(
       `
 server {
   port 8080
@@ -26,7 +26,7 @@ server {
   });
 
   it("reports a missing port", () => {
-    const issues = lint(
+    const issues = lintSchema(
       `
 server {
   route /health {
@@ -45,7 +45,7 @@ server {
   });
 
   it("reports a route with neither respond nor proxy_pass", () => {
-    const issues = lint(
+    const issues = lintSchema(
       `
 server {
   port 8080
@@ -65,7 +65,7 @@ server {
   });
 
   it("reports an invalid proxy_pass URL", () => {
-    const issues = lint(
+    const issues = lintSchema(
       `
 server {
   port 8080
