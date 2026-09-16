@@ -11,14 +11,6 @@ documentation.
 
 ## [Unreleased]
 
-## [0.0.25] - 2026-09-16
-
-### Added
-
-- Dummy entry to exercise the publish workflow's `update_changelog` input.
-
-## [0.0.24] - 2026-09-16
-
 ### Added
 
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
