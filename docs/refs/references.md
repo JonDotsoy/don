@@ -1,6 +1,6 @@
 ---
 title: References Across Config Formats
-description: What a "reference" is in a configuration format, and how JSON, YAML, Terraform (HCL), and Nginx config each resolve them.
+description: What a "reference" is in a configuration format, and how JSON, YAML, Terraform (HCL), Nginx config, and Caddyfile each resolve them.
 lang: en
 ---
 
@@ -84,6 +84,27 @@ Nginx's configuration format has no reference mechanism of its own — like JSON
 
 So Nginx has reuse (`include`) and indirection (variables), but neither is "reference resolution" in the sense JSON's `$ref`, YAML's aliases, or HCL's attribute references are: there's no syntax for "this value equals that other value," only textual inclusion and runtime variable substitution.
 
+## Caddyfile
+
+Caddy's configuration format is close in shape to Nginx (directives + nested blocks), and like Nginx it has no syntax for a directive to point at a value held by another directive. What it has instead are two textual-substitution features, both resolved by Caddy's own adapter before the config is turned into JSON internally:
+
+- **Snippets** — a named, reusable block defined with parentheses and reused with `import`:
+  ```caddyfile
+  (common_proxy) {
+      reverse_proxy localhost:8080
+      header X-Backend "app"
+  }
+
+  api.example.com {
+      import common_proxy
+  }
+  ```
+  `import common_proxy` splices the snippet's directives into the block at that point, textually — the same substitution model as Nginx's `include`, just scoped to a named block instead of a whole file.
+- **`import` of external files** — `import /etc/caddy/sites/*.conf` — pulls in other Caddyfiles verbatim, same as Nginx's file-level `include`.
+- **Placeholders** (`{host}`, `{http.request.uri.path}`, custom `{args.0}` in a snippet) are runtime values substituted into a directive's arguments when a request is handled — the same role Nginx's `$variables` play, not a link between two static blocks.
+
+So Caddyfile's story is the same shape as Nginx's: reuse via textual substitution (`import`, at both snippet and file granularity) plus runtime indirection via placeholders, with no dedicated syntax for "this value equals that other value." The one structural difference from Nginx is that a Caddyfile snippet is itself a *named, referenceable unit* (`(name) { ... }` / `import name`), where Nginx's `include` only ever operates on whole files, with no equivalent of naming a block for reuse within the same file.
+
 ## Summary
 
 | Format               | Reference resolved by            | When resolved              | Scope                          |
@@ -92,3 +113,4 @@ So Nginx has reuse (`include`) and indirection (variables), but neither is "refe
 | **YAML**              | The YAML parser (anchors/aliases) | At parse time               | Same document only              |
 | **Terraform (HCL)**   | HCL's own expression evaluator    | Deferred, at `apply` time   | Same configuration (module graph) |
 | **Nginx config**      | Nginx (variables) / textual include | Request time (variables) / load time (`include`) | No true reference — variable substitution or file inclusion |
+| **Caddyfile**         | Caddy (placeholders) / textual `import` | Request time (placeholders) / load time (`import`) | No true reference — variable substitution or textual import (snippet- or file-level) |
