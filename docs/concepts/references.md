@@ -107,14 +107,14 @@ is exactly the part still unresolved.
 ## Proposal 2: `$`/`${...}` variables (inherited from Nginx)
 
 A second, independent proposal borrows Nginx's variable model: a `set`
-directive binds a name, and `$name` / `${name}` interpolates that
-binding's value into a string or bare argument.
+directive binds a name, and `${name}` interpolates that binding's value
+into a string.
 
 ```don
-set backend http://10.0.0.1:3000
+set backend "http://10.0.0.1:3000"
 
 route GET /home {
-  proxy_pass ${backend}
+  proxy_pass "${backend}"
 }
 
 route GET /settings {
@@ -122,20 +122,34 @@ route GET /settings {
 }
 
 route GET /api {
-  proxy_pass ${backend}/api
+  proxy_pass "${backend}/api"
 }
 ```
 
 - `set <name> <value>` defines a variable, the same way Nginx's `set
   $foo bar;` does, minus the leading `$` on the declaration itself.
-- `$name` or `${name}` reads it back, either as a whole bare argument
-  (`proxy_pass ${backend}`) or interpolated inside a quoted string
-  (`"${backend}/settings"`).
+- **Decided:** interpolation only triggers inside a **double-quoted**
+  string (`"${backend}"`). A **single-quoted** string (`'${backend}'`)
+  never interpolates — `${backend}` there is four literal characters,
+  the same way it would be in a bare keyword argument. This gives every
+  document an escape-free way to write a literal `${...}` sequence: use
+  `'...'` instead of `"..."` whenever the content must not be
+  interpolated.
+- **Decided:** the escape character inside a double-quoted string is
+  `\` — `\$` escapes to a literal `$`, so `"\${backend}"` reads as the
+  literal text `${backend}`, not an interpolation. This is the same
+  role `\` already plays for quote escaping in DON's existing string
+  literals (see the [spec](../specs/v1/spec.md#25-strings)) — no new
+  escape convention, just extending what `\` already escapes.
+- There is no bare (unquoted keyword) form of interpolation — `$name`/
+  `${name}` only has meaning inside a double-quoted string. A bare
+  argument like `proxy_pass ${backend}` (no quotes) is just the literal
+  keyword token `${backend}`, exactly as it is today.
 
 Unlike proposal 1's `&` splice (resolved once against the static
 document tree), this is closer to the string-substitution model — the
-value is dropped into a larger string or argument, not spliced as a
-directive's children.
+value is dropped into a larger string, not spliced as a directive's
+children.
 
 ## Proposal 3: a `$ref` directive (inherited from JSON Schema)
 
@@ -224,13 +238,16 @@ above, to resolve before either is implemented:
   (see the [spec](../specs/v1/spec.md#29-comments)), so it's not
   available here without a lexer-level disambiguation rule (e.g. by
   position) that doesn't currently exist.
-- **`${...}` needs an escape sequence.** Once `${` is meaningful inside a
-  string, a document that needs the literal two characters `${` — for
-  example, a `header` value or `proxy_pass` target containing template
-  syntax meant for the *upstream* system, not for DON — needs a way to
-  write it without triggering interpolation. No escape form has been
-  chosen yet (candidates include a backslash escape like `\${`, or a
-  doubled sigil like `$${`).
+- ~~**`${...}` needs an escape sequence.**~~ **Resolved.** Interpolation
+  only triggers inside a double-quoted string; a single-quoted string
+  never interpolates, and `\${` inside a double-quoted string escapes
+  to the literal text `${` (reusing the `\` DON's string literals
+  already use for quote escaping — see the
+  [spec](../specs/v1/spec.md#25-strings)). A document needing literal
+  `${...}` — e.g. a `header` value or `proxy_pass` target containing
+  template syntax meant for the *upstream* system, not for DON — can
+  either switch that one value to single quotes or backslash-escape the
+  `$`.
 - **How `set` variables and infrastructure-provided variables interact
   is undecided.** Some values Nginx-style variables would carry
   (`$host`, `$remote_addr`-equivalents) aren't declared by a `set` at
