@@ -172,7 +172,7 @@ route GET /api {
     apikey
   }
   ssl {
-    load_key $ref "/ssl_key[1]"
+    load_key $ref(/ssl_key[1])
   }
   proxy_pass http://10.0.0.1:3000/api
 }
@@ -183,23 +183,26 @@ route GET /api {
   block, alongside `apikey`. Identical outcome to proposal 1's
   `&/athorization`, but as a plain directive call instead of a sigil
   glued onto the path.
-- **As an argument value** (`load_key $ref "/ssl_key[1]"`) — this is
-  where the zero-grammar-change advantage runs out: DON arguments today
-  are atoms (string/number/boolean/null/heredoc), not nested directive
-  calls, so `load_key`'s second "argument" being itself a `$ref`
-  invocation is new grammar, not a reuse of an existing rule the way the
-  subdirective form is. Confining `$ref` to subdirective position only
-  — and letting a directive like `load_key` take a plain path *string*
-  as its own argument, resolved by whatever reads `load_key`, without
-  any `$ref`/sigil wrapper — sidesteps that, at the cost of `$ref` no
-  longer being usable everywhere proposal 1's `&` is.
+- **As an argument value** (`load_key $ref(/ssl_key[1])`) — a *call
+  form*: `$ref(...)` written as a single argument token, the path
+  expression sitting inside the parentheses rather than as a second,
+  separate argument. This is new grammar either way — DON arguments
+  today are atoms (string/number/boolean/null/heredoc), so a call-shaped
+  token is a new argument kind alongside those (parallel to how
+  `heredoc` already gets its own `SyntaxKind`), not a reuse of an
+  existing rule the way the subdirective form is. It does read closer
+  to JSON's `$ref` than the two-atom form (`$ref "/ssl_key[1]"`) would,
+  since the reference stays visually inside one token instead of
+  looking like `load_key` took two unrelated arguments.
 - **Inside a string template** (the `header ssl_loaded "key name loaded
-  ${...}"` case from proposal 1) — unresolved for the same reason as
-  proposal 1: JSON's `$ref` always replaces a whole node, never lives
-  *inside* a string, so this proposal doesn't have an answer for
-  interpolation either — whatever proposal 2 settles on for templates
-  would still need its own way to embed a `$ref`-style pointer, if that
-  combination is wanted at all.
+  ${...}"` case from proposal 1) — the call form gives this a plausible
+  answer proposal 1 didn't have: `"key name loaded ${$ref(/ssl_key[1])}"`
+  nests a `$ref(...)` call inside proposal 2's `${...}` interpolation
+  the same way any other value would go there. It's still an open
+  question whether that's the right way to spell it (it stacks *two*
+  sets of parens/braces for one lookup: `${` `$ref(` `)` `}`), but at
+  least the call form means there's something to nest, unlike the bare
+  `$ref "/path"` statement form.
 
 ## Open questions
 
@@ -250,11 +253,12 @@ above, to resolve before either is implemented:
   no semantic difference — shipping both means picking one as the "real"
   syntax and the other as a deprecated alias, or dropping one before
   implementation. Nothing here decides which.
-- **`$ref` reads as a value-position form, which invites nesting DON
-  doesn't support.** Because `$ref` looks like every other directive
-  call, it's tempting to write it wherever a value is expected (argument
-  position, inside a template) the way JSON's `$ref` can appear as the
-  value of any key — but DON arguments aren't nested calls, so `$ref`
-  only cleanly reuses existing grammar in subdirective position. Whether
-  it's worth having at all if it can't generalize past that one position
-  is still open.
+- **`$ref` needs two different grammars for its two positions.** The
+  subdirective form (`$ref "/path"`) is a plain directive call — zero
+  new grammar. The argument form (`$ref(/path)`) is a call-shaped
+  argument token — a new argument kind, distinct from the existing
+  atoms. Both spell the same idea, but a parser has to recognize `$ref`
+  two different ways depending on where it appears, which is a real
+  cost `&` doesn't pay (it's one splice form, reused in both
+  positions). Whether that inconsistency is worth `$ref`'s closer
+  resemblance to the JSON convention is still open.
