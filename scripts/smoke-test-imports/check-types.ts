@@ -3,9 +3,9 @@
 // confirm each public export's TypeScript signature accepts the
 // documented argument types and produces the documented result types,
 // for every published entry point ("donly", "donly/encoder",
-// "donly/decoder", "donly/lint"). Relies on the same self-reference
-// resolution the runtime smoke test (run.mjs) uses, so `lib/esm` must be
-// built first.
+// "donly/decoder", "donly/load", "donly/lint", "donly/find",
+// "donly/demo/http-proxy"). Relies on the same self-reference resolution
+// the runtime smoke test (run.mjs) uses, so `lib/esm` must be built first.
 
 import {
   DON,
@@ -17,8 +17,16 @@ import {
 import type { DirectiveReducer, DirectiveJSONEncoderOptions } from "donly";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
+import { load } from "donly/load";
 import { lintSchema, lint as lintDoc } from "donly/lint";
 import type { LintRuleDocument, LintIssue } from "donly/lint";
+import { findAllDirectives, findDirective, atDirective } from "donly/find";
+import { serve, proxyLintRules } from "donly/demo/http-proxy";
+import type {
+  ServerConfig,
+  RouteConfig,
+  HeaderRule,
+} from "donly/demo/http-proxy";
 
 // --- "donly": DON.parse ---
 
@@ -92,6 +100,46 @@ const lintDocIssues: LintIssue[] = lintSchema(
   ruleDocument,
 );
 
+// --- "donly/load": load ---
+
+const loadFn: (filePath: string | URL) => Promise<Record<string, unknown>> =
+  load;
+const loadedPromise: Promise<Record<string, unknown>> = load("./file.donly");
+
+// --- "donly/find": findAllDirectives, findDirective, atDirective ---
+
+const foundAll: Directive[] = findAllDirectives(parsed, "/server/route");
+const foundOne: Directive | undefined = findDirective(parsed, "/server/route");
+const foundArg: string | number | boolean | HeredocValue | undefined =
+  atDirective(parsed, "/server/route(/home)[1]");
+const foundDirectiveAt: Directive | undefined = atDirective(
+  parsed,
+  "/server/route(/home)",
+);
+
+// --- "donly/demo/http-proxy": serve, proxyLintRules ---
+
+const serveFn: (patch: string | URL) => Promise<{ stop(): Promise<void> }> =
+  serve;
+const rulesLength: number = proxyLintRules.length;
+const serverConfig: ServerConfig = {
+  host: "0.0.0.0",
+  port: 8080,
+  http1: true,
+  http2: false,
+  http3: false,
+  ssl: null,
+  headers: [],
+  routes: [],
+};
+const routeConfig: RouteConfig = {
+  method: null,
+  path: "/",
+  action: { kind: "respond", status: 200, body: "OK" },
+  headers: [],
+};
+const headerRule: HeaderRule = { name: "X", value: "Y" };
+
 // --- negative cases: unsupported argument/result types must not compile ---
 
 // @ts-expect-error DON.parse requires a string
@@ -130,4 +178,15 @@ void [
   decodedViaSubpath,
   lintSchemaSame,
   lintDocIssues,
+  loadFn,
+  loadedPromise,
+  foundAll,
+  foundOne,
+  foundArg,
+  foundDirectiveAt,
+  serveFn,
+  rulesLength,
+  serverConfig,
+  routeConfig,
+  headerRule,
 ];
