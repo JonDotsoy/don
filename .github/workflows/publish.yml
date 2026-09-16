@@ -22,7 +22,7 @@ on:
       update_changelog:
         description: Move CHANGELOG.md's [Unreleased] section under the new version
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: write
