@@ -6,12 +6,17 @@
 # exercises the real npm `exports`/`files` resolution consumers will hit,
 # including whether "files" actually ships everything the package needs.
 #
-# Usage: scripts/smoke-test-imports/npm-pack-test.sh <node|bun|types|cli>
+# Usage: scripts/smoke-test-imports/npm-pack-test.sh <node|bun|types|cli|bundle>
 #   node|bun  runs run.mjs with that runtime against the installed package
 #   types     type-checks check-types.ts against the installed package's
 #             .d.ts files, using this repo's own installed typescript
 #   cli       runs the packaged `donly` bin with `bunx donly` against the
 #             installed package, exercising the `donly lint` command
+#   bundle    generates one entry script per import path (see
+#             generate-bundle-entries.mjs) and runs `bun build` on each,
+#             for every target it declares support for (node, bun,
+#             browser), against the installed package — verifying every
+#             entry point (and its dependencies) actually bundles
 
 set -euo pipefail
 
@@ -99,8 +104,27 @@ EOF
       exit 1
     fi
     ;;
+  bundle)
+    ENTRIES_DIR="$PROJECT_DIR/bundle-entries"
+    node "$REPO_ROOT/scripts/smoke-test-imports/generate-bundle-entries.mjs" "$ENTRIES_DIR"
+
+    # manifest.json maps each entry script to the targets it must bundle
+    # under; print it as "<file> <target>" pairs, one per line.
+    while IFS=' ' read -r file target; do
+      echo "==> Running 'bun build --target $target $file' against the installed package"
+      bun build --target "$target" "$ENTRIES_DIR/$file" \
+        --outdir "$PROJECT_DIR/bundle-out/$target" >/dev/null
+    done < <(
+      node -e '
+        const manifest = require(process.argv[1]);
+        for (const [file, targets] of Object.entries(manifest)) {
+          for (const target of targets) console.log(`${file} ${target}`);
+        }
+      ' "$ENTRIES_DIR/manifest.json"
+    )
+    ;;
   *)
-    echo "Unknown mode: $MODE (expected 'node', 'bun', 'types', or 'cli')" >&2
+    echo "Unknown mode: $MODE (expected 'node', 'bun', 'types', 'cli', or 'bundle')" >&2
     exit 1
     ;;
 esac

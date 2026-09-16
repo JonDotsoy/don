@@ -77,6 +77,26 @@ jobs:
       - name: Pack, install, and run the CLI smoke test
         run: bash scripts/smoke-test-imports/npm-pack-test.sh cli
 
+  bundle-smoke-test-imports:
+    name: Bundle smoke test (bun build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      # Same packaging as smoke-test-imports, but generates one entry
+      # script per import path and runs `bun build --target node` on
+      # each against the installed package, verifying every entry point
+      # (and its dependencies) actually bundles.
+      - name: Pack, install, and run the bundle smoke test
+        run: bash scripts/smoke-test-imports/npm-pack-test.sh bundle
+
   type-smoke-test-imports:
     name: Import types smoke test
     runs-on: ubuntu-latest
