@@ -52,12 +52,6 @@ documentation.
   ESLint-style text report or a `JSONReport`. The previous function-based
   `LintRule`/`evaluation` engine moved internal (`src/lint.ts`, deprecated,
   no longer published as `donly/lint`).
-- `serve(patch)` (`donly/demo/http-proxy`) — example hot-reloading HTTP
-  reverse proxy / mock server driven by a DON file (`server`/`route`
-  directives with `respond`, `proxy_pass`, `header`, `http1`/`http2`/`http3`,
-  and `ssl` settings), built on `donly/lint` and `Bun.serve()`. Also exports
-  `proxyLintRules`, its schema's `LintRule[]`. See `src/demo/proxy/README.md`
-  for the schema and usage.
 - `donly` CLI (`bin/donly.js`, invoke with `npx donly`/`bunx donly`) with a
   `donly lint --rules <rules.json> <file>` command: runs `lintSchema` against
   a `.donly` file using a `LintRuleDocument` JSON file, prints an ESLint-style
