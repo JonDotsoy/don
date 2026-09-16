@@ -19,6 +19,10 @@ on:
           - minor
           - major
         default: none
+      update_changelog:
+        description: Move CHANGELOG.md's [Unreleased] section under the new version
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -52,6 +56,13 @@ jobs:
           npm version "${{ github.event.inputs.version_bump }}" --no-git-tag-version
           version="$(node -p "require('./package.json').version")"
           git add package.json package-lock.json
+
+          if [ "${{ github.event.inputs.update_changelog }}" = "true" ] && grep -q "^## \[Unreleased\]" CHANGELOG.md; then
+            date="$(date -u +%Y-%m-%d)"
+            sed -i "s/^## \[Unreleased\]/## [Unreleased]\n\n## [${version}] - ${date}/" CHANGELOG.md
+            git add CHANGELOG.md
+          fi
+
           git commit -m "chore: release v${version}"
           git push origin "HEAD:${{ github.ref_name }}"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

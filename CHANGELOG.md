@@ -31,8 +31,15 @@ documentation.
 - `LexerParser` and `SyntaxEncode` — lower-level tokenizer and syntax parser
   exports for building custom tooling on top of DON.
 - `donToParts(text)` — utility to break a DON document into typed lexical parts.
-- `load(filePath)` (`donly/load`) — reads a `.donly` file and parses it into a
-  plain object using the nested reducer shape.
+- `Directive#find(path)` / `Directive#findAll(path)` / `Directive#at(path)` —
+  query a `Directive` (treated as the document root) using an absolute path
+  expression (e.g. `/server/route`, with `|` alternatives). `find`/`findAll`
+  return the first/all matching directives; `at` resolves the path, and a
+  path ending in `[N]` (1-based) returns that directive's argument at
+  position `N` instead of the directive itself. Backed by `findDirective`,
+  `findAllDirectives`, and `atDirective` (`donly/find`), along with
+  `PathExpression`, which parses and matches the path syntax also used by
+  lint rule keys.
 - `lintSchema(don, rules)` (also exported as `lint`, from `donly/lint`) — runs
   a declarative `LintRuleDocument` against a DON source string and returns
   the `LintIssue`s it reports. A rule document is keyed by directive path
