@@ -1,6 +1,6 @@
 ---
 title: References (design draft)
-description: Two experimental, not-yet-implemented proposals for referencing values across a DON document — a "&" splice/join operator and "$"/"${}" variables inherited from Nginx.
+description: Three experimental, not-yet-implemented proposals for referencing values across a DON document — a "&" splice/join operator, "$"/"${}" variables inherited from Nginx, and a "$ref" directive inherited from JSON Schema.
 lang: en
 ---
 
@@ -137,6 +137,70 @@ document tree), this is closer to the string-substitution model — the
 value is dropped into a larger string or argument, not spliced as a
 directive's children.
 
+## Proposal 3: a `$ref` directive (inherited from JSON Schema)
+
+A third, independent proposal reuses JSON Schema/JSON Reference's idea —
+a reserved key whose value is a pointer, e.g. `{ "$ref": "#/definitions/defaults" }`
+— but expressed as an ordinary DON directive instead of a new sigil.
+
+This works with **zero grammar changes**: `$` is already a legal
+identifier character in DON (see the
+[spec](../specs/v1/spec.md#23-identifiers)), so `$ref` is just a keyword
+like `host` or `route` — no new `SyntaxKind`, no new lexer rule. The
+directive's argument is a path expression (the same syntax
+`find`/`at`/proposal 1's `&` already use), not a JSON Pointer, so there's
+no `#` involved either:
+
+```don
+athorization {
+  bearer
+  basic
+}
+
+ssl_key fanny
+
+route GET /settings {
+  athorization {
+    $ref "/athorization"
+  }
+  proxy_pass http://10.0.0.1:3000/settings
+}
+
+route GET /api {
+  athorization {
+    $ref "/athorization"
+    apikey
+  }
+  ssl {
+    load_key $ref "/ssl_key[1]"
+  }
+  proxy_pass http://10.0.0.1:3000/api
+}
+```
+
+- **As a subdirective** (`$ref "/athorization"` inside `athorization {
+  }`) — splices the referenced directive's children into the current
+  block, alongside `apikey`. Identical outcome to proposal 1's
+  `&/athorization`, but as a plain directive call instead of a sigil
+  glued onto the path.
+- **As an argument value** (`load_key $ref "/ssl_key[1]"`) — this is
+  where the zero-grammar-change advantage runs out: DON arguments today
+  are atoms (string/number/boolean/null/heredoc), not nested directive
+  calls, so `load_key`'s second "argument" being itself a `$ref`
+  invocation is new grammar, not a reuse of an existing rule the way the
+  subdirective form is. Confining `$ref` to subdirective position only
+  — and letting a directive like `load_key` take a plain path *string*
+  as its own argument, resolved by whatever reads `load_key`, without
+  any `$ref`/sigil wrapper — sidesteps that, at the cost of `$ref` no
+  longer being usable everywhere proposal 1's `&` is.
+- **Inside a string template** (the `header ssl_loaded "key name loaded
+  ${...}"` case from proposal 1) — unresolved for the same reason as
+  proposal 1: JSON's `$ref` always replaces a whole node, never lives
+  *inside* a string, so this proposal doesn't have an answer for
+  interpolation either — whatever proposal 2 settles on for templates
+  would still need its own way to embed a `$ref`-style pointer, if that
+  combination is wanted at all.
+
 ## Open questions
 
 Neither proposal is settled. Known problems with the design as sketched
@@ -180,3 +244,17 @@ above, to resolve before either is implemented:
   interpolate `$`/`${...}`, or some other order) — otherwise a document
   mixing both, like the example above, is ambiguous about what runs
   first.
+- **`$ref` and `&` overlapping is redundant, not complementary.**
+  Proposal 3's subdirective form and proposal 1's `&` splice do the
+  exact same thing (`$ref "/athorization"` vs. `&/athorization`) with
+  no semantic difference — shipping both means picking one as the "real"
+  syntax and the other as a deprecated alias, or dropping one before
+  implementation. Nothing here decides which.
+- **`$ref` reads as a value-position form, which invites nesting DON
+  doesn't support.** Because `$ref` looks like every other directive
+  call, it's tempting to write it wherever a value is expected (argument
+  position, inside a template) the way JSON's `$ref` can appear as the
+  value of any key — but DON arguments aren't nested calls, so `$ref`
+  only cleanly reuses existing grammar in subdirective position. Whether
+  it's worth having at all if it can't generalize past that one position
+  is still open.
