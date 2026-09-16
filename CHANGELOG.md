@@ -11,6 +11,8 @@ documentation.
 
 ## [Unreleased]
 
+## [0.0.24] - 2026-09-16
+
 ### Added
 
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
