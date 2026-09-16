@@ -151,6 +151,105 @@ document tree), this is closer to the string-substitution model — the
 value is dropped into a larger string, not spliced as a directive's
 children.
 
+### Extending `set`/`$name` beyond string interpolation
+
+A further sketch keeps `set`'s grammar exactly as above (directive
+name is always `set`; first argument is the bound name; everything
+after that — zero or more arguments, and optionally a block — is the
+value), but lets `$name` appear in four different grammatical
+positions, not just inside a `"${...}"` template:
+
+**(a) As a directive name.** `set` binds a name to what becomes the
+*effective directive name* at the call site:
+
+```don
+set varname "proxy_pass"
+
+$varname http://10.0.0.1:3000
+```
+
+reads as if it were written:
+
+```don
+proxy_pass http://10.0.0.1:3000
+```
+
+**(b) As a bare argument value** — no quotes, no `${...}`:
+
+```don
+set backend "http://10.0.0.1:3000"
+
+proxy_pass $backend
+```
+
+**(c) As a reference to a whole directive.** `set` binds a name not to
+a scalar but to an entire directive shape (name, args, and block); a
+bare `$name` (in subdirective/statement position) expands back to that
+whole directive:
+
+```don
+set cached_api proxy_pass "http://10.0.0.1:3000/api" {
+  header X-From "cache"
+}
+
+route GET /api {
+  $cached_api
+}
+```
+
+**(d) As an explicit union/splice**, via a `directiveunion` directive
+that merges a `set`-bound directive's children into the current block
+alongside directives already written there:
+
+```don
+set common_auth {
+  bearer
+  basic
+}
+
+route GET /api {
+  athorization {
+    directiveunion $common_auth
+    apikey
+  }
+}
+```
+
+This is the same splice/merge outcome as proposal 1's bare
+`&/athorization` and proposal 3's bare `$ref "/athorization"` — here
+sourced from a `set`-bound name instead of a path expression.
+
+**Open questions this raises**, beyond the two already tracked below:
+
+- **(b) directly contradicts the "no bare form" decision above.** This
+  section's own worked example (`proxy_pass "${backend}"`) explicitly
+  decided that `$name` only has meaning inside a double-quoted
+  `${...}` template, and that a bare `$backend` is just the literal
+  keyword token `$backend`. Form (b) here (`proxy_pass $backend`) is
+  exactly that disallowed bare form. Either the earlier decision needs
+  to be narrowed to "no bare form *inside running text*, but a bare
+  `$name` as an entire, standalone argument is fine," or form (b) needs
+  to be dropped in favor of always writing `"${backend}"`.
+- **`set`'s value shape is now overloaded.** The original proposal
+  only ever bound a scalar (`set backend "http://..."`). Form (c) needs
+  `set` to also bind a full directive (name + args + block) as the
+  value, which is a different shape of thing to store under the same
+  name — nothing here says how a reader of `set varname ...` tells
+  which shape it's looking at before reaching the end of the line (or
+  the block).
+- **Form (a)'s mapping from stored value to call site isn't defined.**
+  If the bound value has more than one argument (`set varname "bearer"
+  "basic"`), it's unclear whether `$varname arg` uses only the first
+  stored argument as the directive name and drops the rest, uses all of
+  them as leading arguments before `arg`, or is simply invalid unless
+  the stored value is exactly one argument.
+- **(a), (c), and (d) overlap with proposals 1 and 3.** Splicing a
+  whole directive's children (c, d) restates proposal 1's `&` and
+  proposal 3's `$ref` a third time, now sourced from `set` instead of a
+  path expression — three different-looking spellings for the same
+  operation is a sign one of them should probably not ship, not that
+  all three should.
+
 ## Proposal 3: a `$ref` directive (inherited from JSON Schema)
 
 A third, independent proposal reuses JSON Schema/JSON Reference's idea —
