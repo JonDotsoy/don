@@ -14,6 +14,7 @@ lang: en
    - [Design Goals](#design-goals)
    - [DON vs JSON](#11-don-vs-json)
    - [DON vs JSX](#12-don-vs-jsx)
+   - [File Extension and Media Type](#13-file-extension-and-media-type)
 2. [Syntax Elements](#2-syntax-elements)
    - [Directives](#21-directives)
    - [Blocks](#22-blocks)
@@ -316,6 +317,18 @@ Directive {
   <span key="key1">hello</span>
 </div>
 ```
+
+## 1.3 File Extension and Media Type
+
+DON documents should use the `.don` or `.donly` file extension.
+
+When a media (MIME) type is required — for example, in `Content-Type` HTTP headers or editor language associations — the suggested media type is:
+
+```
+application/x-donly
+```
+
+This type has not been registered with IANA and is provided only as a convention for tooling and interoperability until (or unless) formal registration takes place.
 
 ---
 
