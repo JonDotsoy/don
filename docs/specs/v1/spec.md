@@ -322,7 +322,7 @@ div x-data=name {
 
 ## 1.3 File Extension and Media Type
 
-DON documents should use the `.don` file extension.
+DON documents should use the `.don` or `.donly` file extension.
 
 When a media (MIME) type is required — for example, in `Content-Type` HTTP headers or editor language associations — the suggested media type is:
 
