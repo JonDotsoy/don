@@ -11,6 +11,10 @@ documentation.
 
 ## [Unreleased]
 
+### Added
+
+- Dummy entry to exercise the publish workflow's `update_changelog` input.
+
 ## [0.0.24] - 2026-09-16
 
 ### Added
