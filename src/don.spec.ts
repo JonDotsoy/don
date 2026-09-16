@@ -242,7 +242,7 @@ describe("JSON.stringify(DON.parse(...))", () => {
     });
   });
 
-  it('serializes a HeredocValue arg as a { delimiter, content } object', () => {
+  it('serializes a HeredocValue arg as its content string', () => {
     const result = DON.parse(""
       + "server {\n"
       + "  response <<<HTML\n"
@@ -253,7 +253,7 @@ describe("JSON.stringify(DON.parse(...))", () => {
 
     expect(JSON.parse(JSON.stringify(result))).toEqual({
       server: {
-        response: { delimiter: "HTML", content: "<html></html>\n" },
+        response: "<html></html>\n",
         handler: [],
       },
     });
