@@ -1,7 +1,8 @@
 - Cuando soliciten ejecutar el test de integración, usa el skill `integration-test` ubicado en `.kiro/skills/integration-test/`
   - Ejecuta el script completo: `.kiro/skills/integration-test/scripts/run-full-test.sh`
   - Este skill automatiza todo el proceso: empaquetado, preparación de entorno, instalación y ejecución de pruebas
-- Este proyecto usa bun.sh para ejecutar comandos: usa `bunx` para ejecutables y `bun add` para instalar paquetes
+- Este proyecto usa bun.sh como engine para ejecutar comandos: usa `bunx` para ejecutables, `bun add` para instalar paquetes y `bun test` para correr las pruebas (en vez de `npm`/`node`)
+  - Para correr o verificar los tests usa el skill `bun-test` ubicado en `.kiro/skills/bun-test/` (`.kiro/skills/bun-test/scripts/run_tests.sh`)
 - Los documentos Markdown (`README.md`, `docs/specs/v1/spec.md`) contienen anotaciones `tmd` (comentarios `// ? const <expr> =`, `:` o `: =` dentro de bloques ` ```ts `/` ```js ` ) que deben resolverse con la herramienta `@jondotsoy/tmd` antes de dar por terminada una tarea que modifique esos documentos
   - Ejecuta `npm run update:docs` (equivalente a `tmd README.md docs/specs/v1/spec.md --cwd .`) para recalcular los valores/tipos evaluados y reescribir los archivos in place
   - Corre este comando después de cualquier cambio de código o de Markdown que afecte los ejemplos documentados, para mantener los resultados sincronizados con el comportamiento real
