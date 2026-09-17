@@ -100,7 +100,7 @@ Directive (name: ROOT_DIRECTIVE_NAME)          # synthetic root, 2+ top-level di
     └── Directive (name: "port", args: [5432])
 ```
 
-Each node carries just three fields, with no parent pointer or source-position data:
+Each node carries just three fields, with no source-position data:
 
 - `name: string | symbol` — the directive's identifier (or `ROOT_DIRECTIVE_NAME` for a synthetic root)
 - `args: (number | string | boolean | HeredocValue)[]` — the directive's arguments, already decoded to JS values
@@ -262,6 +262,27 @@ import { SyntaxKind as kindsyntax } from "donly";
 `SyntaxKind` is exported from `donly`, but its numeric values are considered internal — treat them as opaque unless you're working at the lexer/syntax-parser level.
 
 `tokensByDirective(directive)` returns `undefined` for a `Directive` not produced by the parser — one you built by hand with `new Directive(...)`, or one that came out of `DirectiveJSONDecoder`.
+
+Every `Directive` also exposes `directiveScope`, the `Directive` it's nested under:
+
+```ts
+import { DON } from "donly";
+
+const root = DON.parse(`
+directivename {
+  subdirective
+}
+`);
+
+const subdirective = root.find("/directivename/subdirective")!;
+subdirective.directiveScope;
+// ? subdirective.directiveScope = Directive { name: "directivename", args: [], children: [ ... ] }
+
+root.directiveScope;
+// ? root.directiveScope = undefined
+```
+
+`directiveScope` is set from `children` by the `Directive` constructor itself, so it's available regardless of how the `Directive` was built — parsed, decoded from JSON, or constructed by hand — and it's `undefined` for a top-level/root `Directive` with no enclosing scope.
 
 If you need lower-level access to the parse — spans, source locations, or the full token stream including directives you don't hold a reference to — `SyntaxEncode` (the syntax parser) and `LexerParser` (the lexer, documented below) are also exported from `donly`, but they are considered internal/advanced APIs: `Directive` is the supported way to consume a parsed document.
 
