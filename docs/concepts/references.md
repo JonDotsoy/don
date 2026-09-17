@@ -11,7 +11,7 @@ lang: en
 > either of them in the current parser. The one exception is proposal
 > 2's block-scoped `set`/`$name`/`${name}` variables (not the extended
 > forms further down): a working implementation exists at
-> [`src/demo/plugins/scoped-variables-resolver.ts`](../../src/demo/plugins/scoped-variables-resolver.ts),
+> [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts),
 > as a standalone post-parse resolver rather than a `DonPlugin` — see
 > the [technical note](#decided-set-is-block-scoped) below for why. See
 > also [Path Expressions](./path-expression.md) for the other
@@ -155,7 +155,7 @@ $foo bar;` does, minus the leading `$` on the declaration itself.
   double-quoted string's text, never bare — `proxy_pass ${backend}`
   (braces, no surrounding quotes) is still just the literal keyword
   token `${backend}`, exactly as it is today. See the implementation at
-  [`src/demo/plugins/scoped-variables-resolver.ts`](../../src/demo/plugins/scoped-variables-resolver.ts).
+  [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts).
 
 Unlike proposal 1's `&` splice (resolved once against the static
 document tree), this is closer to the string-substitution model — the
@@ -217,7 +217,7 @@ directive right after it. A sibling block that never nests inside `Foo`
 > ancestor's scope in the `WeakMap`; the first one holding `name` wins.
 >
 > **As implemented**, in
-> [`src/demo/plugins/scoped-variables-resolver.ts`](../../src/demo/plugins/scoped-variables-resolver.ts),
+> [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts),
 > the walk happens the other way around: since the resolver owns its
 > own recursion (it isn't a `DonPlugin` — see that file's own doc
 > comment for why the mid-parse `onDirective` hook can't express a

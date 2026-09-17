@@ -1,5 +1,5 @@
-import { Directive, type HeredocValue } from "../../don.js";
-import { ROOT_DIRECTIVE_NAME, wrapAsRoot } from "../../directive-json.js";
+import { Directive, type HeredocValue } from "../don.js";
+import { ROOT_DIRECTIVE_NAME, wrapAsRoot } from "../directive-json.js";
 
 type Value = number | string | boolean | HeredocValue;
 
@@ -106,10 +106,11 @@ const transform = (directive: Directive, enclosingScope: Scope): Directive =>
  * `docs/concepts/references.md`'s "Decided: `set` is block-scoped").
  *
  * This is a standalone tree transform, not a `DonPlugin` (compare
- * `variablesPlugin` in `./variables-plugin.js`) — `DonPlugin#onDirective`
- * only fires once per directive, pre-order, with no signal for when a
- * block's children are done being visited, so it can't express a shadow
- * being restored after the block that introduced it closes. This
+ * `variablesPlugin` in `../demo/plugins/variables-plugin.js`) —
+ * `DonPlugin#onDirective` only fires once per directive, pre-order, with
+ * no signal for when a block's children are done being visited, so it
+ * can't express a shadow being restored after the block that introduced
+ * it closes. This
  * function owns its own recursion instead, so it can push a fresh scope
  * before descending into a block and let it fall out of scope (in the
  * literal, JS-closure sense) once that block's children are done:

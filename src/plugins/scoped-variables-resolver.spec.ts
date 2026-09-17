@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { DON } from "../../don.js";
+import { DON } from "../don.js";
 import { resolveScopedVariables } from "./scoped-variables-resolver.js";
 
 describe("resolveScopedVariables", () => {
