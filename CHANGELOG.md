@@ -92,3 +92,10 @@ documentation.
   directive's children in the resulting tree with a synthetic subtree
   (built directly into `Directive`s, bypassing the lexer/syntax parser
   and any further plugin) instead of whatever children the source had.
+- `createResourcesPlugin(options?)` (`donly/demo/plugins/resources`) — a
+  second demo `DonPlugin` factory: expands a `resource sqlite <file-url>`
+  directive into the (simulated) data it points at — the `file://` URL's
+  path resolved to an absolute one (against `options.cwd`, default
+  `process.cwd()`) and `size`/`table`/`columns` children describing a
+  fake schema, via `PluginDirectiveNode#children`. Any other `resource`
+  type, or a directive that isn't `resource`, passes through untouched.

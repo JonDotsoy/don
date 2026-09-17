@@ -299,3 +299,169 @@ DON.parse("set foo 33", {
 const foo = ctx.get("foo");
 // ? const foo = "33"
 ```
+
+## Example 2: `createResourcesPlugin`
+
+`donly/demo/plugins/resources` ([`src/demo/plugins/resources-plugin.ts`](../../src/demo/plugins/resources-plugin.ts))
+shows the other half of what a plugin can do: instead of resolving a
+small inline reference like `$foo`, it expands a `resource sqlite
+<file-url>` directive into the data that file points at, using
+`PluginDirectiveNode#children` to attach a whole synthetic subtree the
+source document never wrote out. A real version would actually open the
+`.sqlite` file (page count for size, `sqlite_master`/`PRAGMA table_info`
+for tables and columns); this demo only simulates that read
+(`inspectSqliteFile` in the source always "discovers" the same fixed
+schema), since the point is the plugin's shape, not a real SQLite reader:
+
+```ts
+import { resolve as resolvePath } from "node:path";
+import type { DonPlugin } from "donly";
+
+export const createResourcesPlugin = (
+  options: { cwd?: string } = {},
+): DonPlugin => {
+  const cwd = options.cwd ?? process.cwd();
+
+  return {
+    name: "resources",
+
+    onDirective(node) {
+      if (node.name !== "resource") return;
+
+      const [type, url] = node.args;
+      if (typeof type !== "string" || typeof url !== "string") return;
+
+      const match = /^file:\/\/(.+)$/.exec(url);
+      if (!match || type !== "sqlite") return;
+
+      const absolutePath = resolvePath(cwd, match[1]!);
+      // const schema = inspectSqliteFile(absolutePath); (simulated)
+
+      return {
+        name: node.name,
+        args: [type, `file://${absolutePath}`],
+        children: [
+          { name: "size", args: [34, "megabites"] },
+          {
+            name: "table",
+            args: ["user"],
+            children: [
+              { name: "rows", args: [350] },
+              {
+                name: "columns",
+                args: [],
+                children: [
+                  { name: "user_id", args: ["TEXT", "primarykey"] },
+                  { name: "name", args: ["TEXT"] },
+                  { name: "role", args: ["TEXT"] },
+                ],
+              },
+            ],
+          },
+          // ...a "product" table node, shaped the same way.
+        ],
+      };
+    },
+  };
+};
+```
+
+Unlike `variablesPlugin` (a plain object), `createResourcesPlugin` is a
+**factory function** returning a `DonPlugin` — because resolving a
+relative `file://` path needs a base directory, and always resolving
+against `process.cwd()` would make the result depend on wherever the
+process happens to run from. `createResourcesPlugin({ cwd })` fixes that
+directory instead, which matters for reproducible output (tests, docs
+examples like this one, ...).
+
+Given:
+
+```don
+resource sqlite file://./db.sqlite
+```
+
+```ts
+import { DON } from "donly";
+import { createResourcesPlugin } from "donly/demo/plugins/resources";
+
+const result = DON.parse("resource sqlite file://./db.sqlite", {
+  plugins: [createResourcesPlugin({ cwd: "/srv/app" })],
+});
+// ? const result = Directive {
+//   name: "resource",
+//   args: [ "sqlite", "file:///srv/app/db.sqlite" ],
+//   children: [
+//     Directive {
+//       name: "size",
+//       args: [ 34, "megabites" ],
+//       children: [],
+//     }, Directive {
+//       name: "table",
+//       args: [ "user" ],
+//       children: [
+//         Directive {
+//           name: "rows",
+//           args: [ 350 ],
+//           children: [],
+//         }, Directive {
+//           name: "columns",
+//           args: [],
+//           children: [
+//             Directive {
+//               name: "user_id",
+//               args: [ "TEXT", "primarykey" ],
+//               children: [],
+//             }, Directive {
+//               name: "name",
+//               args: [ "TEXT" ],
+//               children: [],
+//             }, Directive {
+//               name: "role",
+//               args: [ "TEXT" ],
+//               children: [],
+//             }
+//           ],
+//         }
+//       ],
+//     }, Directive {
+//       name: "table",
+//       args: [ "product" ],
+//       children: [
+//         Directive {
+//           name: "rows",
+//           args: [ 7000 ],
+//           children: [],
+//         }, Directive {
+//           name: "columns",
+//           args: [],
+//           children: [
+//             Directive {
+//               name: "product_id",
+//               args: [ "TEXT", "primarykey" ],
+//               children: [],
+//             }, Directive {
+//               name: "name",
+//               args: [ "TEXT" ],
+//               children: [],
+//             }, Directive {
+//               name: "price",
+//               args: [ "INTEGER" ],
+//               children: [],
+//             }
+//           ],
+//         }
+//       ],
+//     }
+//   ],
+// }
+```
+
+The `./db.sqlite` relative path in the source became the absolute
+`/srv/app/db.sqlite` in `result.args`, and `resource`'s own (empty)
+children were entirely replaced by the synthetic `size`/`table`/`columns`
+subtree `onDirective` returned — none of it went through `LexerParser`/
+`SyntaxParser`, and `Directive.tokensByDirective()` on any of these
+synthetic `Directive`s returns `undefined`, the same as for a `Directive`
+built by hand. A `resource` directive naming any other type (or one
+without a `file://` URL argument) comes back untouched, since
+`onDirective` returns nothing (`void`) for it.

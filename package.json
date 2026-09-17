@@ -66,6 +66,10 @@
     "./demo/plugins/variables": {
       "types": "./lib/esm/demo/plugins/variables-plugin.d.ts",
       "import": "./lib/esm/demo/plugins/variables-plugin.js"
+    },
+    "./demo/plugins/resources": {
+      "types": "./lib/esm/demo/plugins/resources-plugin.d.ts",
+      "import": "./lib/esm/demo/plugins/resources-plugin.js"
     }
   },
   "files": [
