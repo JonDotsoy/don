@@ -17,6 +17,14 @@ export { HeredocValue } from "./v1/compiler/heredoc-value.js";
 // round-trips, and are garbage-collected along with the Directive.
 const tokensByDirective = new WeakMap<Directive, Token[]>();
 
+// Keyed by the child Directive instance so the parent link doesn't leak
+// into its public shape or create a reference cycle. Populated in the
+// constructor itself (from `children`), so it's set for every Directive
+// regardless of how it was built — parsed, decoded from JSON, or
+// constructed by hand — and always reflects the last Directive a given
+// instance was attached to as a child.
+const parentByDirective = new WeakMap<Directive, Directive>();
+
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
 // A plain data-only view used only for inspection: returning an
@@ -42,7 +50,24 @@ export class Directive {
     readonly name: string | symbol,
     readonly args: (number | string | boolean | HeredocValue)[],
     readonly children: Directive[] = [],
-  ) {}
+  ) {
+    for (const child of children) {
+      parentByDirective.set(child, this);
+    }
+  }
+
+  /**
+   * This `Directive`'s immediate parent in the tree it was last attached
+   * to as a child, or `undefined` for a top-level/root `Directive` with
+   * no enclosing parent.
+   *
+   * Set from `children` by the constructor itself, so it's available for
+   * any `Directive`, however it was built: parsed by `DON.parse()`,
+   * decoded from JSON, or constructed by hand with `new Directive(...)`.
+   */
+  get parent(): Directive | undefined {
+    return parentByDirective.get(this);
+  }
 
   toJSON(): unknown {
     return directiveToJSON(this);

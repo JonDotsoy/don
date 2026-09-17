@@ -488,3 +488,42 @@ describe("donToParts", () => {
     expect(result).toMatchSnapshot();
   });
 });
+
+describe("Directive#parent", () => {
+  it("is the immediate parent of a nested directive", () => {
+    const root = DON.parse(""
+      + "directivename {\n"
+      + "  subdirective\n"
+      + "}\n"
+    );
+
+    const subdirective = root.find("/directivename/subdirective")!;
+
+    expect(subdirective.parent).toBe(root);
+  });
+
+  it("is undefined for a directive with no enclosing parent", () => {
+    const root = DON.parse("test");
+
+    expect(root.parent).toBeUndefined();
+  });
+
+  it("is the synthetic root for each top-level directive when parsing multiple", () => {
+    const root = DON.parse(""
+      + "name \"my-app\"\n"
+      + "port 8080\n"
+    );
+
+    expect(root.name).toBe(ROOT_DIRECTIVE_NAME);
+    for (const child of root.children) {
+      expect(child.parent).toBe(root);
+    }
+  });
+
+  it("is undefined for a Directive built by hand", () => {
+    const parent = new Directive("parent", [], [new Directive("child", [])]);
+
+    expect(parent.parent).toBeUndefined();
+    expect(parent.children[0]!.parent).toBe(parent);
+  });
+});
