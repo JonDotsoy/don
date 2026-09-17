@@ -62,6 +62,10 @@
     "./demo/http-proxy": {
       "types": "./lib/esm/demo/proxy/http-proxy.d.ts",
       "import": "./lib/esm/demo/proxy/http-proxy.js"
+    },
+    "./demo/plugins/variables": {
+      "types": "./lib/esm/demo/plugins/variables-plugin.d.ts",
+      "import": "./lib/esm/demo/plugins/variables-plugin.js"
     }
   },
   "files": [

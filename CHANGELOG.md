@@ -82,6 +82,11 @@ documentation.
   to give a plugin state at all, to seed it with initial values, or to
   return a `ctx` you keep a reference to yourself, to read it back after
   parsing.
+- `variablesPlugin` (`donly/demo/plugins/variables`) — a first demo
+  `DonPlugin`, built on a `Map<string, string>` `ctx`: a `set` directive
+  (`set <name> <value>`) stores `<value>` (stringified) under `<name>` and
+  is dropped from the tree; any later `$<name>` argument resolves to that
+  string.
 - `PluginDirectiveNode#children` — an optional field a plugin's
   `onDirective` can set on the node it returns, replacing that
   directive's children in the resulting tree with a synthetic subtree

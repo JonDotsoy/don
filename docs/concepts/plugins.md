@@ -1,6 +1,6 @@
 ---
 title: Plugins
-description: How DonPlugin hooks into DON.parse()'s pipeline to add language features — name/onDirective/initContext, and reading a directive's original tokens.
+description: How DonPlugin hooks into DON.parse()'s pipeline to add language features — set/onDirective/initContext, reading tokens, and a full variablesPlugin walkthrough.
 lang: en
 ---
 
@@ -179,3 +179,123 @@ conversion `DON.parse()` uses to build `args` (`"localhost"` as a string,
 line/column range. See [Lexer
 (`LexerParser`)](../../README.md#lexer-lexerparser) in the README for the
 full `Token` API.
+
+## Example 1: `variablesPlugin`
+
+`donly/demo/plugins/variables` ([`src/demo/plugins/variables-plugin.ts`](../../src/demo/plugins/variables-plugin.ts))
+is a complete, minimal plugin built from exactly the three pieces above.
+It implements a `set <name> <value>` pragma and `$<name>` variable
+references:
+
+```ts
+import type { DonPlugin, PluginDirectiveNode } from "donly";
+
+const VARIABLE_PATTERN = /^\$([A-Za-z_][A-Za-z0-9_]*)$/;
+
+export const variablesPlugin: DonPlugin<Map<string, string>> = {
+  name: "variables",
+
+  // ctx would otherwise be `undefined` — this plugin needs `get`/`set`,
+  // so it builds its own `Map`.
+  initContext: () => new Map(),
+
+  onDirective(node, ctx) {
+    // Resolve every `$name` argument to whatever `ctx` has stored for
+    // `name` — `undefined` if `set name ...` hasn't run yet. Never
+    // mutates `node.args` — builds a new array instead.
+    const args = node.args.map((arg) => {
+      if (typeof arg !== "string") return arg;
+      const match = VARIABLE_PATTERN.exec(arg);
+      return match ? ctx.get(match[1]!) : arg;
+    }) as PluginDirectiveNode["args"];
+
+    // `set <name> <value>` stores the (already `$`-resolved) value,
+    // stringified since `ctx` is a `Map<string, string>`, and is
+    // dropped — it's a pragma, not data the caller should see.
+    if (node.name === "set") {
+      const [varname, value] = args;
+      if (typeof varname === "string") ctx.set(varname, String(value));
+      return null;
+    }
+
+    return { name: node.name, args };
+  },
+};
+```
+
+Every `DON.parse()` call using this plugin gets its own fresh `Map()` for
+`ctx`, built from `initContext` right before parsing starts.
+
+Given:
+
+```don
+set foo 33
+
+tar biz lol {
+  bob $foo
+}
+```
+
+```ts
+import { DON } from "donly";
+import { variablesPlugin } from "donly/demo/plugins/variables";
+
+const result = DON.parse(
+  `
+set foo 33
+
+tar biz lol {
+  bob $foo
+}
+`,
+  { plugins: [variablesPlugin] },
+);
+// ? const result = Directive {
+//   name: "tar",
+//   args: [ "biz", "lol" ],
+//   children: [
+//     Directive {
+//       name: "bob",
+//       args: [ "33" ],
+//       children: [],
+//     }
+//   ],
+// }
+```
+
+Walking through what happened, in visit order:
+
+1. `set foo 33` — `node.args` is `["foo", 33]` (no `$`-prefixed strings to
+   resolve), `node.name === "set"` stores `ctx.set("foo", "33")`
+   (stringified), and `onDirective` returns `null` — `set` never reaches
+   the output tree.
+2. `tar biz lol { ... }` — no `$` arguments, nothing to resolve; not
+   named `set`, so `onDirective` returns a new node with the same
+   `name`/`args`, and its children get visited next.
+3. `bob $foo` — `node.args` is `["$foo"]`; the pattern matches, and
+   `ctx.get("foo")` (set in step 1) resolves it to `"33"` in the
+   returned node's `args`.
+
+Since only one top-level directive (`tar`) survives — `set` was
+dropped — `DON.parse()` returns it unwrapped, per its usual
+single-top-level-directive rule (see
+[Usage](../../README.md#usage) in the README).
+
+To read `foo` back after parsing, override the plugin's `initContext` to
+return a `Map<string, string>` you keep a reference to yourself (see
+[Plugins](../../README.md#plugins) in the README for the full pattern,
+including a `ctx` shaped as something other than a `Map`):
+
+```ts
+import { DON } from "donly";
+import { variablesPlugin } from "donly/demo/plugins/variables";
+
+const ctx = new Map<string, string>();
+
+DON.parse("set foo 33", {
+  plugins: [{ ...variablesPlugin, initContext: () => ctx }],
+});
+
+const foo = ctx.get("foo");
+// ? const foo = "33"
+```
