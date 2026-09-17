@@ -275,11 +275,21 @@ directivename {
 `);
 
 const subdirective = root.find("/directivename/subdirective")!;
-subdirective.parent;
-// ? subdirective.parent = Directive { name: "directivename", args: [], children: [ ... ] }
+const parent = subdirective.parent;
+// ? const parent = Directive {
+//   name: "directivename",
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "subdirective",
+//       args: [],
+//       children: [],
+//     }
+//   ],
+// }
 
-root.parent;
-// ? root.parent = undefined
+const rootParent = root.parent;
+// ? const rootParent = undefined
 ```
 
 `parent` is set from `children` by the `Directive` constructor itself, so it's available regardless of how the `Directive` was built — parsed, decoded from JSON, or constructed by hand — and it's `undefined` for a top-level/root `Directive` with no enclosing parent.
