@@ -400,7 +400,7 @@ The conditional type behind this, `AtPathResult<P>`, is exported from `donly/fin
 
 ## Plugins
 
-`DON.parse(text, { plugins })` accepts a list of `DonPlugin`s to extend parsing itself, before `donly`'s "Sequential Processing" pipeline hands you back the `Directive` tree. Each plugin's `onDirective(node, ctx)` runs once per directive, depth-first pre-order — the document's own reading order, parents before children, earlier siblings before later ones. See [Plugins](./docs/concepts/plugins.md) for where a plugin sits in `DON.parse()`'s pipeline, a full description of `name`/`initContext`/`onDirective`, how to read a directive's original `Token`s (`Directive.tokensByDirective`), and step-by-step walkthroughs of `variablesPlugin` and `createResourcesPlugin` (`donly/demo/plugins/resources` — expands a `resource sqlite <file-url>` reference into synthetic `size`/`table`/`columns` children via `PluginDirectiveNode#children`).
+`DON.parse(text, { plugins })` accepts a list of `DonPlugin`s to extend parsing itself, before `donly`'s "Sequential Processing" pipeline hands you back the `Directive` tree. Each plugin's `onDirective(node, ctx)` runs once per directive, depth-first pre-order — the document's own reading order, parents before children, earlier siblings before later ones. See [Plugins](./docs/concepts/plugins.md) for where a plugin sits in `DON.parse()`'s pipeline, a full description of `name`/`initContext`/`onDirective`, how to read a directive's original `Token`s (`Directive.tokensByDirective`), and step-by-step walkthroughs of `variablesPlugin` and `createResourcesPlugin` (`donly/demo/plugins/resources` — expands a `resource sqlite <file-url>` reference into synthetic `size`/`table`/`columns` children via `PluginDirectiveNode#children`). See [Scoped Variables](./docs/plugins/scoped-variables.md) for `resolveScopedVariables`, a related but _not_ `DonPlugin`-based tool for block-scoped `set`/`$name`/`${name}` variables, below.
 
 ```ts
 import { DON, type DonPlugin } from "donly";
@@ -501,6 +501,43 @@ DON.parse("a\nb {\n  c\n}", { plugins: [collectNames] });
 ```
 
 `DonPlugin<TContext>`'s type parameter tracks whichever shape `initContext` returns, so `onDirective`'s `ctx` argument is typed to match. Whatever it is, it's never shared with another plugin's, so two plugins can't collide on the same state.
+
+### Block-scoped variables (`resolveScopedVariables`)
+
+`variablesPlugin` above keeps one flat, document-wide `ctx` — a nested `set` permanently overwrites an outer one, since `onDirective` has no signal for when a block's children are done being visited to restore a shadowed value. `donly/plugins/scoped-variables` solves that with a **block-scoped** `set`: a `set` inside a block shadows one of the same name from an enclosing block only for the rest of that inner block, then reverts once the block ends — the same way a `let`/`var` is scoped to its block in most programming languages. It's a standalone function rather than a `DonPlugin`, run _after_ `DON.parse()` instead of during it, precisely so it can own its own recursion and correctly restore a shadowed value once a block ends (see [Scoped Variables](./docs/plugins/scoped-variables.md) for why):
+
+```ts
+import { DON } from "donly";
+import { resolveScopedVariables } from "donly/plugins/scoped-variables";
+
+const result = resolveScopedVariables(
+  DON.parse(`
+set foo 33
+
+foo $foo
+tar biz {
+  set foo 55
+  foo $foo
+}
+`),
+);
+// ? const result = Directive {
+//   name: Symbol(root),
+//   args: [],
+//   children: [
+//     Directive { name: "foo", args: [ 33 ], children: [] },
+//     Directive {
+//       name: "tar",
+//       args: [ "biz" ],
+//       children: [
+//         Directive { name: "foo", args: [ 55 ], children: [] }
+//       ],
+//     }
+//   ],
+// }
+```
+
+`tar`'s inner `set foo 55` only reaches `foo $foo` inside `tar`'s own block — the top-level `foo $foo` above it still resolves against the outer `set foo 33`. Unlike `variablesPlugin`, a bare `$name` argument keeps its bound value's original type (`33` stays a `number`, not `"33"`), and `${name}` interpolates inside a larger string argument (`"${project}-container-1"`), with `\${name}` escaping to the literal text `${name}`. See [Scoped Variables](./docs/plugins/scoped-variables.md) for the full walkthrough, the error cases it throws on, and a known limitation (it can't currently tell a single- from a double-quoted string, so `${name}` interpolates inside either).
 
 ## Lexer (`LexerParser`)
 
