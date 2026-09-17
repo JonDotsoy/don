@@ -489,7 +489,7 @@ describe("donToParts", () => {
   });
 });
 
-describe("Directive#directiveScope", () => {
+describe("Directive#parent", () => {
   it("is the immediate parent of a nested directive", () => {
     const root = DON.parse(""
       + "directivename {\n"
@@ -499,13 +499,13 @@ describe("Directive#directiveScope", () => {
 
     const subdirective = root.find("/directivename/subdirective")!;
 
-    expect(subdirective.directiveScope).toBe(root);
+    expect(subdirective.parent).toBe(root);
   });
 
-  it("is undefined for a directive with no enclosing scope", () => {
+  it("is undefined for a directive with no enclosing parent", () => {
     const root = DON.parse("test");
 
-    expect(root.directiveScope).toBeUndefined();
+    expect(root.parent).toBeUndefined();
   });
 
   it("is the synthetic root for each top-level directive when parsing multiple", () => {
@@ -516,14 +516,14 @@ describe("Directive#directiveScope", () => {
 
     expect(root.name).toBe(ROOT_DIRECTIVE_NAME);
     for (const child of root.children) {
-      expect(child.directiveScope).toBe(root);
+      expect(child.parent).toBe(root);
     }
   });
 
   it("is undefined for a Directive built by hand", () => {
     const parent = new Directive("parent", [], [new Directive("child", [])]);
 
-    expect(parent.directiveScope).toBeUndefined();
-    expect(parent.children[0]!.directiveScope).toBe(parent);
+    expect(parent.parent).toBeUndefined();
+    expect(parent.children[0]!.parent).toBe(parent);
   });
 });

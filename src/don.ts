@@ -23,7 +23,7 @@ const tokensByDirective = new WeakMap<Directive, Token[]>();
 // regardless of how it was built — parsed, decoded from JSON, or
 // constructed by hand — and always reflects the last Directive a given
 // instance was attached to as a child.
-const scopeByDirective = new WeakMap<Directive, Directive>();
+const parentByDirective = new WeakMap<Directive, Directive>();
 
 const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
@@ -52,21 +52,21 @@ export class Directive {
     readonly children: Directive[] = [],
   ) {
     for (const child of children) {
-      scopeByDirective.set(child, this);
+      parentByDirective.set(child, this);
     }
   }
 
   /**
-   * The `Directive` this one is nested under — its immediate parent in the
-   * tree it was last attached to as a child, or `undefined` for a
-   * top-level/root `Directive` with no enclosing scope.
+   * This `Directive`'s immediate parent in the tree it was last attached
+   * to as a child, or `undefined` for a top-level/root `Directive` with
+   * no enclosing parent.
    *
    * Set from `children` by the constructor itself, so it's available for
    * any `Directive`, however it was built: parsed by `DON.parse()`,
    * decoded from JSON, or constructed by hand with `new Directive(...)`.
    */
-  get directiveScope(): Directive | undefined {
-    return scopeByDirective.get(this);
+  get parent(): Directive | undefined {
+    return parentByDirective.get(this);
   }
 
   toJSON(): unknown {
