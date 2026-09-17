@@ -6,12 +6,16 @@ lang: en
 
 # References
 
-> **Status: design draft.** Nothing on this page is implemented. There is
-> no `&` splice operator, no `$`/`${...}` variable syntax, no `set`
-> directive, and no `SyntaxKind` for any of them in the current parser —
-> this document exists to work through the design before any of it is
-> built. See [Path Expressions](./path-expression.md) for the one
-> reference-like mechanism that *is* implemented today (`find`/`at`,
+> **Status: design draft.** Most of this page is not implemented — no
+> `&` splice operator, no `$ref` directive, and no `SyntaxKind` for
+> either of them in the current parser. The one exception is proposal
+> 2's block-scoped `set`/`$name`/`${name}` variables (not the extended
+> forms further down): a working implementation exists at
+> [`src/demo/plugins/scoped-variables-resolver.ts`](../../src/demo/plugins/scoped-variables-resolver.ts),
+> as a standalone post-parse resolver rather than a `DonPlugin` — see
+> the [technical note](#decided-set-is-block-scoped) below for why. See
+> also [Path Expressions](./path-expression.md) for the other
+> reference-like mechanism that _is_ implemented today (`find`/`at`,
 > read-only, used by application code after parsing — not a syntax
 > inside a `.don` file).
 
@@ -97,7 +101,7 @@ route GET /api {
 }
 ```
 
-Note the last line: `&/ssl_key[1]` also appears *inside a string*
+Note the last line: `&/ssl_key[1]` also appears _inside a string_
 (`"key name loaded ${&/ssl_key[1]}"`), wrapped in `${...}`. That's not
 part of this proposal — it's proposal 2's interpolation syntax, applied
 to a `&` path instead of a `$variable`. See [Open
@@ -127,7 +131,7 @@ route GET /api {
 ```
 
 - `set <name> <value>` defines a variable, the same way Nginx's `set
-  $foo bar;` does, minus the leading `$` on the declaration itself.
+$foo bar;` does, minus the leading `$` on the declaration itself.
 - **Decided:** interpolation only triggers inside a **double-quoted**
   string (`"${backend}"`). A **single-quoted** string (`'${backend}'`)
   never interpolates — `${backend}` there is four literal characters,
@@ -141,10 +145,17 @@ route GET /api {
   role `\` already plays for quote escaping in DON's existing string
   literals (see the [spec](../specs/v1/spec.md#25-strings)) — no new
   escape convention, just extending what `\` already escapes.
-- There is no bare (unquoted keyword) form of interpolation — `$name`/
-  `${name}` only has meaning inside a double-quoted string. A bare
-  argument like `proxy_pass ${backend}` (no quotes) is just the literal
-  keyword token `${backend}`, exactly as it is today.
+- **Revised:** a bare `$name` (no braces, no quotes) is its own,
+  separate form — **whole-argument substitution**, distinct from
+  `${name}` template interpolation. `proxy_pass $backend` substitutes
+  the entire argument with `backend`'s bound value, unchanged in type
+  (a `set foo 33`-bound number stays a number, not the string `"33"`).
+  This supersedes an earlier version of this page, which ruled out any
+  bare form; `${name}` (braces) remains meaningful only inside a
+  double-quoted string's text, never bare — `proxy_pass ${backend}`
+  (braces, no surrounding quotes) is still just the literal keyword
+  token `${backend}`, exactly as it is today. See the implementation at
+  [`src/demo/plugins/scoped-variables-resolver.ts`](../../src/demo/plugins/scoped-variables-resolver.ts).
 
 Unlike proposal 1's `&` splice (resolved once against the static
 document tree), this is closer to the string-substitution model — the
@@ -204,6 +215,21 @@ directive right after it. A sibling block that never nests inside `Foo`
 > still reachable. Resolution is then: for each ancestor from the
 > referencing directive's parent up to the root, look up that
 > ancestor's scope in the `WeakMap`; the first one holding `name` wins.
+>
+> **As implemented**, in
+> [`src/demo/plugins/scoped-variables-resolver.ts`](../../src/demo/plugins/scoped-variables-resolver.ts),
+> the walk happens the other way around: since the resolver owns its
+> own recursion (it isn't a `DonPlugin` — see that file's own doc
+> comment for why the mid-parse `onDirective` hook can't express a
+> shadow being restored), it builds the resolved tree top-down, passing
+> each block's `Scope` object down to its children as an ordinary
+> function argument (chained to its own parent `Scope` via a `parent`
+> reference) rather than reaching back up through `Directive#parent`
+> after the fact. Same outward-nearest-first lookup order, just built
+> going down instead of walked going up — the `WeakMap`/`.parent`
+> version above stays the right approach for a resolver that doesn't
+> control its own recursion (e.g. one bolted onto an existing
+> `DonPlugin`-style visitor).
 
 ### Extending `set`/`$name` beyond string interpolation
 
@@ -214,7 +240,7 @@ value), but lets `$name` appear in four different grammatical
 positions, not just inside a `"${...}"` template:
 
 **(a) As a directive name.** `set` binds a name to what becomes the
-*effective directive name* at the call site:
+_effective directive name_ at the call site:
 
 ```don
 set varname "proxy_pass"
@@ -281,7 +307,7 @@ sourced from a `set`-bound name instead of a path expression.
   `${...}` template, and that a bare `$backend` is just the literal
   keyword token `$backend`. Form (b) here (`proxy_pass $backend`) is
   exactly that disallowed bare form. Either the earlier decision needs
-  to be narrowed to "no bare form *inside running text*, but a bare
+  to be narrowed to "no bare form _inside running text_, but a bare
   `$name` as an entire, standalone argument is fine," or form (b) needs
   to be dropped in favor of always writing `"${backend}"`.
 - **`set`'s value shape is now overloaded.** The original proposal
@@ -293,7 +319,7 @@ sourced from a `set`-bound name instead of a path expression.
   the block).
 - **Form (a)'s mapping from stored value to call site isn't defined.**
   If the bound value has more than one argument (`set varname "bearer"
-  "basic"`), it's unclear whether `$varname arg` uses only the first
+"basic"`), it's unclear whether `$varname arg` uses only the first
   stored argument as the directive name and drops the rest, uses all of
   them as leading arguments before `arg`, or is simply invalid unless
   the stored value is exactly one argument.
@@ -346,12 +372,12 @@ route GET /api {
 ```
 
 - **As a subdirective** (`$ref "/athorization"` inside `athorization {
-  }`) — splices the referenced directive's children into the current
+}`) — splices the referenced directive's children into the current
   block, alongside `apikey`. Identical outcome to proposal 1's
   `&/athorization`, but as a plain directive call instead of a sigil
   glued onto the path.
-- **As an argument value** (`load_key $ref(/ssl_key[1])`) — a *call
-  form*: `$ref(...)` written as a single argument token, the path
+- **As an argument value** (`load_key $ref(/ssl_key[1])`) — a _call
+  form_: `$ref(...)` written as a single argument token, the path
   expression sitting inside the parentheses rather than as a second,
   separate argument. This is new grammar either way — DON arguments
   today are atoms (string/number/boolean/null/heredoc), so a call-shaped
@@ -362,11 +388,11 @@ route GET /api {
   since the reference stays visually inside one token instead of
   looking like `load_key` took two unrelated arguments.
 - **Inside a string template** (the `header ssl_loaded "key name loaded
-  ${...}"` case from proposal 1) — the call form gives this a plausible
+${...}"` case from proposal 1) — the call form gives this a plausible
   answer proposal 1 didn't have: `"key name loaded ${$ref(/ssl_key[1])}"`
   nests a `$ref(...)` call inside proposal 2's `${...}` interpolation
   the same way any other value would go there. It's still an open
-  question whether that's the right way to spell it (it stacks *two*
+  question whether that's the right way to spell it (it stacks _two_
   sets of parens/braces for one lookup: `${` `$ref(` `)` `}`), but at
   least the call form means there's something to nest, unlike the bare
   `$ref "/path"` statement form.
@@ -393,14 +419,14 @@ from the sketches above:
 
 - **Proposal 2 — `$`/`${...}` block-scoped variables**
   - **Grammar:** `set` itself needs no new grammar (it's a plain
-    directive). `${...}` interpolation needs new lexing *inside
-    double-quoted string literals only* — single-quoted strings are
+    directive). `${...}` interpolation needs new lexing _inside
+    double-quoted string literals only_ — single-quoted strings are
     left untouched, and `\$` extends the escape handling strings
     already have (see [the spec](../specs/v1/spec.md#25-strings)).
   - **Resolution:** build one scope per block during a tree walk: for
     each directive with a block, collect its direct `set` children into
     a scope object. Store that scope in an **opaque `WeakMap<Directive,
-    Scope>`**, keyed by the directive that opens the block — the same
+Scope>`**, keyed by the directive that opens the block — the same
     pattern `Directive#parent`'s own `parentByDirective` `WeakMap`
     already uses in `src/don.ts` (see the [technical
     note](#decided-set-is-block-scoped) above). To resolve `${name}` for
@@ -428,7 +454,7 @@ from the sketches above:
     scope's stored value type is either a plain value or a `Directive`,
     decided by how many/what kind of arguments follow the bound name.
   - **Resolution:** reuses proposal 2's scope walk (`WeakMap<Directive,
-    Scope>` + `.parent` chain) to find the binding, then branches on
+Scope>` + `.parent` chain) to find the binding, then branches on
     what was found: splice its `children` (forms (c)/(d), same
     mechanics as proposal 1's splice), substitute it as the directive
     name (form (a)), or substitute it as a bare argument value (form
@@ -444,7 +470,7 @@ above, to resolve before either is implemented:
   `"${&/ssl_key[1]}"` combines three things at once: the `${...}`
   interpolation syntax from proposal 2, the `&` reference sigil from
   proposal 1, and a path expression's own `[N]` argument selector. Using
-  a template (`${...}`) to read the *value* of a `&` reference — instead
+  a template (`${...}`) to read the _value_ of a `&` reference — instead
   of giving `&` its own value-reading form — is likely one sigil too
   many, and it's not yet decided whether `&...` should be legal at all
   inside a `${...}` template, or whether reading a single argument out of
@@ -462,7 +488,7 @@ above, to resolve before either is implemented:
   already use for quote escaping — see the
   [spec](../specs/v1/spec.md#25-strings)). A document needing literal
   `${...}` — e.g. a `header` value or `proxy_pass` target containing
-  template syntax meant for the *upstream* system, not for DON — can
+  template syntax meant for the _upstream_ system, not for DON — can
   either switch that one value to single quotes or backslash-escape the
   `$`.
 - **How `set` variables and infrastructure-provided variables interact
@@ -475,7 +501,7 @@ above, to resolve before either is implemented:
   used only when the runtime doesn't already provide that name — making
   the two complementary rather than competing.
 - **Resolution order between the two proposals isn't defined.** The
-  `route GET /api` example resolves a `&` reference *before* handing the
+  `route GET /api` example resolves a `&` reference _before_ handing the
   result to a `${...}` template. If both features ship, the document
   needs a defined pass order (splice `&` references first, then
   interpolate `$`/`${...}`, or some other order) — otherwise a document
@@ -501,6 +527,6 @@ above, to resolve before either is implemented:
   scalar. It isn't decided whether shadowing a `set`-bound whole
   directive works the same way — e.g. a nested `set cached_api ...`
   overriding an outer one for the rest of the inner block — or whether
-  splicing a shadowed directive's *children* (form d,
+  splicing a shadowed directive's _children_ (form d,
   `directiveunion $name`) resolves against the shadow in effect at the
   `directiveunion` call site or at some other point.
