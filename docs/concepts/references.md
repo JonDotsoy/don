@@ -371,6 +371,70 @@ route GET /api {
   least the call form means there's something to nest, unlike the bare
   `$ref "/path"` statement form.
 
+## Implementation approach per proposal
+
+A summary of what each proposal would actually take to build, at the
+grammar/lexer level and at the resolution/evaluation level, gathered
+from the sketches above:
+
+- **Proposal 1 — `&` splice**
+  - **Grammar:** a new `SyntaxKind` for a `&`-prefixed path token,
+    legal in both subdirective position (bare `&/path`) and argument
+    position (`&/path[N]`) — one token shape reused in both places.
+  - **Resolution:** single pass over the already-parsed tree. For each
+    `&<path>` found, resolve the path expression once against the
+    **document root** (the same matcher `find`/`at` already use — see
+    [Path Expressions](./path-expression.md)), then splice the
+    referenced directive's `children` (subdirective position) or read
+    its `[N]` argument (argument position) in place.
+  - **State needed:** none beyond the parsed tree itself — resolution
+    is static and root-relative, not scoped, so there's no per-block
+    bindings table to maintain.
+
+- **Proposal 2 — `$`/`${...}` block-scoped variables**
+  - **Grammar:** `set` itself needs no new grammar (it's a plain
+    directive). `${...}` interpolation needs new lexing *inside
+    double-quoted string literals only* — single-quoted strings are
+    left untouched, and `\$` extends the escape handling strings
+    already have (see [the spec](../specs/v1/spec.md#25-strings)).
+  - **Resolution:** build one scope per block during a tree walk: for
+    each directive with a block, collect its direct `set` children into
+    a scope object. Store that scope in an **opaque `WeakMap<Directive,
+    Scope>`**, keyed by the directive that opens the block — the same
+    pattern `Directive#parent`'s own `parentByDirective` `WeakMap`
+    already uses in `src/don.ts` (see the [technical
+    note](#decided-set-is-block-scoped) above). To resolve `${name}` for
+    a given directive, walk `.parent` outward from it, nearest scope
+    first, and return the first `WeakMap` entry that has `name`.
+  - **State needed:** the per-block `WeakMap<Directive, Scope>` built
+    once per evaluation pass; no changes to `Directive`'s own public
+    shape.
+
+- **Proposal 3 — `$ref` directive**
+  - **Grammar:** the subdirective form (`$ref "/path"`) is a plain
+    directive call, zero new grammar. The argument-position call form
+    (`$ref(/path)`) needs a new `SyntaxKind` for a call-shaped argument
+    token, parallel to how `heredoc` already gets its own kind.
+  - **Resolution:** identical algorithm to proposal 1 — resolve the
+    path against the document root and splice/read, since `$ref` is
+    root-relative like `&`, not scoped like `set`. No new state beyond
+    what proposal 1 needs.
+
+- **Extended `set` forms (directive-name, bare-argument, whole-directive
+  reference, `directiveunion`)**
+  - **Grammar:** reuses `set`'s existing grammar for declarations,
+    plus (per the open questions above) `set` would need to accept a
+    full directive shape as its value, not just a scalar — meaning the
+    scope's stored value type is either a plain value or a `Directive`,
+    decided by how many/what kind of arguments follow the bound name.
+  - **Resolution:** reuses proposal 2's scope walk (`WeakMap<Directive,
+    Scope>` + `.parent` chain) to find the binding, then branches on
+    what was found: splice its `children` (forms (c)/(d), same
+    mechanics as proposal 1's splice), substitute it as the directive
+    name (form (a)), or substitute it as a bare argument value (form
+    (b), which still needs the open "no bare form" question above
+    resolved first).
+
 ## Open questions
 
 Neither proposal is settled. Known problems with the design as sketched
