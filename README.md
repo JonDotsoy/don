@@ -398,6 +398,56 @@ const value = root.at(dynamicPath);
 
 The conditional type behind this, `AtPathResult<P>`, is exported from `donly/find` if you need to reuse it (e.g. to type a helper that wraps `at`).
 
+## Plugins
+
+`DON.parse(text, { plugins })` accepts a list of `DonPlugin`s to extend parsing itself, before `donly`'s "Sequential Processing" pipeline hands you back the `Directive` tree. Each plugin's `onDirective(node, ctx)` runs once per directive, depth-first pre-order — the document's own reading order, parents before children, earlier siblings before later ones. See [Plugins](./docs/concepts/plugins.md) for where a plugin sits in `DON.parse()`'s pipeline, a full description of `name`/`initContext`/`onDirective`, and how to read a directive's original `Token`s (`Directive.tokensByDirective`).
+
+```ts
+import { DON, type DonPlugin } from "donly";
+
+const upper: DonPlugin = {
+  name: "upper",
+  onDirective(node) {
+    return {
+      name: node.name,
+      args: node.args.map((arg) =>
+        typeof arg === "string" ? arg.toUpperCase() : arg,
+      ),
+    };
+  },
+};
+
+const result = DON.parse('greet "hi"', { plugins: [upper] });
+// ? const result = Directive {
+//   name: "greet",
+//   args: [ "HI" ],
+//   children: [],
+// }
+```
+
+`node` (a `PluginDirectiveNode`) exposes the directive's resolved `name`/`args`, readonly — `onDirective` never mutates it in place. To change what gets built into the `Directive`, return a new `PluginDirectiveNode` instead, as `upper` does above. Returning `null` drops that directive — and its children — from the resulting tree entirely, which is how a pragma-style directive (one that only has a side effect) disappears from the parsed output. Returning nothing (`void`) leaves `node` as-is.
+
+`ctx` is this plugin's own state — built once per `DON.parse()` call (`undefined` unless the plugin defines `initContext`, see below) and passed to every directive that plugin visits, so it can make an earlier directive affect a later one, however deeply nested. It's never shared with another plugin's `ctx`, so two plugins can't collide on the same state. `DonPlugin<TContext>` is generic over it — `ctx` has no fixed shape of its own, it's whatever a plugin needs: a plain object, a `Map`, an array, a class instance, anything, e.g. a plain array:
+
+```ts
+import { DON, type DonPlugin } from "donly";
+
+const seenNames: string[] = [];
+
+const collectNames: DonPlugin<string[]> = {
+  name: "collect-names",
+  initContext: () => seenNames,
+  onDirective(node, ctx) {
+    ctx.push(String(node.name));
+  },
+};
+
+DON.parse("a\nb {\n  c\n}", { plugins: [collectNames] });
+// ? const seenNames = [ "a", "b", "c" ]
+```
+
+`DonPlugin<TContext>`'s type parameter tracks whichever shape `initContext` returns, so `onDirective`'s `ctx` argument is typed to match. Whatever it is, it's never shared with another plugin's, so two plugins can't collide on the same state.
+
 ## Lexer (`LexerParser`)
 
 `LexerParser` is the first stage of the pipeline behind `DON.parse()`: it turns raw source (text or bytes) into a flat list of `Token`s, before the syntax parser groups those tokens into the `Directive` tree described above. Reach for it directly only when you need the tokens themselves — e.g. building a syntax highlighter, a linter, or inspecting exactly how a piece of source was scanned.

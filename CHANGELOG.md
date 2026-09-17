@@ -62,3 +62,28 @@ documentation.
   `.donly` file and prints it as JSON via `DirectiveJSONEncoder`, defaulting
   to the `nested` reducer (`tuple` and `raw`, the lossless
   `{ name, args, children }` shape, are also available).
+- `DON.parse(text, { plugins })` — an optional second argument accepting a
+  `DonPlugin[]`. `DonPlugin<TContext>` is generic over its own `ctx`
+  state — there's no fixed `DonPluginContext` shape, `ctx` is whatever a
+  plugin needs (a plain object, an array, a class instance, anything).
+  Each plugin's `onDirective(node, ctx)` runs once per directive,
+  depth-first pre-order (matching the document's own reading order, and
+  the "Sequential Processing" pipeline model), before that directive is
+  built into a `Directive`. `node` is readonly and never mutated in
+  place: `onDirective` returns a new `PluginDirectiveNode` to change what
+  gets built (e.g. resolve a `$foo` reference), `null` to drop the
+  directive — and its children — from the resulting tree entirely (e.g. a
+  `set` pragma with only a side effect), or nothing (`void`) to leave
+  `node` as-is. `ctx` is this plugin's own —
+  built once per `DON.parse()` call from `initContext()` when the plugin
+  defines it, otherwise `undefined` (`DON.parse()` never builds one on a
+  plugin's behalf) — and is **never shared with another plugin's `ctx`**,
+  so two plugins can't collide on the same state. Define `initContext()`
+  to give a plugin state at all, to seed it with initial values, or to
+  return a `ctx` you keep a reference to yourself, to read it back after
+  parsing.
+- `PluginDirectiveNode#children` — an optional field a plugin's
+  `onDirective` can set on the node it returns, replacing that
+  directive's children in the resulting tree with a synthetic subtree
+  (built directly into `Directive`s, bypassing the lexer/syntax parser
+  and any further plugin) instead of whatever children the source had.
