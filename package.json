@@ -62,6 +62,14 @@
     "./demo/http-proxy": {
       "types": "./lib/esm/demo/proxy/http-proxy.d.ts",
       "import": "./lib/esm/demo/proxy/http-proxy.js"
+    },
+    "./demo/plugins/variables": {
+      "types": "./lib/esm/demo/plugins/variables-plugin.d.ts",
+      "import": "./lib/esm/demo/plugins/variables-plugin.js"
+    },
+    "./demo/plugins/resources": {
+      "types": "./lib/esm/demo/plugins/resources-plugin.d.ts",
+      "import": "./lib/esm/demo/plugins/resources-plugin.js"
     }
   },
   "files": [
@@ -76,7 +84,7 @@
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
     "test:types": "tsc -p tsconfig.types.json --noEmit",
-    "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md docs/lint/rules.md --cwd ."
+    "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md docs/lint/rules.md docs/concepts/plugins.md --cwd ."
   },
   "devDependencies": {
     "@jondotsoy/tmd": "^0.0.7",

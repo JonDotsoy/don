@@ -9,8 +9,10 @@ import {
   type AtPathResult,
 } from "./find.js";
 import type { Token } from "./v1/compiler/token.js";
+import type { DonPlugin, PluginDirectiveNode } from "./plugin.js";
 
 export { HeredocValue } from "./v1/compiler/heredoc-value.js";
+export type { DonPlugin, PluginDirectiveNode } from "./plugin.js";
 
 // Keyed by the Directive instance so the tokens don't leak into its
 // public shape (name/args/children) or get carried over JSON/decoder
@@ -125,23 +127,81 @@ export class Directive {
   }
 }
 
-const toDirective = (node: DirectiveNode): Directive => {
+// Builds a `Directive` straight from a plugin-supplied `PluginDirectiveNode`
+// subtree — used for synthetic `children` a plugin injects (see
+// `PluginDirectiveNode#children`), which never go through the lexer/syntax
+// parser or another plugin, so they carry no `Token`s of their own.
+const pluginNodeToDirective = (node: PluginDirectiveNode): Directive =>
+  new Directive(
+    node.name,
+    [...node.args],
+    (node.children ?? []).map(pluginNodeToDirective),
+  );
+
+const toDirective = (
+  node: DirectiveNode,
+  plugins: DonPlugin[],
+  pluginContexts: Map<DonPlugin, unknown>,
+): Directive | undefined => {
+  let pluginNode: PluginDirectiveNode = {
+    name: node.name.text(),
+    args: node.args.map((token) => token.toJS()),
+  };
+
+  for (const plugin of plugins) {
+    const ctx = pluginContexts.get(plugin);
+    const result = plugin.onDirective?.(pluginNode, ctx);
+    if (result === null) return undefined;
+    if (result) pluginNode = result;
+  }
+
   const directive = new Directive(
-    node.name.text(),
-    node.args.map((token) => token.toJS()),
-    node.children.map((child) => toDirective(child)).flat(),
+    pluginNode.name,
+    [...pluginNode.args],
+    pluginNode.children
+      ? pluginNode.children.map(pluginNodeToDirective)
+      : node.children.flatMap((child) => {
+          const childDirective = toDirective(child, plugins, pluginContexts);
+          return childDirective ? [childDirective] : [];
+        }),
   );
   tokensByDirective.set(directive, [node.name, ...node.args]);
   return directive;
 };
 
-const docToDirective = (node: DocumentNode): Directive =>
-  wrapAsRoot(node.children.map((child) => toDirective(child)));
+const docToDirective = (
+  node: DocumentNode,
+  plugins: DonPlugin[],
+  pluginContexts: Map<DonPlugin, unknown>,
+): Directive =>
+  wrapAsRoot(
+    node.children.flatMap((child) => {
+      const directive = toDirective(child, plugins, pluginContexts);
+      return directive ? [directive] : [];
+    }),
+  );
+
+export interface DONParseOptions {
+  /**
+   * Extensions run over each directive, depth-first pre-order, as the
+   * document is parsed — see `DonPlugin`. They can transform a
+   * directive's args (e.g. resolve a `$foo` variable reference) or drop
+   * it from the resulting tree entirely (e.g. a `set` pragma).
+   */
+  plugins?: DonPlugin[];
+}
 
 export class DON {
-  static parse(text: string): Directive {
+  static parse(text: string, options: DONParseOptions = {}): Directive {
+    const { plugins = [] } = options;
     const documentNode = new SyntaxParser().parse(text);
+    // Every plugin gets its own `ctx` — built once per `DON.parse()` call,
+    // from `initContext()` when the plugin defines it, otherwise
+    // `undefined` — never shared with another plugin's.
+    const pluginContexts = new Map<DonPlugin, unknown>(
+      plugins.map((plugin) => [plugin, plugin.initContext?.()]),
+    );
 
-    return docToDirective(documentNode);
+    return docToDirective(documentNode, plugins, pluginContexts);
   }
 }

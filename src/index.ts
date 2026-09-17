@@ -6,6 +6,7 @@ export { LexerParser } from "./v1/compiler/lexema-encode.js";
 export { SyntaxKind } from "./v1/utils/syntax-kind.js";
 export type { Token } from "./v1/compiler/token.js";
 export { DON, Directive, HeredocValue } from "./don.js";
+export type { DONParseOptions } from "./don.js";
 export {
   DirectiveJSONEncoder,
   DirectiveJSONDecoder,
@@ -15,6 +16,7 @@ export type {
   DirectiveReducer,
   DirectiveJSONEncoderOptions,
 } from "./directive-json.js";
+export type { DonPlugin, PluginDirectiveNode } from "./plugin.js";
 
 const typeStrings: Partial<Record<SyntaxKind, string>> = {
   [SyntaxKind.keyword]: "keyword",
