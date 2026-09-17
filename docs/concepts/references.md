@@ -188,6 +188,23 @@ directive right after it. A sibling block that never nests inside `Foo`
 (e.g. a `route` written after `Foo` closes) would see the outer `tar`
 ("biz") again, since `Foo`'s inner `set` never escapes `Foo`'s block.
 
+> **Technical note.** Resolving `${name}` for a given directive means
+> walking that directive's enclosing scopes outward, nearest first,
+> until a `set` for `name` is found. [`Directive#parent`](../../src/don.ts)
+> already gives exactly that walk — repeatedly reading `.parent` from
+> the referencing directive up to the root — since a `set`'s scope is
+> the block it appears in, i.e. the `children` of some ancestor
+> directive. Each block's set of bindings would live in its own scope
+> object, looked up by the `Directive` that opens that block (the one
+> whose `children` the `set` sits in) through an **opaque `WeakMap`**,
+> the same pattern `Directive#parent` itself uses internally
+> (`parentByDirective`, a module-private `WeakMap<Directive, Directive>`
+> in `src/don.ts`) to attach data to a `Directive` without adding a
+> public field or letting the mapping leak past the directives that are
+> still reachable. Resolution is then: for each ancestor from the
+> referencing directive's parent up to the root, look up that
+> ancestor's scope in the `WeakMap`; the first one holding `name` wins.
+
 ### Extending `set`/`$name` beyond string interpolation
 
 A further sketch keeps `set`'s grammar exactly as above (directive
