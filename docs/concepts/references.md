@@ -1,6 +1,6 @@
 ---
 title: References (design draft)
-description: Three experimental, not-yet-implemented proposals for referencing values across a DON document — a "&" splice/join operator, "$"/"${}" variables inherited from Nginx, and a "$ref" directive inherited from JSON Schema.
+description: Three experimental, not-yet-implemented proposals for referencing values across a DON document — a "&" splice/join operator, "$"/"${}" block-scoped variables inherited from Nginx, and a "$ref" directive inherited from JSON Schema.
 lang: en
 ---
 
@@ -150,6 +150,43 @@ Unlike proposal 1's `&` splice (resolved once against the static
 document tree), this is closer to the string-substitution model — the
 value is dropped into a larger string, not spliced as a directive's
 children.
+
+### Decided: `set` is block-scoped
+
+`set` follows lexical scoping over the document's block nesting, the
+same way a `let`/`var` declaration is scoped to its enclosing block in
+most programming languages: a `set` inside a block is only visible
+within that block (and its nested blocks), and it **shadows** — without
+overwriting — a `set` of the same name from an enclosing block for the
+rest of that inner block. Once the inner block ends, the outer `set`'s
+value applies again, unchanged.
+
+```don
+set tar "biz"
+
+Foo "${tar}" {
+  set tar "boo"
+
+  Lol "${tar}"
+}
+```
+
+`Foo`'s own argument resolves against the outer `tar` (`"biz"`, not yet
+shadowed at that point), while `Lol`'s argument resolves against the
+inner `set`, which shadows the outer one for the rest of `Foo`'s block:
+
+```don
+Foo "biz" {
+  Lol "boo"
+}
+```
+
+If a directive after the inner `set tar "boo"` but still inside `Foo`'s
+block referenced `${tar}` again, it would also see `"boo"` — the shadow
+holds for the rest of the enclosing block, not just for the one
+directive right after it. A sibling block that never nests inside `Foo`
+(e.g. a `route` written after `Foo` closes) would see the outer `tar`
+("biz") again, since `Foo`'s inner `set` never escapes `Foo`'s block.
 
 ### Extending `set`/`$name` beyond string interpolation
 
@@ -378,3 +415,11 @@ above, to resolve before either is implemented:
   cost `&` doesn't pay (it's one splice form, reused in both
   positions). Whether that inconsistency is worth `$ref`'s closer
   resemblance to the JSON convention is still open.
+- **Block scoping's interaction with the whole-directive `set` forms
+  (c)/(d) isn't worked out.** The scoping example above only shadows a
+  scalar. It isn't decided whether shadowing a `set`-bound whole
+  directive works the same way — e.g. a nested `set cached_api ...`
+  overriding an outer one for the rest of the inner block — or whether
+  splicing a shadowed directive's *children* (form d,
+  `directiveunion $name`) resolves against the shadow in effect at the
+  `directiveunion` call site or at some other point.
