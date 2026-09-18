@@ -587,3 +587,35 @@ Only the `${project}` piece resolves — the surrounding `-container-1` text
 stays as written. A `$name` or `${name}` reference to a variable nothing
 in scope has `set` is left untouched, rather than resolving to `undefined`
 or an empty string.
+
+`scopedVariablesPlugin` (the plain object used above) is
+`createScopedVariablesPlugin()` called with no options — a factory, like
+`createResourcesPlugin`, because seeding the **root** scope from outside
+the document needs an argument. `createScopedVariablesPlugin({ variables })`
+takes a plain object or a `Map` of `name → value` pairs and seeds the root
+scope with them before parsing starts, as if each were its own `set
+<name> <value>` written at the very top of the document:
+
+```ts
+import { DON } from "donly";
+import { createScopedVariablesPlugin } from "donly/demo/plugins/scoped-variables";
+
+const plugin = createScopedVariablesPlugin({
+  variables: { env: "prod", replicas: 3 },
+});
+
+const result = DON.parse("stage $env\nsize $replicas", { plugins: [plugin] });
+// ? const result = Directive {
+//   name: Symbol(root),
+//   args: [],
+//   children: [
+//     Directive { name: "stage", args: [ "prod" ], children: [] },
+//     Directive { name: "size", args: [ 3 ], children: [] }
+//   ],
+// }
+```
+
+A document-level `set env staging` inside some block still shadows a
+seeded `env` for that block only, exactly as it would shadow any other
+outer-scope variable — `options.variables` only ever seeds the root scope
+itself, it's never mutated back.

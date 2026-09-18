@@ -46,8 +46,21 @@ const resolveArg = (
   });
 };
 
+export interface ScopedVariablesPluginOptions {
+  /**
+   * Variables seeded into the **root** scope before parsing starts — as
+   * if each entry were its own `set <name> <value>` at the very top of
+   * the document, before anything else. A `set` anywhere in the document
+   * (root or nested) can still shadow one of these within its own block,
+   * the same as shadowing any other outer-scope variable; it never
+   * mutates what's passed in here. Defaults to no variables (an empty
+   * root scope), matching `scopedVariablesPlugin`.
+   */
+  variables?: Record<string, Value> | Map<string, Value>;
+}
+
 /**
- * A `DonPlugin` implementing `set <name> <value>` and two forms of
+ * A `DonPlugin` factory implementing `set <name> <value>` and two forms of
  * variable reference — `$name` (whole-argument, type-preserving) and
  * `${name}` (interpolated inside a larger string) — with **block scope**:
  * each `{ ... }` block gets its own scope, nested inside its enclosing
@@ -66,12 +79,12 @@ const resolveArg = (
  * }
  * ```
  *
- * parses (with `DON.parse(text, { plugins: [scopedVariablesPlugin] })`) to
- * two top-level directives — `foo` (args `[33]`, from the outer scope) and
- * `tar` (whose own child `foo` resolves to `[55]`, from the scope `tar`'s
- * block introduced). Once `tar`'s block ends, that block's `foo` is gone
- * again — a sibling directive after `tar` referencing `$foo` would still
- * see `33`.
+ * parses (with `DON.parse(text, { plugins: [createScopedVariablesPlugin()] })`)
+ * to two top-level directives — `foo` (args `[33]`, from the outer scope)
+ * and `tar` (whose own child `foo` resolves to `[55]`, from the scope
+ * `tar`'s block introduced). Once `tar`'s block ends, that block's `foo`
+ * is gone again — a sibling directive after `tar` referencing `$foo`
+ * would still see `33`.
  *
  * String interpolation works the same way, resolving against whichever
  * scope is active where the string appears:
@@ -84,38 +97,74 @@ const resolveArg = (
  *
  * parses to `Directive{name:"container", args:["FOO-container-1"]}`.
  *
+ * `createScopedVariablesPlugin({ variables })` seeds the **root** scope
+ * with variables the document itself never `set` — environment-style
+ * defaults a caller supplies from outside the document:
+ *
+ * ```ts
+ * const plugin = createScopedVariablesPlugin({ variables: { env: "prod" } });
+ * const result = DON.parse('stage $env', { plugins: [plugin] });
+ * // ? result.args = ["prod"]
+ * ```
+ *
+ * A document-level `set env staging` still shadows it within whichever
+ * block sets it, exactly as it would shadow any other outer variable.
+ *
  * Scoping is built on `onEnterScope`/`onExitScope` (see `DonPlugin`):
- * `initContext` seeds one root scope, `onEnterScope` pushes a fresh empty
- * one for every block, `onExitScope` pops it back off once the block's
- * children are all visited, and `set` always writes into the scope on top
- * of the stack at the time it runs.
+ * `initContext` seeds the root scope (from `options.variables`, if any),
+ * `onEnterScope` pushes a fresh empty one for every block, `onExitScope`
+ * pops it back off once the block's children are all visited, and `set`
+ * always writes into the scope on top of the stack at the time it runs.
  */
-export const scopedVariablesPlugin: DonPlugin<ScopedVariablesContext> = {
-  name: "scoped-variables",
+export const createScopedVariablesPlugin = (
+  options: ScopedVariablesPluginOptions = {},
+): DonPlugin<ScopedVariablesContext> => {
+  const { variables } = options;
 
-  initContext: () => ({ scopes: [new Map()] }),
+  return {
+    name: "scoped-variables",
 
-  onDirective(node, ctx) {
-    const args = node.args.map((arg) =>
-      resolveArg(arg, ctx.scopes),
-    ) as PluginDirectiveNode["args"];
+    initContext: () => ({
+      scopes: [
+        new Map(
+          variables instanceof Map
+            ? variables
+            : Object.entries(variables ?? {}),
+        ),
+      ],
+    }),
 
-    if (node.name === "set") {
-      const [varname, value] = args;
-      if (typeof varname === "string" && value !== undefined) {
-        ctx.scopes[ctx.scopes.length - 1]!.set(varname, value as Value);
+    onDirective(node, ctx) {
+      const args = node.args.map((arg) =>
+        resolveArg(arg, ctx.scopes),
+      ) as PluginDirectiveNode["args"];
+
+      if (node.name === "set") {
+        const [varname, value] = args;
+        if (typeof varname === "string" && value !== undefined) {
+          ctx.scopes[ctx.scopes.length - 1]!.set(varname, value as Value);
+        }
+        return null;
       }
-      return null;
-    }
 
-    return { name: node.name, args };
-  },
+      return { name: node.name, args };
+    },
 
-  onEnterScope(_node, ctx) {
-    ctx.scopes.push(new Map());
-  },
+    onEnterScope(_node, ctx) {
+      ctx.scopes.push(new Map());
+    },
 
-  onExitScope(_node, ctx) {
-    ctx.scopes.pop();
-  },
+    onExitScope(_node, ctx) {
+      ctx.scopes.pop();
+    },
+  };
 };
+
+/**
+ * `createScopedVariablesPlugin()` with no root variables seeded — the
+ * common case, kept as a ready-to-use plugin instance so callers who
+ * don't need `options.variables` can pass it straight to
+ * `DON.parse(text, { plugins: [scopedVariablesPlugin] })` without calling
+ * the factory themselves.
+ */
+export const scopedVariablesPlugin = createScopedVariablesPlugin();

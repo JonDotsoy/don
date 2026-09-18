@@ -1,7 +1,10 @@
 import { describe, it, expect } from "bun:test";
 import { DON } from "../../don.js";
 import { ROOT_DIRECTIVE_NAME } from "../../root-directive-name.js";
-import { scopedVariablesPlugin } from "./scoped-variables-plugin.js";
+import {
+  createScopedVariablesPlugin,
+  scopedVariablesPlugin,
+} from "./scoped-variables-plugin.js";
 
 describe("scopedVariablesPlugin", () => {
   it("scopes `set` to the block it runs in, without leaking into or out of sibling scopes", () => {
@@ -109,5 +112,74 @@ outer {
     expect(seen.args).toEqual([1]);
     expect(seenAgain.args).toEqual([2]);
     expect(afterInner.args).toEqual([1]);
+  });
+});
+
+describe("createScopedVariablesPlugin({ variables })", () => {
+  it("seeds the root scope from a plain object, resolvable without a document-level `set`", () => {
+    const plugin = createScopedVariablesPlugin({
+      variables: { env: "prod", replicas: 3 },
+    });
+
+    const result = DON.parse("stage $env\nsize $replicas", {
+      plugins: [plugin],
+    });
+
+    const [stage, size] = result.children;
+    expect(stage!.args).toEqual(["prod"]);
+    expect(size!.args).toEqual([3]);
+  });
+
+  it("seeds the root scope from a Map", () => {
+    const plugin = createScopedVariablesPlugin({
+      variables: new Map([["env", "staging"]]),
+    });
+
+    const result = DON.parse("stage $env", { plugins: [plugin] });
+
+    expect(result.args).toEqual(["staging"]);
+  });
+
+  it("lets a document-level `set` shadow a seeded root variable inside a block, without mutating it back out", () => {
+    const plugin = createScopedVariablesPlugin({
+      variables: { env: "prod" },
+    });
+
+    const result = DON.parse(
+      `
+before $env
+block {
+  set env staging
+  inside $env
+}
+after $env
+`,
+      { plugins: [plugin] },
+    );
+
+    const before = result.children.find((child) => child.name === "before")!;
+    const block = result.children.find((child) => child.name === "block")!;
+    const inside = block.children.find((child) => child.name === "inside")!;
+    const after = result.children.find((child) => child.name === "after")!;
+
+    expect(before.args).toEqual(["prod"]);
+    expect(inside.args).toEqual(["staging"]);
+    expect(after.args).toEqual(["prod"]);
+  });
+
+  it("defaults to no seeded variables, same as scopedVariablesPlugin", () => {
+    const result = DON.parse("bob $foo", {
+      plugins: [createScopedVariablesPlugin()],
+    });
+
+    expect(result.args).toEqual(["$foo"]);
+  });
+
+  it("scopedVariablesPlugin is createScopedVariablesPlugin() with no options", () => {
+    const result = DON.parse("set foo 1\nbob $foo", {
+      plugins: [scopedVariablesPlugin],
+    });
+
+    expect(result.args).toEqual([1]);
   });
 });
