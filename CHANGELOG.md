@@ -99,3 +99,12 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+
+### Fixed
+
+- `DON.parse(text)` now raises a synchronous `SyntaxError` for an
+  unterminated block (a `{` with no matching `}` before the input ends),
+  e.g. `DON.parse("foo {")`. Previously the syntax parser spun forever
+  waiting for a closing `}` token that would never arrive — an infinite
+  loop that hung the process and grew memory unbounded — instead of
+  reporting the malformed input.
