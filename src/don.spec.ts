@@ -247,6 +247,17 @@ describe("DON.parse", () => {
   it('should raise a syntax error for an unterminated string instead of silently corrupting the arg', () => {
     expect(() => DON.parse('name "foo')).toThrow();
   });
+
+  // Known bug: docs/specs/v1/spec.md § 2.2 documents this exact input under
+  // "Constraint" / "Invalid" - "After a closing brace `}`, no additional
+  // tokens are allowed on the same directive line (except newlines)" -
+  // with the annotated error "Error: tokens after block close". The parser
+  // never enforces it: `extra` is silently merged in as another arg of
+  // `container`, right alongside its already-closed `{ ... }` block,
+  // instead of raising a syntax error.
+  it('should raise a syntax error for tokens after a block close on the same line', () => {
+    expect(() => DON.parse('container { image "nginx" } extra')).toThrow();
+  });
 });
 
 describe("JSON.stringify(DON.parse(...))", () => {
