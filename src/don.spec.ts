@@ -287,6 +287,84 @@ describe("DON.parse", () => {
   });
 });
 
+describe("DON.parse: special-character identifiers (spec § 2.3)", () => {
+  // Every special symbol the spec calls out ($, -, /, :, [, ]) — alone and
+  // combined into a single "kitchen sink" identifier — used first as a
+  // directive NAME, then the exact same tokens used again as a bare
+  // (unquoted) ARGUMENT of another directive, to prove the lexer accepts
+  // them identically in both positions.
+  it('should parse every special-character identifier from spec § 2.3 as a directive name', () => {
+    const result = DON.parse(""
+      + '$prod "on"\n'
+      + '${name} "interpolation-like"\n'
+      + '_private true\n'
+      + 'myVariable-2 42\n'
+      + '/api/:id GET 200\n'
+      + '[flag]\n'
+      + 'my-[age] 30\n'
+      + 'route-[id]-[shape] "combo"\n'
+      + 'path/to/resource "deep/path/value"\n'
+      + 'ns:key:sub "colon-namespaced"\n'
+      + 'a-b_c123$[x]:/y "kitchen-sink-name"\n'
+    );
+
+    const names = result.children.map((child) => child.name);
+    expect(names).toEqual([
+      "$prod",
+      "${name}",
+      "_private",
+      "myVariable-2",
+      "/api/:id",
+      "[flag]",
+      "my-[age]",
+      "route-[id]-[shape]",
+      "path/to/resource",
+      "ns:key:sub",
+      "a-b_c123$[x]:/y",
+    ]);
+
+    expect(result.children[0]!.args).toEqual(["on"]);
+    expect(result.children[1]!.args).toEqual(["interpolation-like"]);
+    expect(result.children[2]!.args).toEqual([true]);
+    expect(result.children[3]!.args).toEqual([42]);
+    expect(result.children[4]!.args).toEqual(["GET", 200]);
+    expect(result.children[5]!.args).toEqual([]);
+    expect(result.children[6]!.args).toEqual([30]);
+    expect(result.children[7]!.args).toEqual(["combo"]);
+    expect(result.children[8]!.args).toEqual(["deep/path/value"]);
+    expect(result.children[9]!.args).toEqual(["colon-namespaced"]);
+    expect(result.children[10]!.args).toEqual(["kitchen-sink-name"]);
+  });
+
+  it('should parse every special-character identifier from spec § 2.3 as a bare argument', () => {
+    const result = DON.parse(""
+      + "target $prod\n"
+      + "template ${name}\n"
+      + "route /api/:id\n"
+      + "alias [name]\n"
+      + "combo my-[age]\n"
+      + "deep path/to/resource\n"
+      + "key ns:key:sub\n"
+      + "mixed a-b_c123$[x]:/y\n"
+    );
+
+    const asArg = Object.fromEntries(
+      result.children.map((child) => [child.name, child.args[0]]),
+    );
+
+    expect(asArg).toEqual({
+      target: "$prod",
+      template: "${name}",
+      route: "/api/:id",
+      alias: "[name]",
+      combo: "my-[age]",
+      deep: "path/to/resource",
+      key: "ns:key:sub",
+      mixed: "a-b_c123$[x]:/y",
+    });
+  });
+});
+
 describe("JSON.stringify(DON.parse(...))", () => {
   it('serializes a flat directive using Directive#toJSON', () => {
     const result = DON.parse('name "my-package"');
