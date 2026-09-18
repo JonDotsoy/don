@@ -113,6 +113,27 @@ outer {
     expect(seenAgain.args).toEqual([2]);
     expect(afterInner.args).toEqual([1]);
   });
+
+  it("resolves a root-scope variable from a block nested 10 levels deep", () => {
+    const DEPTH = 10;
+    // level0 { level1 { ... level9 { deep $foo } ... } }
+    const text =
+      "set foo 33\n" +
+      Array.from({ length: DEPTH }, (_, i) => `level${i} {\n`).join("") +
+      "deep $foo\n" +
+      "}\n".repeat(DEPTH);
+
+    const result = DON.parse(text, { plugins: [scopedVariablesPlugin] });
+
+    let directive = result;
+    for (let i = 0; i < DEPTH; i++) {
+      expect(directive.name).toBe(`level${i}`);
+      directive = directive.children[0]!;
+    }
+
+    expect(directive.name).toBe("deep");
+    expect(directive.args).toEqual([33]);
+  });
 });
 
 describe("createScopedVariablesPlugin({ variables })", () => {
