@@ -35,6 +35,18 @@ route:
 
 The equivalent in a key-value format needs an extra level of nesting per parameter:
 
+<!-- render-block
+const result = {
+  routes: {
+    "/api": {
+      GET: {
+        respond: "200 Ok",
+      },
+    },
+  },
+};
+-->
+
 ```yaml
 routes:
   /api:
