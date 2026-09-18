@@ -99,3 +99,12 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+
+### Fixed
+
+- `DON.parse` now enforces the spec §2.2 block-close constraint: a
+  directive's `{ ... }` block may only be followed on the same line by a
+  newline, a comment, another block's closing `}`, or end of input.
+  Previously `container { image "nginx" } extra` silently parsed `extra`
+  as a positional argument of `container` instead of raising a syntax
+  error.
