@@ -1,4 +1,4 @@
-import type { DonPlugin, PluginDirectiveNode } from "../../plugin.js";
+import type { DonPlugin, PluginDirectiveNode } from "../plugin.js";
 
 type Value = number | string | boolean;
 

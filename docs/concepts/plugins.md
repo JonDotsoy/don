@@ -494,8 +494,8 @@ without a `file://` URL argument) comes back untouched, since
 
 ## Example 3: `scopedVariablesPlugin`
 
-`donly/demo/plugins/scoped-variables`
-([`src/demo/plugins/scoped-variables-plugin.ts`](../../src/demo/plugins/scoped-variables-plugin.ts))
+`donly/plugins/scoped-variables`
+([`src/plugins/scoped-variables-plugin.ts`](../../src/plugins/scoped-variables-plugin.ts))
 builds on `variablesPlugin`'s idea with the two features `onEnterScope`/
 `onExitScope` exist for: **block-scoped** `set`, and `${name}`
 **interpolation** inside a larger string (not just a whole `$name`
@@ -513,7 +513,7 @@ tar biz {
 
 ```ts
 import { DON } from "donly";
-import { scopedVariablesPlugin } from "donly/demo/plugins/scoped-variables";
+import { scopedVariablesPlugin } from "donly/plugins/scoped-variables";
 
 const result = DON.parse(
   `
@@ -598,7 +598,7 @@ scope with them before parsing starts, as if each were its own `set
 
 ```ts
 import { DON } from "donly";
-import { createScopedVariablesPlugin } from "donly/demo/plugins/scoped-variables";
+import { createScopedVariablesPlugin } from "donly/plugins/scoped-variables";
 
 const plugin = createScopedVariablesPlugin({
   variables: { env: "prod", replicas: 3 },

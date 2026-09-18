@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { DON } from "../../don.js";
-import { ROOT_DIRECTIVE_NAME } from "../../root-directive-name.js";
+import { DON } from "../don.js";
+import { ROOT_DIRECTIVE_NAME } from "../root-directive-name.js";
 import {
   createScopedVariablesPlugin,
   scopedVariablesPlugin,
