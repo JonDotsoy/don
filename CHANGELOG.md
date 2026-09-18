@@ -99,3 +99,18 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+
+### Fixed
+
+- `DON.parse` now throws a `SyntaxError` for an unterminated single- or
+  double-quoted string (a quote with no matching closing quote before the
+  string's line ends or before end of input), instead of silently leaking
+  the opening quote as a literal character into the arg value and
+  producing a corrupted `Directive` tree. The lexer (`Token`) already
+  detected this case and recorded it via `Token#getErrors()`, but nothing
+  in the parsing pipeline consulted it; the syntax parser now checks every
+  token's `getErrors()` as it consumes it and fails fast on the first
+  error found. The lexer's own unclosed-string detection was also
+  extended to cover a string that runs off the end of the document (not
+  just one broken by a raw newline), which previously matched no token at
+  all instead of being flagged.

@@ -124,6 +124,13 @@ export class SyntaxParser {
         const token = tokens[i];
         if (!token) break;
 
+        const tokenErrors = token.getErrors();
+        if (tokenErrors.length > 0) {
+          throw new SyntaxError(
+            `${tokenErrors.join(", ")} at Ln ${token.span.startLocation.line}, Col ${token.span.startLocation.column} (${JSON.stringify(token.text())})`,
+          );
+        }
+
         // avoid whitespaces
         if (token.type === SyntaxKind.whitespace) continue;
 

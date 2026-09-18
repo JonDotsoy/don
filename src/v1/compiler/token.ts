@@ -239,6 +239,7 @@ export class Token {
         if (!isSingleQuoteOrDobleQuote) return null;
 
         let closePart: Part | null = null;
+        let lastSeenPart: Part | null = null;
 
         /** Smybol `\` to scape next char. Encode UTF-8. */
         const scapeChar = 0x5c;
@@ -262,8 +263,11 @@ export class Token {
             isEscapeSymbol && nextPart?.type === openPart.type;
           const isNextPartNewline = nextPart?.type === SyntaxKind.newline;
 
+          lastSeenPart = currentPart;
+
           if (nextPartIsQuote) {
             index++;
+            lastSeenPart = nextPart!;
             continue;
           }
 
@@ -277,6 +281,18 @@ export class Token {
             closePart = currentPart;
             break;
           }
+        }
+
+        // Reached end of input without ever finding a closing quote (and
+        // without hitting a newline, which is handled above): the string
+        // runs off the end of the document. Treat the last part consumed
+        // as the token's end so this still yields a String token (instead
+        // of matching nothing and leaking the opening quote as a literal
+        // character into whatever token comes after), flagged the same
+        // way as the newline-terminated case.
+        if (!closePart) {
+          closePart = lastSeenPart ?? openPart;
+          errors.push("Unclosed string");
         }
 
         if (closePart) {

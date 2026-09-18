@@ -248,6 +248,33 @@ describe("DON.parse", () => {
     expect(() => DON.parse('name "foo')).toThrow();
   });
 
+  it('should raise a syntax error for an unterminated string inside a block', () => {
+    expect(() => DON.parse(""
+      + "server {\n"
+      + '  host "localhost\n'
+      + "}\n"
+    )).toThrow();
+  });
+
+  it('should raise a syntax error for an unterminated string alongside other directives', () => {
+    expect(() => DON.parse(""
+      + 'name "my-app"\n'
+      + 'version "1.0.0\n'
+      + 'port 8080\n'
+    )).toThrow();
+  });
+
+  it('should still parse properly terminated strings without throwing', () => {
+    expect(() => DON.parse('name "foo"')).not.toThrow();
+    expect(() => DON.parse("name 'foo'")).not.toThrow();
+    expect(() => DON.parse('name "foo \\" bar"')).not.toThrow();
+    expect(() => DON.parse(""
+      + "server {\n"
+      + '  host "localhost"\n'
+      + "}\n"
+    )).not.toThrow();
+  });
+
   // Known bug: docs/specs/v1/spec.md § 2.2 documents this exact input under
   // "Constraint" / "Invalid" - "After a closing brace `}`, no additional
   // tokens are allowed on the same directive line (except newlines)" -
