@@ -400,7 +400,7 @@ The conditional type behind this, `AtPathResult<P>`, is exported from `donly/fin
 
 ## Plugins
 
-`DON.parse(text, { plugins })` accepts a list of `DonPlugin`s to extend parsing itself, before `donly`'s "Sequential Processing" pipeline hands you back the `Directive` tree. Each plugin's `onDirective(node, ctx)` runs once per directive, depth-first pre-order — the document's own reading order, parents before children, earlier siblings before later ones. See [Plugins](./docs/concepts/plugins.md) for where a plugin sits in `DON.parse()`'s pipeline, a full description of `name`/`initContext`/`onDirective`, how to read a directive's original `Token`s (`Directive.tokensByDirective`), and step-by-step walkthroughs of `variablesPlugin` and `createResourcesPlugin` (`donly/demo/plugins/resources` — expands a `resource sqlite <file-url>` reference into synthetic `size`/`table`/`columns` children via `PluginDirectiveNode#children`).
+`DON.parse(text, { plugins })` accepts a list of `DonPlugin`s to extend parsing itself, before `donly`'s "Sequential Processing" pipeline hands you back the `Directive` tree. Each plugin's `onDirective(node, ctx)` runs once per directive, depth-first pre-order — the document's own reading order, parents before children, earlier siblings before later ones. See [Plugins](./docs/concepts/plugins.md) for where a plugin sits in `DON.parse()`'s pipeline, a full description of `name`/`initContext`/`onDirective`/`onEnterScope`/`onExitScope`, how to read a directive's original `Token`s (`Directive.tokensByDirective`), and step-by-step walkthroughs of `variablesPlugin`, `createResourcesPlugin` (`donly/demo/plugins/resources` — expands a `resource sqlite <file-url>` reference into synthetic `size`/`table`/`columns` children via `PluginDirectiveNode#children`), and `createScopedVariablesPlugin` (`donly/plugins/scoped-variables` — block-scoped `set` plus `${name}` string interpolation, with an `options.variables` to seed the root scope).
 
 ```ts
 import { DON, type DonPlugin } from "donly";
@@ -501,6 +501,100 @@ DON.parse("a\nb {\n  c\n}", { plugins: [collectNames] });
 ```
 
 `DonPlugin<TContext>`'s type parameter tracks whichever shape `initContext` returns, so `onDirective`'s `ctx` argument is typed to match. Whatever it is, it's never shared with another plugin's, so two plugins can't collide on the same state.
+
+### Block scope: `createScopedVariablesPlugin`
+
+`variablesPlugin`'s `set` is global — a later `set foo` anywhere overwrites the same `foo` everywhere, even outside the block it ran in. `donly/plugins/scoped-variables` ships `createScopedVariablesPlugin()`, a plugin where `set` is scoped to the `{ ... }` block it runs in instead: a block can shadow an outer variable for its own duration, and the shadow disappears once that block's closing `}` is reached:
+
+```ts
+import { DON } from "donly";
+import { scopedVariablesPlugin } from "donly/plugins/scoped-variables";
+
+const result = DON.parse(
+  `
+set foo 33
+
+foo $foo
+tar biz {
+  set foo 55
+  foo $foo
+}
+`,
+  { plugins: [scopedVariablesPlugin] },
+);
+// ? const result = Directive {
+//   name: Symbol(root),
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "foo",
+//       args: [ 33 ],
+//       children: [],
+//     }, Directive {
+//       name: "tar",
+//       args: [ "biz" ],
+//       children: [
+//         Directive {
+//           name: "foo",
+//           args: [ 55 ],
+//           children: [],
+//         }
+//       ],
+//     }
+//   ],
+// }
+```
+
+The top-level `foo $foo` resolves to the outer scope's `33`; `tar`'s own `foo $foo` child sees `55`, from the scope `tar`'s block introduced — and that shadow never leaks back out, so a sibling of `tar` referencing `$foo` would still see `33`. Unlike `variablesPlugin`'s `Map<string, string>`, a bare `$name` resolves to the variable's own value and type (`33` the number, not `"33"` the string). This scoping is built on two more (optional) `DonPlugin` hooks bracketing a directive's own children — `onEnterScope(node, ctx)` runs right before they're visited, `onExitScope(node, ctx)` right after — letting a plugin push/pop its own state around a block; see [Plugins](./docs/concepts/plugins.md#block-scope-onenterscopeonexitscope) for the full description.
+
+`${name}` interpolates a variable inside a larger string argument (not just a whole `$name` one), resolving against whichever scope is active where the string appears — an unresolved reference is left untouched rather than becoming `undefined` or an empty string:
+
+```ts
+import { DON } from "donly";
+import { scopedVariablesPlugin } from "donly/plugins/scoped-variables";
+
+const result = DON.parse(
+  'set project FOO\n\ncontainer "${project}-container-1" {}',
+  {
+    plugins: [scopedVariablesPlugin],
+  },
+);
+// ? const result = Directive {
+//   name: "container",
+//   args: [ "FOO-container-1" ],
+//   children: [],
+// }
+```
+
+`createScopedVariablesPlugin({ variables })` seeds the **root** scope with variables the document itself never `set` — environment-style defaults supplied from outside the document. `scopedVariablesPlugin` is that same factory called with no options:
+
+```ts
+import { DON } from "donly";
+import { createScopedVariablesPlugin } from "donly/plugins/scoped-variables";
+
+const plugin = createScopedVariablesPlugin({
+  variables: { env: "prod", replicas: 3 },
+});
+
+const result = DON.parse("stage $env\nsize $replicas", { plugins: [plugin] });
+// ? const result = Directive {
+//   name: Symbol(root),
+//   args: [],
+//   children: [
+//     Directive {
+//       name: "stage",
+//       args: [ "prod" ],
+//       children: [],
+//     }, Directive {
+//       name: "size",
+//       args: [ 3 ],
+//       children: [],
+//     }
+//   ],
+// }
+```
+
+A document-level `set env staging` inside some block still shadows a seeded `env` for that block only, exactly as it would shadow any other outer-scope variable — `options.variables` only ever seeds the root scope, it's never mutated back.
 
 ## Lexer (`LexerParser`)
 

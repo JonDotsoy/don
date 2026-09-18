@@ -70,6 +70,10 @@
     "./demo/plugins/resources": {
       "types": "./lib/esm/demo/plugins/resources-plugin.d.ts",
       "import": "./lib/esm/demo/plugins/resources-plugin.js"
+    },
+    "./plugins/scoped-variables": {
+      "types": "./lib/esm/plugins/scoped-variables-plugin.d.ts",
+      "import": "./lib/esm/plugins/scoped-variables-plugin.js"
     }
   },
   "files": [

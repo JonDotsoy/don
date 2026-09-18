@@ -58,4 +58,24 @@ export interface DonPlugin<TContext = unknown> {
     node: PluginDirectiveNode,
     ctx: TContext,
   ): PluginDirectiveNode | null | void;
+
+  /**
+   * Called right before a directive's own children (its source children,
+   * not a synthetic subtree `onDirective` returned via
+   * `PluginDirectiveNode#children`) are visited, after `onDirective` ran
+   * for the directive itself. Paired with `onExitScope`, which runs right
+   * after that same directive's children are done — together they bracket
+   * one nesting level, letting a plugin push/pop its own block-scoped
+   * state (e.g. a stack of variable scopes) around a `{ ... }` block.
+   * `node` is this directive's already-resolved node (post-`onDirective`).
+   */
+  onEnterScope?(node: PluginDirectiveNode, ctx: TContext): void;
+
+  /**
+   * Called right after a directive's own children have all been visited
+   * (and built into `Directive`s) — the matching exit for `onEnterScope`.
+   * Always called once for every `onEnterScope` call, in reverse plugin
+   * order, even when the directive has no children.
+   */
+  onExitScope?(node: PluginDirectiveNode, ctx: TContext): void;
 }
