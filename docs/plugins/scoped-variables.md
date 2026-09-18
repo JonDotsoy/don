@@ -1,63 +1,94 @@
 ---
 title: Scoped Variables
-description: resolveScopedVariables — block-scoped set/$name/${name} variable resolution over an already-parsed Directive tree, and why it's a standalone resolver rather than a DonPlugin.
+description: Block-scoped set/$name/${name} variable resolution — as a DonPlugin (scopedVariablesPlugin, for DON.parse()) and as a standalone post-parse resolver (resolveScopedVariables), both built on DonPlugin#afterChildren's block-exit signal.
 lang: en
 ---
 
 # Scoped Variables
 
-> Implementation: [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts)
+> Implementation: [`src/plugins/scope.ts`](../../src/plugins/scope.ts),
+> [`scoped-variables-plugin.ts`](../../src/plugins/scoped-variables-plugin.ts),
+> [`scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts)
 > Import path: `donly/plugins/scoped-variables`
 > Design background: [References](../concepts/references.md), Proposal 2
 
-`resolveScopedVariables` resolves `set`/`$name`/`${name}` variables over
-an already-parsed `Directive` tree, with `set` **block-scoped**: a `set`
-inside a block shadows one of the same name from an enclosing block only
-for the rest of that inner block, then reverts once the block ends. This
-is the same `set`/variable idea [`variablesPlugin`](../concepts/plugins.md#example-1-variablesplugin)
-demonstrates, but with two differences that plugin doesn't have: real
-block scoping (`variablesPlugin` keeps one flat, document-wide `ctx`),
-and values that keep their original type instead of being coerced to
-strings.
+Two entry points resolve the same `set`/`$name`/`${name}` variables,
+with `set` **block-scoped**: a `set` inside a block shadows one of the
+same name from an enclosing block only for the rest of that inner
+block, then reverts once the block ends.
 
-## Why this isn't a `DonPlugin`
+- **`scopedVariablesPlugin`** — a `DonPlugin`, passed to `DON.parse()`
+  itself:
+
+  ```ts
+  import { DON } from "donly";
+  import { scopedVariablesPlugin } from "donly/plugins/scoped-variables";
+
+  const result = DON.parse(payload, { plugins: [scopedVariablesPlugin] });
+  ```
+
+- **`resolveScopedVariables`** — a standalone function, run over a
+  `Directive` tree that already exists, whether or not it came from
+  `DON.parse()` at all:
+
+  ```ts
+  import { resolveScopedVariables } from "donly/plugins/scoped-variables";
+
+  const resolved = resolveScopedVariables(root);
+  ```
+
+Both are exported together from `donly/plugins/scoped-variables`, and
+share the exact same scope rules and helper code
+([`src/plugins/scope.ts`](../../src/plugins/scope.ts)) — pick whichever
+fits how the tree reaches you: `scopedVariablesPlugin` when you're
+calling `DON.parse()` yourself, `resolveScopedVariables` when you
+already have a `Directive` from somewhere else (`DirectiveJSONDecoder`,
+a tree built by hand, or one already parsed without this plugin).
+
+This is the same `set`/variable idea
+[`variablesPlugin`](../concepts/plugins.md#example-1-variablesplugin)
+demonstrates, but with two differences that plugin doesn't have: real
+block scoping (`variablesPlugin` keeps one flat, document-wide `ctx`,
+so a nested `set` permanently overwrites an outer one), and values that
+keep their original type instead of being coerced to strings.
+
+## Why this needed a new `DonPlugin` hook
 
 [`DonPlugin#onDirective`](../concepts/plugins.md#creating-a-plugin)
 fires exactly once per directive, depth-first pre-order, before that
 directive's own children are visited — and never again for that
-directive. There's no matching "this block's children are all done"
-callback. That's enough for `variablesPlugin`'s flat `ctx` (a `set`
-just keeps overwriting the same shared `Map` entry forever), but it
-can't express a shadow being **restored**: once a nested `set foo 55`
-overwrites the outer `foo`, nothing tells a `DonPlugin` when that inner
-block has ended so it could put the outer value back.
+directive. On its own, there's no matching "this block's children are
+all done" signal. That's enough for `variablesPlugin`'s flat `ctx` (a
+`set` just keeps overwriting the same shared `Map` entry forever), but
+it can't express a shadow being **restored**: once a nested `set foo
+55` overwrites the outer `foo`, nothing tells a plugin built only on
+`onDirective` when that inner block has ended so it could put the
+outer value back.
 
-`resolveScopedVariables` sidesteps this by not being a `DonPlugin` at
-all. It's a plain function, `(root: Directive) => Directive`, that runs
-**after** `DON.parse()` has already built the tree, and walks that tree
-with its own recursion — so it fully controls when a new scope begins
-(right before descending into a block's children) and when it ends
-(simply by returning from that recursive call, letting the scope object
-fall out of reach the ordinary way a JS closure would).
+[`DonPlugin#afterChildren`](../../src/plugin.ts) is exactly that
+missing signal, added specifically to make `scopedVariablesPlugin`
+possible: it fires once per directive, right after every one of its
+children has been fully visited (and never at all for a directive
+`onDirective` dropped by returning `null`, since a dropped directive's
+children are never visited either). `scopedVariablesPlugin`'s
+`onDirective` pushes a new `Scope` (chained to the current one) before
+this directive's own children get visited; `afterChildren` pops it
+back off right after they're done — so a `set` bound inside that scope
+never outlives the block it was written in.
 
-## API
+`resolveScopedVariables` doesn't need `afterChildren` at all: it's a
+plain function that owns its own recursion over an already-built tree,
+so it can push a scope before recursing into a block's children and
+simply let it fall out of reach (in the literal JS-closure sense) once
+that recursive call returns — the same push/pop shape,
+expressed differently because it isn't constrained to `DON.parse()`'s
+own traversal.
 
-```ts
-import { resolveScopedVariables } from "donly/plugins/scoped-variables";
+## Walkthrough
 
-function resolveScopedVariables(root: Directive): Directive;
-```
+Either entry point, given:
 
-Takes the `Directive` `DON.parse()` returns and returns a new,
-resolved `Directive` tree — it never mutates the tree it's given.
-Compose the two calls directly:
-
-```ts
-import { DON } from "donly";
-import { resolveScopedVariables } from "donly/plugins/scoped-variables";
-
-const result = resolveScopedVariables(
-  DON.parse(`
+```don
 set foo 33
 
 foo $foo
@@ -65,8 +96,11 @@ tar biz {
   set foo 55
   foo $foo
 }
-`),
-);
+```
+
+produces a root wrapping:
+
+```ts
 // ? const result = Directive {
 //   name: Symbol(root),
 //   args: [],
@@ -104,13 +138,16 @@ the block it was written in.
 
 `set foo 33` and `tar biz { ... }` were two of three original top-level
 directives; dropping `set` leaves two (`foo`, `tar`), so the result
-stays wrapped in a synthetic root — `resolveScopedVariables` re-derives
-`DON.parse()`'s own single-top-level-directive unwrap rule (see the
-README's [Usage](../../README.md#usage)) against the _resolved_ list,
-so a document that drops down to exactly one top-level directive (its
-only other directive was a `set`) comes back unwrapped too, the same
-way it would if it had been written with just that one directive from
-the start.
+stays wrapped in a synthetic root. For `scopedVariablesPlugin`, that
+wrapping is `DON.parse()`'s own doing — it already re-derives its
+single-top-level-directive unwrap rule against whatever a plugin's
+`onDirective` leaves behind (see the README's
+[Usage](../../README.md#usage)), the same way it does for
+`variablesPlugin` dropping a `set`. `resolveScopedVariables` re-derives
+that same rule itself, since it runs after `DON.parse()` has already
+made its own wrap/unwrap decision against the _unresolved_ tree — so a
+document that drops down to exactly one top-level directive (its only
+other directive was a `set`) comes back unwrapped either way.
 
 ## Bare `$name` vs. `${name}` template interpolation
 
@@ -133,23 +170,23 @@ Two distinct forms, both looked up against the same scope chain:
 - **`\${name}`** (backslash-escaped) is left as the literal text
   `${name}` — never interpolated. This reuses the same backslash DON's
   own string literals already use to escape their delimiter (see
-  [the spec](../specs/v1/spec.md#25-strings)); `resolveScopedVariables`
-  strips just the leading `\` for an escaped `${...}`, same as `\"`
-  strips down to a literal `"`.
+  [the spec](../specs/v1/spec.md#25-strings)); resolution strips just
+  the leading `\` for an escaped `${...}`, same as `\"` strips down to
+  a literal `"`.
 
-`resolveScopedVariables` cannot currently tell a single-quoted string
-apart from a double-quoted one — both decode to a plain JS string by
-the time a `Directive` exists, with no record of which quote character
-was used (see Proposal 2's quoting decisions in
-[References](../concepts/references.md) for where this limitation is
-discussed at the language-design level).
-So `${name}` interpolates inside **any** string argument containing it,
-regardless of which quotes it was written with.
+Neither entry point can currently tell a single-quoted string apart
+from a double-quoted one — both decode to a plain JS string by the
+time a `Directive` (or a `PluginDirectiveNode`) exists, with no record
+of which quote character was used (see Proposal 2's quoting decisions
+in [References](../concepts/references.md) for where this limitation
+is discussed at the language-design level). So `${name}` interpolates
+inside **any** string argument containing it, regardless of which
+quotes it was written with.
 
 ## Errors
 
-`resolveScopedVariables` throws (rather than silently leaving a token
-unresolved) when:
+Both `scopedVariablesPlugin` and `resolveScopedVariables` throw
+(rather than silently leaving a token unresolved) when:
 
 - A bare `$name` or a `${name}` template names a variable no scope in
   its chain has bound.
@@ -163,9 +200,10 @@ unresolved) when:
 
 ## Related
 
-- [Plugins](../concepts/plugins.md) — the `DonPlugin` mechanism this
-  resolver deliberately isn't, including `variablesPlugin`, the flat,
-  string-coercing sibling this module evolved from.
+- [Plugins](../concepts/plugins.md) — the `DonPlugin` mechanism
+  `scopedVariablesPlugin` is built on, including `onDirective`,
+  `variablesPlugin` (the flat, string-coercing sibling this module
+  evolved from), and `createResourcesPlugin`.
 - [References](../concepts/references.md) — the fuller, still-in-design
   discussion this implementation is one settled slice of (block
   scoping, the escape decision, and the still-open `&`/`$ref`/extended

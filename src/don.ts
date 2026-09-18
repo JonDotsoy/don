@@ -155,15 +155,27 @@ const toDirective = (
     if (result) pluginNode = result;
   }
 
+  const children = pluginNode.children
+    ? pluginNode.children.map(pluginNodeToDirective)
+    : node.children.flatMap((child) => {
+        const childDirective = toDirective(child, plugins, pluginContexts);
+        return childDirective ? [childDirective] : [];
+      });
+
+  // Fires only once every child (if any) has been fully visited — the
+  // "block ended" signal `onDirective` alone can't give a plugin, since
+  // it only ever runs before descending into children. Skipped entirely
+  // above via the early `return undefined` when a plugin drops this
+  // directive, so a dropped directive's children are never visited and
+  // never get this signal either.
+  for (const plugin of plugins) {
+    plugin.afterChildren?.(pluginNode, pluginContexts.get(plugin));
+  }
+
   const directive = new Directive(
     pluginNode.name,
     [...pluginNode.args],
-    pluginNode.children
-      ? pluginNode.children.map(pluginNodeToDirective)
-      : node.children.flatMap((child) => {
-          const childDirective = toDirective(child, plugins, pluginContexts);
-          return childDirective ? [childDirective] : [];
-        }),
+    children,
   );
   tokensByDirective.set(directive, [node.name, ...node.args]);
   return directive;

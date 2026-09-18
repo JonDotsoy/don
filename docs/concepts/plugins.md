@@ -139,6 +139,56 @@ plugin returns (a replacement node, or nothing) becomes the `node` the
 next plugin in the list receives, so a later plugin already sees an
 earlier plugin's rewrite.
 
+### `afterChildren?(node: PluginDirectiveNode, ctx: TContext): void`
+
+Called once per directive, right after all of its children have been
+fully visited — their own `onDirective`/`afterChildren` calls already
+ran — and right before this directive itself is built into a
+`Directive`. `node` is this directive's own name/args, exactly as
+`onDirective` (from this plugin, and any other plugin's rewrite of it)
+left them; never the children themselves, and never mutated.
+
+`onDirective` alone only ever fires _before_ a directive's children
+are visited, with no matching "this block is done" signal — enough for
+a plugin like `variablesPlugin` that only ever adds to one flat,
+document-wide `ctx`, but not enough for a plugin that needs to know
+when to undo something it did for the duration of one block only.
+`afterChildren` is that missing signal: a plugin can push some state in
+`onDirective` (e.g. a new scope layer for block-scoped variables) and
+pop it back off in `afterChildren`, so whatever it pushed never
+outlives the block that introduced it. See `scopedVariablesPlugin`
+([Scoped Variables](../plugins/scoped-variables.md)) for a full plugin
+built on exactly this push/pop pattern — the reason this hook exists at
+all.
+
+**Never called** for a directive whose `onDirective` (from this plugin
+or an earlier one in the `plugins` array) returned `null` — a dropped
+directive's children are never visited at all, so there's nothing to
+signal the end of. A minimal illustration:
+
+```ts
+import { DON, type DonPlugin } from "donly";
+
+const seen: string[] = [];
+const trace: DonPlugin = {
+  name: "trace",
+  onDirective(node) {
+    seen.push(`enter:${String(node.name)}`);
+  },
+  afterChildren(node) {
+    seen.push(`exit:${String(node.name)}`);
+  },
+};
+
+DON.parse("a\nb {\n  c\n}", { plugins: [trace] });
+// ? const seen = [ "enter:a", "exit:a", "enter:b", "enter:c", "exit:c", "exit:b" ]
+```
+
+`a` (a leaf, no children) enters and exits immediately; `b` enters,
+then its child `c` fully enters and exits, and only then does `b`
+itself exit — `afterChildren` for a directive always comes after
+`afterChildren` for every one of its descendants, never before.
+
 ## Reading tokens
 
 `onDirective` only ever sees resolved values, not the original `Token`s —

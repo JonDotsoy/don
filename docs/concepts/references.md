@@ -6,18 +6,7 @@ lang: en
 
 # References
 
-> **Status: design draft.** Most of this page is not implemented — no
-> `&` splice operator, no `$ref` directive, and no `SyntaxKind` for
-> either of them in the current parser. The one exception is proposal
-> 2's block-scoped `set`/`$name`/`${name}` variables (not the extended
-> forms further down): a working implementation exists at
-> [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts),
-> as a standalone post-parse resolver rather than a `DonPlugin` — see
-> the [technical note](#decided-set-is-block-scoped) below for why. See
-> also [Path Expressions](./path-expression.md) for the other
-> reference-like mechanism that _is_ implemented today (`find`/`at`,
-> read-only, used by application code after parsing — not a syntax
-> inside a `.don` file).
+> **Status: design draft.** Most of this page is not implemented — no `&` splice operator, no `$ref` directive, and no `SyntaxKind` for either of them in the current parser. The one exception is proposal 2's block-scoped `set`/`$name`/`${name}` variables (not the extended forms further down): a working implementation exists as both a `DonPlugin` (`scopedVariablesPlugin`) and a standalone post-parse resolver (`resolveScopedVariables`), sharing one `Scope` implementation — [`src/plugins/scope.ts`](../../src/plugins/scope.ts), [`scoped-variables-plugin.ts`](../../src/plugins/scoped-variables-plugin.ts), [`scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts) — see [Scoped Variables](../plugins/scoped-variables.md) and the [technical note](#decided-set-is-block-scoped) below for why the plugin needed a new `DonPlugin#afterChildren` hook to express the shadow-then-restore this section decides on. See also [Path Expressions](./path-expression.md) for the other reference-like mechanism that _is_ implemented today (`find`/`at`, read-only, used by application code after parsing — not a syntax inside a `.don` file).
 
 DON's grammar has no way, today, for one directive to point at a value
 held by another — every value has to be written out in full at every
@@ -154,8 +143,8 @@ $foo bar;` does, minus the leading `$` on the declaration itself.
   bare form; `${name}` (braces) remains meaningful only inside a
   double-quoted string's text, never bare — `proxy_pass ${backend}`
   (braces, no surrounding quotes) is still just the literal keyword
-  token `${backend}`, exactly as it is today. See the implementation at
-  [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts).
+  token `${backend}`, exactly as it is today. See the implementation
+  at [`donly/plugins/scoped-variables`](../plugins/scoped-variables.md).
 
 Unlike proposal 1's `&` splice (resolved once against the static
 document tree), this is closer to the string-substitution model — the
@@ -216,20 +205,31 @@ directive right after it. A sibling block that never nests inside `Foo`
 > referencing directive's parent up to the root, look up that
 > ancestor's scope in the `WeakMap`; the first one holding `name` wins.
 >
-> **As implemented**, in
-> [`src/plugins/scoped-variables-resolver.ts`](../../src/plugins/scoped-variables-resolver.ts),
-> the walk happens the other way around: since the resolver owns its
-> own recursion (it isn't a `DonPlugin` — see that file's own doc
-> comment for why the mid-parse `onDirective` hook can't express a
-> shadow being restored), it builds the resolved tree top-down, passing
-> each block's `Scope` object down to its children as an ordinary
-> function argument (chained to its own parent `Scope` via a `parent`
-> reference) rather than reaching back up through `Directive#parent`
-> after the fact. Same outward-nearest-first lookup order, just built
-> going down instead of walked going up — the `WeakMap`/`.parent`
-> version above stays the right approach for a resolver that doesn't
-> control its own recursion (e.g. one bolted onto an existing
-> `DonPlugin`-style visitor).
+> **As implemented**, both entry points in
+> [`donly/plugins/scoped-variables`](../plugins/scoped-variables.md)
+> build the scope chain going _down_ instead of walking it back up
+> through `Directive#parent`, each in its own way:
+>
+> - `resolveScopedVariables` (`scoped-variables-resolver.ts`) owns its
+>   own recursion over an already-built tree, and passes each block's
+>   `Scope` object down to its children as an ordinary function
+>   argument (chained to its parent `Scope` via a `parent` reference).
+> - `scopedVariablesPlugin` (`scoped-variables-plugin.ts`) instead runs
+>   _during_ `DON.parse()`, where the resolver's approach doesn't apply
+>   — a `DonPlugin` doesn't own the traversal, `DON.parse()` does. It
+>   keeps a `Scope` stack in its own `ctx`, pushing a new one (chained
+>   to the current top) in `onDirective`, right before that directive's
+>   children get visited, and popping it back off in
+>   [`DonPlugin#afterChildren`](../../src/plugin.ts) once they're done —
+>   a hook added specifically to give a plugin the "block ended" signal
+>   `onDirective` alone doesn't have.
+>
+> Same outward-nearest-first lookup order either way, just built going
+> down instead of walked going up — the `WeakMap`/`.parent` version
+> above would still be the right approach for a resolver that walks an
+> existing tree without visiting every node itself (e.g. one that only
+> resolves a handful of directives found via `find`/`findAll`, rather
+> than rebuilding the whole tree).
 
 ### Extending `set`/`$name` beyond string interpolation
 
@@ -434,7 +434,15 @@ Scope>`**, keyed by the directive that opens the block — the same
     first, and return the first `WeakMap` entry that has `name`.
   - **State needed:** the per-block `WeakMap<Directive, Scope>` built
     once per evaluation pass; no changes to `Directive`'s own public
-    shape.
+    shape. **As actually implemented** (see the [technical
+    note](#decided-set-is-block-scoped) above), the `WeakMap`/`.parent`
+    sketch here turned into two different mechanisms instead: an
+    ordinary recursion-parameter scope chain for `resolveScopedVariables`
+    (which owns its own traversal), and a `ctx`-held `Scope` stack for
+    `scopedVariablesPlugin`, pushed/popped via a new, additive
+    `DonPlugin#afterChildren` hook (`src/plugin.ts`) — the one actual
+    grammar/API change this proposal ended up needing, though at the
+    plugin-interface level rather than the DON language's own grammar.
 
 - **Proposal 3 — `$ref` directive**
   - **Grammar:** the subdirective form (`$ref "/path"`) is a plain

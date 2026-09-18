@@ -58,4 +58,28 @@ export interface DonPlugin<TContext = unknown> {
     node: PluginDirectiveNode,
     ctx: TContext,
   ): PluginDirectiveNode | null | void;
+
+  /**
+   * Called once per directive, right after all of its children have
+   * been fully visited (their own `onDirective`/`afterChildren` calls
+   * already ran) and right before this directive itself is built into a
+   * `Directive`. `node` is this directive's own name/args, exactly as
+   * `onDirective` (from this plugin, and any other plugin's rewrite of
+   * it) left them — never the children themselves, and never mutated.
+   *
+   * This is the "block ended" signal `onDirective` alone doesn't have:
+   * `onDirective` only fires *before* a directive's children are
+   * visited, so a plugin that pushes some state in `onDirective` (e.g. a
+   * new scope layer for `set`-bound variables) has no way, from
+   * `onDirective` alone, to know when to pop it again — `afterChildren`
+   * is that matching pop point. See `scopedVariablesPlugin`
+   * (`src/plugins/scoped-variables-plugin.ts`) for a plugin built on
+   * exactly this push/pop pattern.
+   *
+   * Never called for a directive whose `onDirective` (from this plugin
+   * or an earlier one in the `plugins` array) returned `null` — a
+   * dropped directive's children are never visited at all, so there's
+   * nothing to signal the end of.
+   */
+  afterChildren?(node: PluginDirectiveNode, ctx: TContext): void;
 }

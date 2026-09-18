@@ -72,8 +72,8 @@
       "import": "./lib/esm/demo/plugins/resources-plugin.js"
     },
     "./plugins/scoped-variables": {
-      "types": "./lib/esm/plugins/scoped-variables-resolver.d.ts",
-      "import": "./lib/esm/plugins/scoped-variables-resolver.js"
+      "types": "./lib/esm/plugins/scoped-variables.d.ts",
+      "import": "./lib/esm/plugins/scoped-variables.js"
     }
   },
   "files": [
