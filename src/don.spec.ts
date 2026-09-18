@@ -233,6 +233,20 @@ describe("DON.parse", () => {
     expect(baz.name).toBe("baz");
     expect(baz.args).toEqual([]);
   });
+
+  // Known bug: the lexer (src/v1/compiler/token.ts) already detects and
+  // records a "SyntaxError: Unclosed string" on the offending token (as
+  // seen in src/v1/__tokens_snapshots__/identifier-single-quoted-multiline-escaped-identifier.snap
+  // for a similar case), via Token#getErrors(). But DON.parse never reads
+  // that back - getErrors() is only ever consulted by the debug token-
+  // snapshot util (src/v1/__utils__/to-token-snapshot.ts), not by the
+  // syntax parser (src/v1/compiler/syntax-encode.ts) or DON.parse itself.
+  // So an unterminated string silently produces a corrupted directive
+  // tree (the leading quote leaks into the arg value as a literal
+  // character) instead of raising a syntax error.
+  it('should raise a syntax error for an unterminated string instead of silently corrupting the arg', () => {
+    expect(() => DON.parse('name "foo')).toThrow();
+  });
 });
 
 describe("JSON.stringify(DON.parse(...))", () => {
