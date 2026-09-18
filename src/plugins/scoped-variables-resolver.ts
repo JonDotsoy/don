@@ -1,33 +1,84 @@
 import { Directive } from "../don.js";
 import { ROOT_DIRECTIVE_NAME, wrapAsRoot } from "../directive-json.js";
-import { Scope, bindSet, resolveScopedArg } from "./scope.js";
+import {
+  bindSet,
+  resolveScopedArg,
+  type ScopeReader,
+  type ScopedValue,
+  type ScopeWriter,
+} from "./scope.js";
 
-// Processes one block's worth of siblings against a single, shared
-// `blockScope`: a `set` mutates it (and is dropped), everything else is
-// resolved against it and recurses into its own fresh child scope.
-const transformSiblings = (
-  siblings: readonly Directive[],
-  blockScope: Scope,
+// Keyed by the *source* directive that owns a block — i.e. whichever
+// directive's direct children may include `set` bindings for that
+// block. Populated lazily, only once a `set` inside that block is
+// actually seen (`writerAt` below), rather than eagerly for every
+// directive the way a parameter-passed `Scope` chain would need to.
+const scopesByDirective = new WeakMap<Directive, Map<string, ScopedValue>>();
+
+// getValue(directive, name) ?? getValue(directive.parent, name) ?? … —
+// this directive's own bindings first, then its enclosing directive's,
+// walking outward via `Directive#parent` until a `set` for `name` is
+// found or the root (`parent === undefined`) is reached.
+const getValue = (
+  directive: Directive | undefined,
+  name: string,
+): ScopedValue | undefined => {
+  if (!directive) return undefined;
+  const bindings = scopesByDirective.get(directive);
+  if (bindings?.has(name)) return bindings.get(name);
+  return getValue(directive.parent, name);
+};
+
+const readerAt = (directive: Directive | undefined): ScopeReader => ({
+  get: (name) => getValue(directive, name),
+});
+
+// `owner` is the directive whose block this scope belongs to (i.e. the
+// directive that owns the `children` a `set` sits in) — reads and
+// writes both go through the same `WeakMap` entry for `owner`, created
+// on the first `set` bound into it.
+const writerAt = (owner: Directive): ScopeWriter => ({
+  get: (name) => getValue(owner, name),
+  set: (name, value) => {
+    let bindings = scopesByDirective.get(owner);
+    if (!bindings) {
+      bindings = new Map();
+      scopesByDirective.set(owner, bindings);
+    }
+    bindings.set(name, value);
+  },
+});
+
+// Resolves one block's worth of siblings, all owned by `owner`: a
+// `set` binds into `owner`'s own scope entry (and is dropped),
+// everything else is resolved and recurses into its own block, owned
+// by itself.
+const resolveChildren = (
+  owner: Directive,
+  children: readonly Directive[],
 ): Directive[] => {
+  const writer = writerAt(owner);
   const resolved: Directive[] = [];
 
-  for (const sibling of siblings) {
-    if (sibling.name === "set") {
-      bindSet(sibling.args, blockScope);
+  for (const child of children) {
+    if (child.name === "set") {
+      bindSet(child.args, writer);
       continue;
     }
 
-    resolved.push(transform(sibling, blockScope));
+    resolved.push(buildResolved(child));
   }
 
   return resolved;
 };
 
-const transform = (directive: Directive, enclosingScope: Scope): Directive =>
+const buildResolved = (directive: Directive): Directive =>
   new Directive(
     directive.name,
-    directive.args.map((arg) => resolveScopedArg(arg, enclosingScope)),
-    transformSiblings(directive.children, new Scope(enclosingScope)),
+    directive.args.map((arg) =>
+      resolveScopedArg(arg, readerAt(directive.parent)),
+    ),
+    resolveChildren(directive, directive.children),
   );
 
 /**
@@ -37,16 +88,21 @@ const transform = (directive: Directive, enclosingScope: Scope): Directive =>
  * that inner block, then reverts once the block ends (see
  * `docs/concepts/references.md`'s "Decided: `set` is block-scoped").
  *
- * This is a standalone tree transform, run *after* `DON.parse()` rather
- * than as a `DonPlugin` passed to it — useful when the tree didn't come
- * from `DON.parse()` at all (e.g. one built by `DirectiveJSONDecoder`,
- * or assembled by hand). If you're resolving variables in a document
- * you're about to parse with `DON.parse()` itself, prefer
- * `scopedVariablesPlugin` instead (`./scoped-variables-plugin.js`) —
- * same rules, same shared `Scope`, but wired into `DON.parse(text, {
- * plugins: [scopedVariablesPlugin] })` via the `onDirective`/
- * `afterChildren` push/pop hooks instead of this function's own
- * recursion:
+ * Scopes are kept in a module-level `WeakMap<Directive, Map<string,
+ * ScopedValue>>`, keyed by the *source* directive that owns each block
+ * — populated lazily as `set` directives are encountered, read back via
+ * `Directive#parent` (`getValue` above), rather than as `Scope` objects
+ * threaded through the recursion as a parameter (compare
+ * `scopedVariablesPlugin`'s `ctx`, which keeps a `Scope` stack instead,
+ * since it has no `Directive` tree yet to key a `WeakMap` off — see
+ * `./scoped-variables-plugin.js`). Either way, this is a standalone
+ * tree transform, not a `DonPlugin` passed to `DON.parse()` itself —
+ * useful when the tree didn't come from `DON.parse()` at all (e.g. one
+ * built by `DirectiveJSONDecoder`, or assembled by hand). If you're
+ * resolving variables in a document you're about to parse with
+ * `DON.parse()` itself, prefer `scopedVariablesPlugin` instead — same
+ * rules, wired into `DON.parse(text, { plugins: [scopedVariablesPlugin]
+ * })` directly:
  *
  * ```don
  * set foo 33
@@ -74,8 +130,6 @@ const transform = (directive: Directive, enclosingScope: Scope): Directive =>
  * literal text `${name}`, never interpolated.
  */
 export const resolveScopedVariables = (root: Directive): Directive => {
-  const rootScope = new Scope();
-
   // `DON.parse()` only wraps top-level directives in a synthetic
   // `ROOT_DIRECTIVE_NAME` root when there's more than one — a single
   // top-level directive comes back unwrapped (see the README's "AST"
@@ -86,8 +140,8 @@ export const resolveScopedVariables = (root: Directive): Directive => {
   // written that way from the start would be.
   if (root.name !== ROOT_DIRECTIVE_NAME) {
     if (root.name === "set") return wrapAsRoot([]);
-    return transform(root, rootScope);
+    return buildResolved(root);
   }
 
-  return wrapAsRoot(transformSiblings(root.children, rootScope));
+  return wrapAsRoot(resolveChildren(root, root.children));
 };

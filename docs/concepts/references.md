@@ -205,31 +205,26 @@ directive right after it. A sibling block that never nests inside `Foo`
 > referencing directive's parent up to the root, look up that
 > ancestor's scope in the `WeakMap`; the first one holding `name` wins.
 >
-> **As implemented**, both entry points in
-> [`donly/plugins/scoped-variables`](../plugins/scoped-variables.md)
-> build the scope chain going _down_ instead of walking it back up
-> through `Directive#parent`, each in its own way:
+> **As implemented**, `resolveScopedVariables` (`scoped-variables-resolver.ts`)
+> is exactly this: a `WeakMap<Directive, Map<string, ScopedValue>>`,
+> keyed by the _source_ directive that owns each block, populated
+> lazily as `set` directives are encountered while building the
+> resolved tree, and read back with the `getValue(directive, name) ??
+getValue(directive.parent, name) ?? …` walk described above.
 >
-> - `resolveScopedVariables` (`scoped-variables-resolver.ts`) owns its
->   own recursion over an already-built tree, and passes each block's
->   `Scope` object down to its children as an ordinary function
->   argument (chained to its parent `Scope` via a `parent` reference).
-> - `scopedVariablesPlugin` (`scoped-variables-plugin.ts`) instead runs
->   _during_ `DON.parse()`, where the resolver's approach doesn't apply
->   — a `DonPlugin` doesn't own the traversal, `DON.parse()` does. It
->   keeps a `Scope` stack in its own `ctx`, pushing a new one (chained
->   to the current top) in `onDirective`, right before that directive's
->   children get visited, and popping it back off in
->   [`DonPlugin#afterChildren`](../../src/plugin.ts) once they're done —
->   a hook added specifically to give a plugin the "block ended" signal
->   `onDirective` alone doesn't have.
->
-> Same outward-nearest-first lookup order either way, just built going
-> down instead of walked going up — the `WeakMap`/`.parent` version
-> above would still be the right approach for a resolver that walks an
-> existing tree without visiting every node itself (e.g. one that only
-> resolves a handful of directives found via `find`/`findAll`, rather
-> than rebuilding the whole tree).
+> `scopedVariablesPlugin` (`scoped-variables-plugin.ts`) can't do the
+> same thing, though — it runs _during_ `DON.parse()`, where there's no
+> `Directive` yet for the node currently being visited to key a
+> `WeakMap` entry by (only a not-yet-built `PluginDirectiveNode`). It
+> keeps a `Scope` stack in its own `ctx` instead, pushing a new one
+> (chained to the current top) in `onDirective`, right before that
+> directive's children get visited, and popping it back off in
+> [`DonPlugin#afterChildren`](../../src/plugin.ts) once they're done —
+> a hook added specifically to give a plugin the "block ended" signal
+> `onDirective` alone doesn't have. Same outward-nearest-first lookup
+> order either way, just built going down (the stack, pushed before
+> visiting children) instead of walked going up (the `WeakMap`, read
+> via `.parent` after the tree already exists).
 
 ### Extending `set`/`$name` beyond string interpolation
 
@@ -435,14 +430,15 @@ Scope>`**, keyed by the directive that opens the block — the same
   - **State needed:** the per-block `WeakMap<Directive, Scope>` built
     once per evaluation pass; no changes to `Directive`'s own public
     shape. **As actually implemented** (see the [technical
-    note](#decided-set-is-block-scoped) above), the `WeakMap`/`.parent`
-    sketch here turned into two different mechanisms instead: an
-    ordinary recursion-parameter scope chain for `resolveScopedVariables`
-    (which owns its own traversal), and a `ctx`-held `Scope` stack for
-    `scopedVariablesPlugin`, pushed/popped via a new, additive
-    `DonPlugin#afterChildren` hook (`src/plugin.ts`) — the one actual
-    grammar/API change this proposal ended up needing, though at the
-    plugin-interface level rather than the DON language's own grammar.
+    note](#decided-set-is-block-scoped) above), this `WeakMap<Directive,
+Scope>` sketch is exactly `resolveScopedVariables`'s own mechanism
+    now. `scopedVariablesPlugin` needed a second mechanism instead — a
+    `ctx`-held `Scope` stack, pushed/popped via a new, additive
+    `DonPlugin#afterChildren` hook (`src/plugin.ts`) — since it runs
+    _during_ `DON.parse()`, where there's no `Directive` yet to key a
+    `WeakMap` entry by. That hook is the one actual grammar/API change
+    this proposal ended up needing, though at the plugin-interface
+    level rather than the DON language's own grammar.
 
 - **Proposal 3 — `$ref` directive**
   - **Grammar:** the subdirective form (`$ref "/path"`) is a plain

@@ -76,13 +76,16 @@ this directive's own children get visited; `afterChildren` pops it
 back off right after they're done — so a `set` bound inside that scope
 never outlives the block it was written in.
 
-`resolveScopedVariables` doesn't need `afterChildren` at all: it's a
-plain function that owns its own recursion over an already-built tree,
-so it can push a scope before recursing into a block's children and
-simply let it fall out of reach (in the literal JS-closure sense) once
-that recursive call returns — the same push/pop shape,
-expressed differently because it isn't constrained to `DON.parse()`'s
-own traversal.
+`resolveScopedVariables` doesn't need `afterChildren` (or a `Scope`
+stack) at all: it already has a full `Directive` tree to work with, so
+it keeps a `WeakMap<Directive, Map<string, ScopedValue>>`, keyed by
+the _source_ directive that owns each block, and reads a name back by
+walking [`Directive#parent`](../../src/don.ts) outward —
+`getValue(directive, name) ?? getValue(directive.parent, name) ?? …`
+— until some ancestor's entry has it or the root is reached. A `set`
+only ever writes into the one `WeakMap` entry for the block it's a
+direct child of, so it's naturally invisible once that block's
+resolution is done and the walk moves past it.
 
 ## Walkthrough
 

@@ -5,17 +5,31 @@ export type ScopedValue = number | string | boolean | HeredocValue;
 const BARE_VARIABLE_PATTERN = /^\$([A-Za-z_][A-Za-z0-9_-]*)$/;
 const TEMPLATE_PATTERN = /(\\)?\$\{([A-Za-z_][A-Za-z0-9_-]*)\}/g;
 
+/** Anything `resolveScopedArg`/`bindSet` can read a bound name back from. */
+export interface ScopeReader {
+  get(name: string): ScopedValue | undefined;
+}
+
+/** A `ScopeReader` `bindSet` can also bind a new name into. */
+export interface ScopeWriter extends ScopeReader {
+  set(name: string, value: ScopedValue): void;
+}
+
 /**
  * A `set`-bound name lookup, chained to the block it was declared in.
  * `get` walks outward — this scope first, then its parent, and so on —
  * so a `set` in a nested block shadows one of the same name from an
- * enclosing block only for as long as that nested block lasts. Shared
- * between `resolveScopedVariables` (a standalone post-parse resolver)
- * and `scopedVariablesPlugin` (a `DonPlugin` built on the same rules,
- * scoped by `onDirective`/`afterChildren` push/pop instead of recursion
- * the resolver owns itself) — see `docs/plugins/scoped-variables.md`.
+ * enclosing block only for as long as that nested block lasts. Used by
+ * `scopedVariablesPlugin` (a `DonPlugin`, scoped by an `onDirective`/
+ * `afterChildren` push/pop, since it has no `Directive` tree of its own
+ * to key a lookup off yet) — see `docs/plugins/scoped-variables.md`.
+ *
+ * `resolveScopedVariables` (a standalone post-parse resolver) instead
+ * keys scopes by the already-built source `Directive` a block belongs
+ * to, walking `Directive#parent` to look outward — see that module for
+ * its own `ScopeWriter`.
  */
-export class Scope {
+export class Scope implements ScopeWriter {
   private readonly bindings = new Map<string, ScopedValue>();
 
   constructor(private readonly parent?: Scope) {}
@@ -34,7 +48,7 @@ const stringifiable = (
   value: ScopedValue,
 ): value is number | string | boolean => typeof value !== "object";
 
-const interpolate = (text: string, scope: Scope): string =>
+const interpolate = (text: string, scope: ScopeReader): string =>
   text.replace(TEMPLATE_PATTERN, (whole, escaped, name) => {
     // `\${name}` (escaped) is the literal text `${name}` — the leading
     // backslash is dropped, same as `\"`/`\'` already escape a string's
@@ -53,10 +67,10 @@ const interpolate = (text: string, scope: Scope): string =>
     return String(value);
   });
 
-/** Resolves a single argument against `scope` — see `Scope` above. */
+/** Resolves a single argument against `scope`. */
 export const resolveScopedArg = (
   arg: ScopedValue,
-  scope: Scope,
+  scope: ScopeReader,
 ): ScopedValue => {
   if (typeof arg !== "string") return arg;
 
@@ -79,7 +93,10 @@ export const resolveScopedArg = (
  * value argument — the extended `set` forms sketched in
  * `docs/concepts/references.md` aren't implemented here.
  */
-export const bindSet = (args: readonly ScopedValue[], scope: Scope): void => {
+export const bindSet = (
+  args: readonly ScopedValue[],
+  scope: ScopeWriter,
+): void => {
   if (args.length !== 2 || typeof args[0] !== "string") {
     throw new Error(
       `"set" expects a variable name and one value, got: ${JSON.stringify(args)}`,
