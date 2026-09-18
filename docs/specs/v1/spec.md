@@ -298,15 +298,20 @@ div x-data=name {
 
 ```js
 Directive {
-  name: "div",
-  args: [ "x-data=name" ],
+  name: 'div',
+  args: [
+    'x-data=name'
+  ],
   children: [
     Directive {
-      name: "span",
-      args: [ "key=key1", "hello" ],
-      children: [],
+      name: 'span',
+      args: [
+        'key=key1',
+        'hello'
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -372,27 +377,43 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "name",
-      args: [ "my-app" ],
-      children: [],
-    }, Directive {
-      name: "version",
-      args: [ "1.0.0" ],
-      children: [],
-    }, Directive {
-      name: "port",
-      args: [ 8080 ],
-      children: [],
-    }, Directive {
-      name: "enabled",
-      args: [ true ],
-      children: [],
-    }, Directive {
-      name: "route",
-      args: [ "/api/users", "GET", "POST" ],
-      children: [],
+      name: 'name',
+      args: [
+        'my-app'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'version',
+      args: [
+        '1.0.0'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'port',
+      args: [
+        8080
+      ],
+      children: []
+    },
+    Directive {
+      name: 'enabled',
+      args: [
+        true
+      ],
+      children: []
+    },
+    Directive {
+      name: 'route',
+      args: [
+        '/api/users',
+        'GET',
+        'POST'
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -432,19 +453,20 @@ directive_name {
 
 ```js
 Directive {
-  name: "directive_name",
+  name: 'directive_name',
   args: [],
   children: [
     Directive {
-      name: "subdirective1",
+      name: 'subdirective1',
       args: [],
-      children: [],
-    }, Directive {
-      name: "subdirective2",
+      children: []
+    },
+    Directive {
+      name: 'subdirective2',
       args: [],
-      children: [],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -481,25 +503,33 @@ directive foo {
 
 ```js
 Directive {
-  name: "directive",
-  args: [ "foo" ],
+  name: 'directive',
+  args: [
+    'foo'
+  ],
   children: [
     Directive {
-      name: "directive2",
-      args: [ "taz", "lip" ],
+      name: 'directive2',
+      args: [
+        'taz',
+        'lip'
+      ],
       children: [
         Directive {
-          name: "directive4",
+          name: 'directive4',
           args: [],
-          children: [],
+          children: []
         }
+      ]
+    },
+    Directive {
+      name: 'directive3',
+      args: [
+        'bob'
       ],
-    }, Directive {
-      name: "directive3",
-      args: [ "bob" ],
-      children: [],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -534,27 +564,30 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "container",
+      name: 'container',
       args: [],
       children: [
         Directive {
-          name: "image",
-          args: [ "nginx" ],
-          children: [],
+          name: 'image',
+          args: [
+            'nginx'
+          ],
+          children: []
         }
-      ],
-    }, Directive {
-      name: "foo",
+      ]
+    },
+    Directive {
+      name: 'foo',
       args: [],
       children: [
         Directive {
-          name: "bar",
+          name: 'bar',
           args: [],
-          children: [],
+          children: []
         }
-      ],
+      ]
     }
-  ],
+  ]
 }
 ```
 
@@ -627,51 +660,61 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "foo",
+      name: 'foo',
       args: [],
-      children: [],
-    }, Directive {
-      name: "foo123",
+      children: []
+    },
+    Directive {
+      name: 'foo123',
       args: [],
-      children: [],
-    }, Directive {
-      name: "_private",
+      children: []
+    },
+    Directive {
+      name: '_private',
       args: [],
-      children: [],
-    }, Directive {
-      name: "myVariable",
+      children: []
+    },
+    Directive {
+      name: 'myVariable',
       args: [],
-      children: [],
-    }, Directive {
-      name: "${name}",
+      children: []
+    },
+    Directive {
+      name: '${name}',
       args: [],
-      children: [],
-    }, Directive {
-      name: "/api/:name",
+      children: []
+    },
+    Directive {
+      name: '/api/:name',
       args: [],
-      children: [],
-    }, Directive {
-      name: "[name]",
+      children: []
+    },
+    Directive {
+      name: '[name]',
       args: [],
-      children: [],
-    }, Directive {
-      name: "my-[age]",
+      children: []
+    },
+    Directive {
+      name: 'my-[age]',
       args: [],
-      children: [],
-    }, Directive {
-      name: "path/to/resource",
+      children: []
+    },
+    Directive {
+      name: 'path/to/resource',
       args: [],
-      children: [],
-    }, Directive {
-      name: "$prod",
+      children: []
+    },
+    Directive {
+      name: '$prod',
       args: [],
-      children: [],
-    }, Directive {
-      name: "route-handler",
+      children: []
+    },
+    Directive {
+      name: 'route-handler',
       args: [],
-      children: [],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -709,25 +752,33 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "${name}",
-      args: [ "value" ],
-      children: [],
-    }, Directive {
-      name: "/api/users",
-      args: [ "GET" ],
-      children: [],
-    }, Directive {
-      name: "route-[id]",
+      name: '${name}',
+      args: [
+        'value'
+      ],
+      children: []
+    },
+    Directive {
+      name: '/api/users',
+      args: [
+        'GET'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'route-[id]',
       args: [],
       children: [
         Directive {
-          name: "handler",
-          args: [ "process" ],
-          children: [],
+          name: 'handler',
+          args: [
+            'process'
+          ],
+          children: []
         }
-      ],
+      ]
     }
-  ],
+  ]
 }
 ```
 
@@ -879,15 +930,20 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "message",
-      args: [ "foo \\\"tar\\\"" ],
-      children: [],
-    }, Directive {
-      name: "path",
-      args: [ "C:\\\\Users\\\\file.txt" ],
-      children: [],
+      name: 'message',
+      args: [
+        'foo \\"tar\\"'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'path',
+      args: [
+        'C:\\\\Users\\\\file.txt'
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -962,14 +1018,14 @@ template <<<HTML
 
 ```js
 Directive {
-  name: "template",
+  name: 'template',
   args: [
     HeredocValue {
-      delimiter: "HTML",
-      content: "<div>\n  <h1>Hello</h1>\n</div>\n",
+      delimiter: 'HTML',
+      content: '<div>\n  <h1>Hello</h1>\n</div>\n'
     }
   ],
-  children: [],
+  children: []
 }
 ```
 
@@ -1001,14 +1057,14 @@ template <<<
 
 ```js
 Directive {
-  name: "template",
+  name: 'template',
   args: [
     HeredocValue {
       delimiter: null,
-      content: "  foo\ntar\n",
+      content: '  foo\ntar\n'
     }
   ],
-  children: [],
+  children: []
 }
 ```
 
@@ -1047,24 +1103,25 @@ server {
 
 ```js
 Directive {
-  name: "server",
+  name: 'server',
   args: [],
   children: [
     Directive {
-      name: "response",
+      name: 'response',
       args: [
         HeredocValue {
-          delimiter: "HTML",
-          content: "<html>\n  <body>Content</body>\n</html>\n",
+          delimiter: 'HTML',
+          content: '<html>\n  <body>Content</body>\n</html>\n'
         }
       ],
-      children: [],
-    }, Directive {
-      name: "handler",
+      children: []
+    },
+    Directive {
+      name: 'handler',
       args: [],
-      children: [],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -1106,20 +1163,20 @@ server {
 
 ```js
 Directive {
-  name: "server",
+  name: 'server',
   args: [],
   children: [
     Directive {
-      name: "content",
+      name: 'content',
       args: [
         HeredocValue {
-          delimiter: "HTML",
-          content: "div foo\nhandler\n",
+          delimiter: 'HTML',
+          content: 'div foo\nhandler\n'
         }
       ],
-      children: [],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -1155,15 +1212,20 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "name",
-      args: [ "my-app" ],
-      children: [],
-    }, Directive {
-      name: "version",
-      args: [ "1.0.0" ],
-      children: [],
+      name: 'name',
+      args: [
+        'my-app'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'version',
+      args: [
+        '1.0.0'
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -1210,21 +1272,26 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "name",
-      args: [ "my-app" ],
-      children: [],
-    }, Directive {
-      name: "server",
+      name: 'name',
+      args: [
+        'my-app'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'server',
       args: [],
       children: [
         Directive {
-          name: "port",
-          args: [ 8080 ],
-          children: [],
+          name: 'port',
+          args: [
+            8080
+          ],
+          children: []
         }
-      ],
+      ]
     }
-  ],
+  ]
 }
 ```
 
@@ -1250,9 +1317,14 @@ const result = DON.parse(`
 
 ```js
 Directive {
-  name: "still",
-  args: [ "commented?", "*/", "name", "app" ],
-  children: [],
+  name: 'still',
+  args: [
+    'commented?',
+    '*/',
+    'name',
+    'app'
+  ],
+  children: []
 }
 ```
 
@@ -1288,23 +1360,34 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "name",
-      args: [ "my-application" ],
-      children: [],
-    }, Directive {
-      name: "version",
-      args: [ "1.0.0" ],
-      children: [],
-    }, Directive {
-      name: "port",
-      args: [ 8080 ],
-      children: [],
-    }, Directive {
-      name: "enabled",
-      args: [ true ],
-      children: [],
+      name: 'name',
+      args: [
+        'my-application'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'version',
+      args: [
+        '1.0.0'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'port',
+      args: [
+        8080
+      ],
+      children: []
+    },
+    Directive {
+      name: 'enabled',
+      args: [
+        true
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -1348,43 +1431,61 @@ server {
 
 ```js
 Directive {
-  name: "server",
+  name: 'server',
   args: [],
   children: [
     Directive {
-      name: "host",
-      args: [ "example.com" ],
-      children: [],
-    }, Directive {
-      name: "port",
-      args: [ 443 ],
-      children: [],
-    }, Directive {
-      name: "route",
-      args: [ "/api/*" ],
+      name: 'host',
+      args: [
+        'example.com'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'port',
+      args: [
+        443
+      ],
+      children: []
+    },
+    Directive {
+      name: 'route',
+      args: [
+        '/api/*'
+      ],
       children: [
         Directive {
-          name: "handler",
-          args: [ "apiHandler" ],
-          children: [],
-        }, Directive {
-          name: "timeout",
-          args: [ 30 ],
-          children: [],
+          name: 'handler',
+          args: [
+            'apiHandler'
+          ],
+          children: []
+        },
+        Directive {
+          name: 'timeout',
+          args: [
+            30
+          ],
+          children: []
         }
+      ]
+    },
+    Directive {
+      name: 'route',
+      args: [
+        '/static/*'
       ],
-    }, Directive {
-      name: "route",
-      args: [ "/static/*" ],
       children: [
         Directive {
-          name: "handler",
-          args: [ "staticHandler" ],
-          children: [],
+          name: 'handler',
+          args: [
+            'staticHandler'
+          ],
+          children: []
         }
-      ],
+      ]
     }
-  ],
+  ]
 }
 ```
 
@@ -1436,25 +1537,36 @@ Directive {
   args: [],
   children: [
     Directive {
-      name: "template",
+      name: 'template',
       args: [
         HeredocValue {
-          delimiter: "HTML",
-          content: "<!DOCTYPE html>\n<html>\n  <head>\n    <title>My Page</title>\n  </head>\n  <body>\n    <h1>Welcome</h1>\n  </body>\n</html>\n\n",
+          delimiter: 'HTML',
+          content: '<!DOCTYPE html>\n' +
+            '<html>\n' +
+            '  <head>\n' +
+            '    <title>My Page</title>\n' +
+            '  </head>\n' +
+            '  <body>\n' +
+            '    <h1>Welcome</h1>\n' +
+            '  </body>\n' +
+            '</html>\n' +
+            '\n' +
+            ''
         }
       ],
-      children: [],
-    }, Directive {
-      name: "script",
+      children: []
+    },
+    Directive {
+      name: 'script',
       args: [
         HeredocValue {
-          delimiter: "BASH",
-          content: "#!/bin/bash\necho \"Deploying...\"\nnpm run build\n",
+          delimiter: 'BASH',
+          content: '#!/bin/bash\necho "Deploying..."\nnpm run build\n'
         }
       ],
-      children: [],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -1498,47 +1610,68 @@ deployment $prod _internal path/\${name} {
 
 ```js
 Directive {
-  name: "deployment",
-  args: [ "$prod", "_internal", "path/${name}" ],
+  name: 'deployment',
+  args: [
+    '$prod',
+    '_internal',
+    'path/${name}'
+  ],
   children: [
     Directive {
-      name: "container",
+      name: 'container',
       args: [],
       children: [
         Directive {
-          name: "image",
-          args: [ "nginx:latest" ],
-          children: [],
-        }, Directive {
-          name: "port",
-          args: [ 80 ],
-          children: [],
-        }, Directive {
-          name: "env",
+          name: 'image',
+          args: [
+            'nginx:latest'
+          ],
+          children: []
+        },
+        Directive {
+          name: 'port',
+          args: [
+            80
+          ],
+          children: []
+        },
+        Directive {
+          name: 'env',
           args: [],
           children: [
             Directive {
-              name: "NODE_ENV",
-              args: [ "production" ],
-              children: [],
-            }, Directive {
-              name: "API_KEY",
-              args: [ "secret" ],
-              children: [],
+              name: 'NODE_ENV',
+              args: [
+                'production'
+              ],
+              children: []
+            },
+            Directive {
+              name: 'API_KEY',
+              args: [
+                'secret'
+              ],
+              children: []
             }
-          ],
+          ]
         }
+      ]
+    },
+    Directive {
+      name: 'replicas',
+      args: [
+        3
       ],
-    }, Directive {
-      name: "replicas",
-      args: [ 3 ],
-      children: [],
-    }, Directive {
-      name: "strategy",
-      args: [ "rolling" ],
-      children: [],
+      children: []
+    },
+    Directive {
+      name: 'strategy',
+      args: [
+        'rolling'
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
 
@@ -1572,34 +1705,51 @@ config {
 
 ```js
 Directive {
-  name: "config",
+  name: 'config',
   args: [],
   children: [
     Directive {
-      name: "name",
-      args: [ "app" ],
-      children: [],
-    }, Directive {
-      name: "version",
-      args: [ 2 ],
-      children: [],
-    }, Directive {
-      name: "beta",
-      args: [ true ],
-      children: [],
-    }, Directive {
-      name: "deprecated",
-      args: [ "null" ],
-      children: [],
-    }, Directive {
-      name: "timeout",
-      args: [ 30.5 ],
-      children: [],
-    }, Directive {
-      name: "maxSize",
-      args: [ 1024n ],
-      children: [],
+      name: 'name',
+      args: [
+        'app'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'version',
+      args: [
+        2
+      ],
+      children: []
+    },
+    Directive {
+      name: 'beta',
+      args: [
+        true
+      ],
+      children: []
+    },
+    Directive {
+      name: 'deprecated',
+      args: [
+        'null'
+      ],
+      children: []
+    },
+    Directive {
+      name: 'timeout',
+      args: [
+        30.5
+      ],
+      children: []
+    },
+    Directive {
+      name: 'maxSize',
+      args: [
+        1024n
+      ],
+      children: []
     }
-  ],
+  ]
 }
 ```
