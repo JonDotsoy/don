@@ -8,7 +8,7 @@ route GET /api {
 }
 ```
 
-`DirectiveJSONEncoder`'s nested reducer turns that directly into a nested JSON tree, one key per argument:
+`DirectiveJSONEncoder`'s nested reducer turns that directly into a nested tree, one key per argument:
 
 <!-- render-block
 import { DON } from "donly";
@@ -25,18 +25,12 @@ const result = DirectiveJSONEncoder.encode(directive, {
 });
 -->
 
-```json
-{
-  "route": {
-    "GET": {
-      "/api": {
-        "respond": {
-          "200": "Ok"
-        }
-      }
-    }
-  }
-}
+```yaml
+route:
+  GET:
+    /api:
+      respond:
+        "200": Ok
 ```
 
 The equivalent in a key-value format needs an extra level of nesting per parameter:
