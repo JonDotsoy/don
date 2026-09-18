@@ -99,3 +99,14 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+
+### Fixed
+
+- Heredoc parsing (`<<<DELIMITER`) no longer unconditionally swallows the
+  first line after the declaration into the payload. Per spec (§ 2.8
+  Heredocs), content must have *greater* indentation than the heredoc
+  declaration line, and this rule now applies starting from the very
+  first content line, not just subsequent ones — so `foo <<<EOF` followed
+  by a line at the same (or lesser) indentation now yields an empty
+  heredoc payload and that line becomes a sibling directive, instead of
+  being swallowed as content.
