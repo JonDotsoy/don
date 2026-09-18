@@ -335,6 +335,12 @@ export class Token {
 
         const startPadding = openPart.span.startLocation.paddingLine;
 
+        // Start scanning from the newline itself (not the first content
+        // part) so the "must have greater indentation than the
+        // declaration" rule is applied uniformly to every content line,
+        // including the very first one. If the first line after the
+        // newline already has padding <= startPadding, this immediately
+        // closes the heredoc at the newline, yielding empty content.
         const closeClosePartIndex = findIndex(
           partSet.parts,
           (_part, index, parts) => {
@@ -344,7 +350,7 @@ export class Token {
             const partIsClosed = partPadding <= startPadding;
             return partIsClosed;
           },
-          newlineIndex + 1,
+          newlineIndex,
         );
 
         // if closeClosePartIndex === -1 find last part
