@@ -128,3 +128,9 @@ documentation.
   extended to cover a string that runs off the end of the document (not
   just one broken by a raw newline), which previously matched no token at
   all instead of being flagged.
+- `DON.parse(text)` now raises a synchronous `SyntaxError` for an
+  unterminated block (a `{` with no matching `}` before the input ends),
+  e.g. `DON.parse("foo {")`. Previously the syntax parser spun forever
+  waiting for a closing `}` token that would never arrive — an infinite
+  loop that hung the process and grew memory unbounded — instead of
+  reporting the malformed input.

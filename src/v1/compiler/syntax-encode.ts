@@ -119,6 +119,7 @@ export class SyntaxParser {
         children: [],
       });
       const directives = new State<DirectiveNode[]>([]);
+      let closedByBrace = false;
 
       for (let i = fromIndex; i < tokens.length; i++) {
         const token = tokens[i];
@@ -170,6 +171,7 @@ export class SyntaxParser {
         }
 
         if (token.type === SyntaxKind.closeCurlyBrace) {
+          closedByBrace = true;
           break;
         }
 
@@ -247,6 +249,12 @@ export class SyntaxParser {
         }
 
         // throw new Error(`unexpected token: ${token.type} ${token.text()}`)
+      }
+
+      if (depth > 0 && !closedByBrace) {
+        throw new SyntaxError(
+          `Unterminated block: missing closing '}' for '{' opened at position ${fromIndex - 1}`,
+        );
       }
 
       if (partialDirective.current.name !== null) {
