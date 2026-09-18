@@ -531,12 +531,19 @@ tar biz {
 //   name: Symbol(root),
 //   args: [],
 //   children: [
-//     Directive { name: "foo", args: [ 33 ], children: [] },
 //     Directive {
+//       name: "foo",
+//       args: [ 33 ],
+//       children: [],
+//     }, Directive {
 //       name: "tar",
 //       args: [ "biz" ],
 //       children: [
-//         Directive { name: "foo", args: [ 55 ], children: [] }
+//         Directive {
+//           name: "foo",
+//           args: [ 55 ],
+//           children: [],
+//         }
 //       ],
 //     }
 //   ],
@@ -568,6 +575,9 @@ container "${project}-container-1" {}
 ```
 
 ```ts
+import { DON } from "donly";
+import { scopedVariablesPlugin } from "donly/plugins/scoped-variables";
+
 const result = DON.parse(
   `
 set project FOO
@@ -609,8 +619,15 @@ const result = DON.parse("stage $env\nsize $replicas", { plugins: [plugin] });
 //   name: Symbol(root),
 //   args: [],
 //   children: [
-//     Directive { name: "stage", args: [ "prod" ], children: [] },
-//     Directive { name: "size", args: [ 3 ], children: [] }
+//     Directive {
+//       name: "stage",
+//       args: [ "prod" ],
+//       children: [],
+//     }, Directive {
+//       name: "size",
+//       args: [ 3 ],
+//       children: [],
+//     }
 //   ],
 // }
 ```

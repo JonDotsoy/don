@@ -91,7 +91,7 @@
     "update:docs": "npm run build && tmd README.md docs/specs/v1/spec.md docs/lint/rules.md docs/concepts/plugins.md --cwd ."
   },
   "devDependencies": {
-    "@jondotsoy/tmd": "^0.0.7",
+    "@jondotsoy/tmd": "^0.0.9",
     "@types/bun": "latest",
     "prettier": "3.7.4",
     "typescript": "^5"

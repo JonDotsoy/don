@@ -956,7 +956,7 @@ const result = renderReport(issues, { filePath, asciiColor: false });
 
 ```txt
 server.donly
-  -  error  server debe declarar un port
+  2:1  error  server debe declarar un port
 
 1 error 0 warnings 0 info
 ```
@@ -1313,7 +1313,7 @@ const result = renderReport(issues, { filePath, asciiColor: false });
 
 ```txt
 server.donly
-     -  error  server debe declarar un port
+   2:1  error  server debe declarar un port
   5:11  error  el status code de respond debe estar entre 100 y 599
 
 2 errors 0 warnings 0 info
@@ -1401,7 +1401,7 @@ const result = renderReport(issues, { filePath, asciiColor: false });
 
 ```txt
 server.donly
-  -  error  required directive is missing
+  2:1  error  required directive is missing
 
 1 error 0 warnings 0 info
 ```
