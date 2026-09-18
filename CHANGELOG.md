@@ -110,3 +110,9 @@ documentation.
   by a line at the same (or lesser) indentation now yields an empty
   heredoc payload and that line becomes a sibling directive, instead of
   being swallowed as content.
+- `DON.parse` now enforces the spec §2.2 block-close constraint: a
+  directive's `{ ... }` block may only be followed on the same line by a
+  newline, a comment, another block's closing `}`, or end of input.
+  Previously `container { image "nginx" } extra` silently parsed `extra`
+  as a positional argument of `container` instead of raising a syntax
+  error.

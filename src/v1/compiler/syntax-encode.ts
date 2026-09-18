@@ -137,6 +137,28 @@ export class SyntaxParser {
           const result = scanDirective(tokens, i + 1, depth + 1);
           i = tokens.indexOf(result.endToken);
           partialDirective.current.children = result.directives;
+
+          // Constraint (spec 2.2): after a block's closing `}`, only a
+          // newline (or EOF) may follow on the same directive line. Peek
+          // past whitespace for the next token and reject anything other
+          // than a newline, a comment, another block close (closing an
+          // enclosing block on the same line), or end of input.
+          for (let j = i + 1; j < tokens.length; j++) {
+            const nextToken = tokens[j];
+            if (!nextToken) break;
+            if (nextToken.type === SyntaxKind.whitespace) continue;
+            if (
+              nextToken.type === SyntaxKind.newline ||
+              nextToken.type === SyntaxKind.comment ||
+              nextToken.type === SyntaxKind.closeCurlyBrace
+            ) {
+              break;
+            }
+            throw new Error(
+              `Syntax error: tokens after block close are not allowed on the same line (found "${nextToken.text()}")`,
+            );
+          }
+
           continue;
         }
 
