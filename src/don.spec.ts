@@ -204,6 +204,35 @@ describe("DON.parse", () => {
 
     expect(result.args[0]).toEqual(new HeredocValue(null, "npm ci\n"));
   });
+
+  // Known bug (see docs/specs/v1/spec.md § 2.8 "Heredocs" -> Rules): "Content
+  // must have greater indentation than the heredoc declaration" and parsing
+  // "Continues until a token with indentation equal to or less than the
+  // heredoc declaration line is found". Here `bar` sits at the same
+  // indentation (0) as the `foo <<<EOF` declaration, so per spec it should
+  // never enter the heredoc payload and should instead become `foo`'s
+  // sibling directive - exactly like `baz` correctly does one line later.
+  // Instead the parser unconditionally swallows the first content line
+  // into the heredoc regardless of its indentation.
+  it('should not swallow an unindented first line into the heredoc payload', () => {
+    const result = DON.parse(""
+      + "foo <<<EOF\n"
+      + "bar\n"
+      + "baz\n"
+    );
+
+    const foo = result.children[0]!;
+    expect(foo.name).toBe("foo");
+    expect(foo.args[0]).toEqual(new HeredocValue("EOF", ""));
+
+    const bar = result.children[1]!;
+    expect(bar.name).toBe("bar");
+    expect(bar.args).toEqual([]);
+
+    const baz = result.children[2]!;
+    expect(baz.name).toBe("baz");
+    expect(baz.args).toEqual([]);
+  });
 });
 
 describe("JSON.stringify(DON.parse(...))", () => {
