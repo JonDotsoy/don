@@ -1,7 +1,7 @@
 {
   "children": [
     {
-      "id": 150,
+      "id": 246,
       "name": "name",
       "args": [
         "Node.js CI"
@@ -23,7 +23,7 @@
       "children": []
     },
     {
-      "id": 151,
+      "id": 247,
       "name": "on",
       "args": [
         "push"
@@ -45,7 +45,7 @@
       "children": []
     },
     {
-      "id": 154,
+      "id": 252,
       "name": "job",
       "args": [
         "build"
@@ -66,7 +66,7 @@
       },
       "children": [
         {
-          "id": 152,
+          "id": 248,
           "name": "runs-on",
           "args": [
             "ubuntu-latest"
@@ -88,20 +88,60 @@
           "children": []
         },
         {
-          "id": 153,
+          "id": 249,
           "name": "step",
           "args": [
-            "<<<\n    npm ci\n\n",
-            "step",
-            "<<<\n    npm run build --if-present\n\n",
-            "step",
-            "<<<\n    npm test\n"
+            "<<<\n    npm ci\n\n"
           ],
           "span": {
             "index": 67,
-            "length": 155,
+            "length": 88,
             "startLocation": {
               "line": 7,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 10,
+              "column": 0,
+              "paddingLine": 0
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 250,
+          "name": "step",
+          "args": [
+            "<<<\n    npm run build --if-present\n\n"
+          ],
+          "span": {
+            "index": 90,
+            "length": 131,
+            "startLocation": {
+              "line": 10,
+              "column": 2,
+              "paddingLine": 2
+            },
+            "endLocation": {
+              "line": 13,
+              "column": 0,
+              "paddingLine": 0
+            }
+          },
+          "children": []
+        },
+        {
+          "id": 251,
+          "name": "step",
+          "args": [
+            "<<<\n    npm test\n"
+          ],
+          "span": {
+            "index": 133,
+            "length": 155,
+            "startLocation": {
+              "line": 13,
               "column": 2,
               "paddingLine": 2
             },
