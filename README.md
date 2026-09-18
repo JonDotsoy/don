@@ -8,6 +8,30 @@ route GET /api {
 }
 ```
 
+`DON.parse()` turns that directly into a nested JSON tree, one node per directive:
+
+<!-- render-block
+import { DON } from "donly";
+
+const result = DON.parse(`
+route GET /api {
+  respond 200 "Ok"
+}
+`);
+-->
+
+```json
+{
+  "route": [
+    "GET",
+    "/api",
+    {
+      "respond": [200, "Ok"]
+    }
+  ]
+}
+```
+
 The equivalent in a key-value format needs an extra level of nesting per parameter:
 
 ```yaml
