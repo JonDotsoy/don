@@ -8,27 +8,34 @@ route GET /api {
 }
 ```
 
-`DON.parse()` turns that directly into a nested JSON tree, one node per directive:
+`DirectiveJSONEncoder`'s nested reducer turns that directly into a nested JSON tree, one key per argument:
 
 <!-- render-block
 import { DON } from "donly";
+import { DirectiveJSONEncoder } from "donly/encoder";
 
-const result = DON.parse(`
+const directive = DON.parse(`
 route GET /api {
   respond 200 "Ok"
 }
 `);
+
+const result = DirectiveJSONEncoder.encode(directive, {
+  reducer: DirectiveJSONEncoder.nestedReducer,
+});
 -->
 
 ```json
 {
-  "route": [
-    "GET",
-    "/api",
-    {
-      "respond": [200, "Ok"]
+  "route": {
+    "GET": {
+      "/api": {
+        "respond": {
+          "200": "Ok"
+        }
+      }
     }
-  ]
+  }
 }
 ```
 
