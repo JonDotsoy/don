@@ -10,7 +10,8 @@
 //
 // Covers every entry point in package.json's "exports": "donly",
 // "donly/encoder", "donly/decoder", "donly/load", "donly/lint",
-// "donly/find", and "donly/demo/http-proxy".
+// "donly/find", "donly/demo/http-proxy", and
+// "donly/plugins/scoped-variables".
 
 import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -29,6 +30,10 @@ import { load } from "donly/load";
 import { lintSchema, lint as lintDoc } from "donly/lint";
 import { findAllDirectives, findDirective, atDirective } from "donly/find";
 import { serve, proxyLintRules } from "donly/demo/http-proxy";
+import {
+  scopedVariablesPlugin,
+  createScopedVariablesPlugin,
+} from "donly/plugins/scoped-variables";
 
 // "donly"
 const directive = DON.parse('name "example"');
@@ -101,6 +106,22 @@ assert.equal(typeof serve, "function");
 assert.ok(Array.isArray(proxyLintRules));
 assert.ok(proxyLintRules.length > 0);
 
+// "donly/plugins/scoped-variables"
+assert.equal(typeof createScopedVariablesPlugin, "function");
+const scopedResult = DON.parse(
+  "set foo 33\n\nfoo $foo\ntar biz {\n  set foo 55\n  foo $foo\n}\n",
+  { plugins: [scopedVariablesPlugin] },
+);
+const [scopedFoo, scopedTar] = scopedResult.children;
+assert.deepEqual(scopedFoo.args, [33]);
+assert.deepEqual(scopedTar.children[0].args, [55]);
+
+const seededPlugin = createScopedVariablesPlugin({
+  variables: { env: "prod" },
+});
+const seededResult = DON.parse("stage $env", { plugins: [seededPlugin] });
+assert.deepEqual(seededResult.args, ["prod"]);
+
 console.log(
-  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder", "donly/decoder", "donly/load", "donly/lint", "donly/find" and "donly/demo/http-proxy" all resolve and work.`,
+  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder", "donly/decoder", "donly/load", "donly/lint", "donly/find", "donly/demo/http-proxy" and "donly/plugins/scoped-variables" all resolve and work.`,
 );

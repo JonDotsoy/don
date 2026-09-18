@@ -4,8 +4,9 @@
 // documented argument types and produces the documented result types,
 // for every published entry point ("donly", "donly/encoder",
 // "donly/decoder", "donly/load", "donly/lint", "donly/find",
-// "donly/demo/http-proxy"). Relies on the same self-reference resolution
-// the runtime smoke test (run.mjs) uses, so `lib/esm` must be built first.
+// "donly/demo/http-proxy", "donly/plugins/scoped-variables"). Relies on
+// the same self-reference resolution the runtime smoke test (run.mjs)
+// uses, so `lib/esm` must be built first.
 
 import {
   DON,
@@ -14,7 +15,11 @@ import {
   DirectiveJSONDecoder,
   HeredocValue,
 } from "donly";
-import type { DirectiveReducer, DirectiveJSONEncoderOptions } from "donly";
+import type {
+  DirectiveReducer,
+  DirectiveJSONEncoderOptions,
+  DonPlugin,
+} from "donly";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
 import { load } from "donly/load";
@@ -27,6 +32,11 @@ import type {
   RouteConfig,
   HeaderRule,
 } from "donly/demo/http-proxy";
+import {
+  scopedVariablesPlugin,
+  createScopedVariablesPlugin,
+} from "donly/plugins/scoped-variables";
+import type { ScopedVariablesPluginOptions } from "donly/plugins/scoped-variables";
 
 // --- "donly": DON.parse ---
 
@@ -140,6 +150,21 @@ const routeConfig: RouteConfig = {
 };
 const headerRule: HeaderRule = { name: "X", value: "Y" };
 
+// --- "donly/plugins/scoped-variables": scopedVariablesPlugin, createScopedVariablesPlugin ---
+
+const scopedPlugin: DonPlugin = scopedVariablesPlugin;
+const scopedOptions: ScopedVariablesPluginOptions = {
+  variables: { env: "prod", replicas: 3 },
+};
+const scopedOptionsFromMap: ScopedVariablesPluginOptions = {
+  variables: new Map([["env", "staging"]]),
+};
+const seededPlugin: DonPlugin = createScopedVariablesPlugin(scopedOptions);
+const seededPluginNoOptions: DonPlugin = createScopedVariablesPlugin();
+const scopedParsed: Directive = DON.parse("stage $env", {
+  plugins: [seededPlugin],
+});
+
 // --- negative cases: unsupported argument/result types must not compile ---
 
 // @ts-expect-error DON.parse requires a string
@@ -189,4 +214,8 @@ void [
   serverConfig,
   routeConfig,
   headerRule,
+  scopedPlugin,
+  scopedOptionsFromMap,
+  seededPluginNoOptions,
+  scopedParsed,
 ];
