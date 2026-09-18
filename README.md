@@ -8,7 +8,7 @@ route GET /api {
 }
 ```
 
-`DirectiveJSONEncoder`'s nested reducer turns that directly into a nested tree, one key per argument:
+`DirectiveJSONEncoder`'s nested reducer turns that directly into a nested JSON tree, one key per argument:
 
 <!-- render-block
 import { DON } from "donly";
