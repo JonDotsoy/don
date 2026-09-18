@@ -139,6 +139,32 @@ plugin returns (a replacement node, or nothing) becomes the `node` the
 next plugin in the list receives, so a later plugin already sees an
 earlier plugin's rewrite.
 
+## Block scope: `onEnterScope`/`onExitScope`
+
+`onDirective` alone is enough for state that only ever grows (like
+`variablesPlugin`'s flat `Map` above, where a later `set foo` in any block
+overwrites the same global `foo`). It isn't enough for state that needs to
+come back off again once a `{ ... }` block ends — e.g. a `set` inside a
+block shadowing an outer variable of the same name, without leaking the
+shadowed value out past that block's closing `}`.
+
+Two more (both optional) round out `DonPlugin` for that:
+
+```ts
+onEnterScope?(node: PluginDirectiveNode, ctx: TContext): void;
+onExitScope?(node: PluginDirectiveNode, ctx: TContext): void;
+```
+
+`onEnterScope` runs right after `onDirective` for a directive, right
+before that directive's own (source, not plugin-synthesized) children are
+visited; `onExitScope` runs right after all of them are done — one
+`onEnterScope`/`onExitScope` pair per directive, however many children it
+has (zero included). Since visiting is depth-first pre-order and these two
+bracket exactly one nesting level each, a plugin that pushes its own scope
+frame onto a stack in `onEnterScope` and pops it in `onExitScope` gets a
+scope chain that mirrors the document's own block structure — see
+`scopedVariablesPlugin` below.
+
 ## Reading tokens
 
 `onDirective` only ever sees resolved values, not the original `Token`s —
@@ -465,3 +491,99 @@ synthetic `Directive`s returns `undefined`, the same as for a `Directive`
 built by hand. A `resource` directive naming any other type (or one
 without a `file://` URL argument) comes back untouched, since
 `onDirective` returns nothing (`void`) for it.
+
+## Example 3: `scopedVariablesPlugin`
+
+`donly/demo/plugins/scoped-variables`
+([`src/demo/plugins/scoped-variables-plugin.ts`](../../src/demo/plugins/scoped-variables-plugin.ts))
+builds on `variablesPlugin`'s idea with the two features `onEnterScope`/
+`onExitScope` exist for: **block-scoped** `set`, and `${name}`
+**interpolation** inside a larger string (not just a whole `$name`
+argument).
+
+```don
+set foo 33
+
+foo $foo
+tar biz {
+  set foo 55
+  foo $foo
+}
+```
+
+```ts
+import { DON } from "donly";
+import { scopedVariablesPlugin } from "donly/demo/plugins/scoped-variables";
+
+const result = DON.parse(
+  `
+set foo 33
+
+foo $foo
+tar biz {
+  set foo 55
+  foo $foo
+}
+`,
+  { plugins: [scopedVariablesPlugin] },
+);
+// ? const result = Directive {
+//   name: Symbol(root),
+//   args: [],
+//   children: [
+//     Directive { name: "foo", args: [ 33 ], children: [] },
+//     Directive {
+//       name: "tar",
+//       args: [ "biz" ],
+//       children: [
+//         Directive { name: "foo", args: [ 55 ], children: [] }
+//       ],
+//     }
+//   ],
+// }
+```
+
+Two top-level directives survive (`set` is dropped, same as
+`variablesPlugin`), so `DON.parse()`'s usual single-top-level-directive
+rule doesn't apply and the synthetic root (`name: ROOT_DIRECTIVE_NAME`)
+wraps both — see [Usage](../../README.md#usage) in the README.
+`tar`'s block gets its own scope (pushed by `onEnterScope` right before
+`tar`'s children are visited): the `set foo 55` inside it shadows the
+outer `foo` for the rest of that block only, so `tar`'s own `foo $foo`
+child resolves to `55`, while the top-level `foo $foo` (visited before
+`tar`'s block was ever entered) resolves to the outer scope's `33`. Once
+`tar`'s block ends, `onExitScope` pops that scope back off — a sibling
+directive after `tar` referencing `$foo` would see `33` again, not `55`.
+Unlike `variablesPlugin`'s `Map<string, string>`, a bare `$name` resolves
+to the variable's own value and type (`33` the number, not `"33"` the
+string).
+
+`${name}` interpolates a variable inside a larger string, resolving
+against whichever scope is active where the string appears:
+
+```don
+set project FOO
+
+container "${project}-container-1" {}
+```
+
+```ts
+const result = DON.parse(
+  `
+set project FOO
+
+container "\${project}-container-1" {}
+`,
+  { plugins: [scopedVariablesPlugin] },
+);
+// ? const result = Directive {
+//   name: "container",
+//   args: [ "FOO-container-1" ],
+//   children: [],
+// }
+```
+
+Only the `${project}` piece resolves — the surrounding `-container-1` text
+stays as written. A `$name` or `${name}` reference to a variable nothing
+in scope has `set` is left untouched, rather than resolving to `undefined`
+or an empty string.

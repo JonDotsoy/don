@@ -155,15 +155,26 @@ const toDirective = (
     if (result) pluginNode = result;
   }
 
+  let children: Directive[];
+  if (pluginNode.children) {
+    children = pluginNode.children.map(pluginNodeToDirective);
+  } else {
+    for (const plugin of plugins) {
+      plugin.onEnterScope?.(pluginNode, pluginContexts.get(plugin));
+    }
+    children = node.children.flatMap((child) => {
+      const childDirective = toDirective(child, plugins, pluginContexts);
+      return childDirective ? [childDirective] : [];
+    });
+    for (const plugin of [...plugins].reverse()) {
+      plugin.onExitScope?.(pluginNode, pluginContexts.get(plugin));
+    }
+  }
+
   const directive = new Directive(
     pluginNode.name,
     [...pluginNode.args],
-    pluginNode.children
-      ? pluginNode.children.map(pluginNodeToDirective)
-      : node.children.flatMap((child) => {
-          const childDirective = toDirective(child, plugins, pluginContexts);
-          return childDirective ? [childDirective] : [];
-        }),
+    children,
   );
   tokensByDirective.set(directive, [node.name, ...node.args]);
   return directive;
