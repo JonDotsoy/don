@@ -99,6 +99,11 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+- `DonSyntaxError` (`donly/common/errors`, also at `src/common/syntax-error.ts`)
+  — a dedicated `SyntaxError` subclass for malformed DON source text, so
+  callers can check `error instanceof DonSyntaxError` to distinguish a
+  DON parsing failure from any other error a call into this library
+  might throw.
 
 ### Fixed
 
