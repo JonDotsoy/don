@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { join } from "node:path";
+import { DonSyntaxError } from "./common/errors.js";
 import { DON } from "./don";
 
 const donModulePath = join(import.meta.dir, "don.ts");
@@ -19,7 +20,7 @@ describe("DON.parse syntax-error recovery", () => {
       cmd: [
         "bun",
         "-e",
-        `import { DON } from ${JSON.stringify(donModulePath)}; try { DON.parse("foo {"); console.log("done"); } catch (err) { console.log("caught:", err instanceof Error ? err.message : err); }`,
+        `import { DON } from ${JSON.stringify(donModulePath)}; import { DonSyntaxError } from ${JSON.stringify(join(import.meta.dir, "common", "errors.ts"))}; try { DON.parse("foo {"); console.log("done"); } catch (err) { console.log("caught:", err instanceof Error ? err.message : err, "isDonSyntaxError:", err instanceof DonSyntaxError); }`,
       ],
       timeout: 3000,
     });
@@ -33,16 +34,16 @@ describe("DON.parse syntax-error recovery", () => {
   });
 
   it("should raise a syntax error for an unterminated block at the document root", () => {
-    expect(() => DON.parse("foo {")).toThrow();
+    expect(() => DON.parse("foo {")).toThrow(DonSyntaxError);
   });
 
   it("should raise a syntax error for an unterminated block nested inside another block", () => {
-    expect(() => DON.parse("foo { bar {")).toThrow();
+    expect(() => DON.parse("foo { bar {")).toThrow(DonSyntaxError);
   });
 
   it("should raise a syntax error for an unterminated block alongside other directives", () => {
     expect(() =>
       DON.parse('name "my-app"\nport 8080\nfoo {\nbar "baz"'),
-    ).toThrow();
+    ).toThrow(DonSyntaxError);
   });
 });

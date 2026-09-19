@@ -139,3 +139,9 @@ documentation.
   waiting for a closing `}` token that would never arrive — an infinite
   loop that hung the process and grew memory unbounded — instead of
   reporting the malformed input.
+- All three syntax-error throw sites in the parser (`src/v1/compiler/syntax-encode.ts`)
+  — an unclosed string/heredoc reported by the lexer, tokens found after a
+  block's closing `}` on the same line, and an unterminated block missing
+  its closing `}` — now throw `DonSyntaxError` instead of a plain `Error`/
+  `SyntaxError`, so `error instanceof DonSyntaxError` reliably identifies a
+  malformed-DON-source failure from `DON.parse`.

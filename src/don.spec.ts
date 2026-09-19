@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { DonSyntaxError } from "./common/errors.js";
 import { DON, Directive, HeredocValue } from "./don";
 import { ROOT_DIRECTIVE_NAME } from "./directive-json";
 import { donToParts } from "./index";
@@ -245,7 +246,7 @@ describe("DON.parse", () => {
   // tree (the leading quote leaks into the arg value as a literal
   // character) instead of raising a syntax error.
   it('should raise a syntax error for an unterminated string instead of silently corrupting the arg', () => {
-    expect(() => DON.parse('name "foo')).toThrow();
+    expect(() => DON.parse('name "foo')).toThrow(DonSyntaxError);
   });
 
   it('should raise a syntax error for an unterminated string inside a block', () => {
@@ -253,7 +254,7 @@ describe("DON.parse", () => {
       + "server {\n"
       + '  host "localhost\n'
       + "}\n"
-    )).toThrow();
+    )).toThrow(DonSyntaxError);
   });
 
   it('should raise a syntax error for an unterminated string alongside other directives', () => {
@@ -261,7 +262,7 @@ describe("DON.parse", () => {
       + 'name "my-app"\n'
       + 'version "1.0.0\n'
       + 'port 8080\n'
-    )).toThrow();
+    )).toThrow(DonSyntaxError);
   });
 
   it('should still parse properly terminated strings without throwing', () => {
@@ -283,7 +284,7 @@ describe("DON.parse", () => {
   // `container`, right alongside its already-closed `{ ... }` block,
   // instead of raising a syntax error.
   it('should raise a syntax error for tokens after a block close on the same line', () => {
-    expect(() => DON.parse('container { image "nginx" } extra')).toThrow();
+    expect(() => DON.parse('container { image "nginx" } extra')).toThrow(DonSyntaxError);
   });
 
   // Known bug: docs/specs/v1/spec.md § 2.2 only ever documents a block as
@@ -300,7 +301,7 @@ describe("DON.parse", () => {
       + "{\n"
       + "  No trir \n"
       + "}\n"
-    )).toThrow();
+    )).toThrow(DonSyntaxError);
   });
 
   // The bug above is worse than silent data loss: the orphan block's
@@ -315,7 +316,7 @@ describe("DON.parse", () => {
       + "  No trir \n"
       + "}\n"
       + "after 1\n"
-    )).toThrow();
+    )).toThrow(DonSyntaxError);
   });
 });
 

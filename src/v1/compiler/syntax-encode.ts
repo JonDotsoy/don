@@ -1,3 +1,4 @@
+import { DonSyntaxError } from "../../common/syntax-error.js";
 import { buildLogger } from "../utils/build-logger.js";
 import { SyntaxKind } from "../utils/syntax-kind.js";
 import { DirectiveNode, DocumentNode } from "./directive-node.js";
@@ -127,7 +128,7 @@ export class SyntaxParser {
 
         const tokenErrors = token.getErrors();
         if (tokenErrors.length > 0) {
-          throw new SyntaxError(
+          throw new DonSyntaxError(
             `${tokenErrors.join(", ")} at Ln ${token.span.startLocation.line}, Col ${token.span.startLocation.column} (${JSON.stringify(token.text())})`,
           );
         }
@@ -162,7 +163,7 @@ export class SyntaxParser {
             ) {
               break;
             }
-            throw new Error(
+            throw new DonSyntaxError(
               `Syntax error: tokens after block close are not allowed on the same line (found "${nextToken.text()}")`,
             );
           }
@@ -252,7 +253,7 @@ export class SyntaxParser {
       }
 
       if (depth > 0 && !closedByBrace) {
-        throw new SyntaxError(
+        throw new DonSyntaxError(
           `Unterminated block: missing closing '}' for '{' opened at position ${fromIndex - 1}`,
         );
       }
