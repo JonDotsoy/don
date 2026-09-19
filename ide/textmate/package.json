@@ -1,0 +1,35 @@
+{
+  "name": "don-textmate",
+  "displayName": "DON",
+  "description": "TextMate grammar and language configuration for DON (Directive Object Notation)",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "don",
+        "aliases": [
+          "DON",
+          "don"
+        ],
+        "extensions": [
+          ".don",
+          ".donly"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "don",
+        "scopeName": "source.don",
+        "path": "./don.tmLanguage.json"
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+# Application configuration
+name "my-app"
+describe "A simple package manager for Node.js projects"
+version 2
+beta true
+deprecated null
+timeout 30.5
+maxSize 1024n
+port 0xFF
+
+/*
+  Block comment
+  spanning lines
+*/
+
+dependencies {
+  zod ">=1"
+  react ">=5"
+}
+
+server {
+  host "0.0.0.0"
+  port 8080 # Listen port
+  ssl true
+
+  route /api/* {
+    handler "apiHandler"
+    timeout 30
+  }
+}
+
+template <<<HTML
+  <div>
+    <h1>Hello</h1>
+  </div>
+
+deployment $prod _internal path/${name} {
+  replicas 3
+  strategy "rolling"
+}
