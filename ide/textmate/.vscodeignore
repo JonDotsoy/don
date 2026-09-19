@@ -1,0 +1,6 @@
+node_modules/**
+scripts/**
+tests/**
+samples/**
+bun.lock
+.gitignore

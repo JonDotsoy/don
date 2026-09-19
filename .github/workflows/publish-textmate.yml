@@ -1,0 +1,124 @@
+name: Publish TextMate Extension
+
+run-name: >-
+  Publish TextMate Extension - ${{ github.event_name == 'workflow_dispatch' && format('manual bump ({0})', inputs.version_bump) || github.event.head_commit.message }}
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - ide/textmate/package.json
+      - .github/workflows/publish-textmate.yml
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: Version bump type
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
+        default: none
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ide/textmate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Bump package.json version
+        id: bump
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.version_bump != 'none'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version "${{ github.event.inputs.version_bump }}" --no-git-tag-version
+          version="$(node -p "require('./package.json').version")"
+          git add package.json
+          git commit -m "chore: release don-textmate v${version}"
+          git push origin "HEAD:${{ github.ref_name }}"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Read version from package.json
+        id: package
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "textmate-v${{ steps.package.outputs.version }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.exists == 'false'
+        run: bun install --frozen-lockfile
+
+      - name: Validate grammar
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          bun scripts/validate-grammar.ts
+          bunx vscode-tmgrammar-test 'tests/unit/**/*.test.don'
+
+      - name: Package .vsix
+        if: steps.check.outputs.exists == 'false'
+        id: vsix
+        run: |
+          version="${{ steps.package.outputs.version }}"
+          name="$(node -p "require('./package.json').name")"
+          file="${name}-${version}.vsix"
+          bunx @vscode/vsce package --no-dependencies -o "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload .vsix as workflow artifact
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vsix.outputs.file }}
+          path: ide/textmate/${{ steps.vsix.outputs.file }}
+
+      - name: Publish to VS Code Marketplace
+        if: steps.check.outputs.exists == 'false'
+        env:
+          # Personal Access Token from https://marketplace.visualstudio.com/manage,
+          # stored as the repository secret VSCE_PAT (Settings > Secrets and
+          # variables > Actions > Secrets).
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: bunx @vscode/vsce publish --packagePath "${{ steps.vsix.outputs.file }}" --pat "$VSCE_PAT"
+
+      - name: Create GitHub release with the .vsix and Marketplace URL
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.package.outputs.version }}"
+          publisher="$(node -p "require('./package.json').publisher")"
+          name="$(node -p "require('./package.json').name")"
+          marketplace_url="https://marketplace.visualstudio.com/items?itemName=${publisher}.${name}"
+          gh release create "textmate-v${version}" \
+            --repo "${{ github.repository }}" \
+            --title "don-textmate v${version}" \
+            --notes "Published to VS Code Marketplace: ${marketplace_url}" \
+            --target "${{ steps.bump.outputs.sha || github.sha }}" \
+            "${{ steps.vsix.outputs.file }}"

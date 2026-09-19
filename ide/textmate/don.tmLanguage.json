@@ -1,0 +1,133 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "DON",
+  "scopeName": "source.don",
+  "fileTypes": ["don", "donly"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#heredoc" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#constants" },
+    { "include": "#braces" },
+    { "include": "#directive-name" },
+    { "include": "#identifier" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.don",
+          "match": "#.*$"
+        },
+        {
+          "name": "comment.block.don",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "heredoc": {
+      "patterns": [
+        {
+          "name": "string.unquoted.heredoc.don",
+          "begin": "(<<<)([A-Za-z_][A-Za-z0-9_]*)?",
+          "beginCaptures": {
+            "1": { "name": "keyword.operator.heredoc.don" },
+            "2": { "name": "entity.name.tag.heredoc-delimiter.don" }
+          },
+          "end": "^(?=\\S)",
+          "patterns": []
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.don",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.don", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.single.don",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            { "name": "constant.character.escape.don", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.don",
+          "match": "\\b0[xX][0-9a-fA-F]+n?\\b"
+        },
+        {
+          "name": "constant.numeric.octal.don",
+          "match": "\\b0[oO][0-7]+n?\\b"
+        },
+        {
+          "name": "constant.numeric.binary.don",
+          "match": "\\b0[bB][01]+n?\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.don",
+          "match": "-?\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.bigint.don",
+          "match": "-?\\b[0-9]+n\\b"
+        },
+        {
+          "name": "constant.numeric.integer.don",
+          "match": "-?\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.don",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.don",
+          "match": "\\bnull\\b"
+        }
+      ]
+    },
+    "braces": {
+      "patterns": [
+        {
+          "name": "punctuation.section.block.begin.don",
+          "match": "\\{"
+        },
+        {
+          "name": "punctuation.section.block.end.don",
+          "match": "\\}"
+        }
+      ]
+    },
+    "directive-name": {
+      "patterns": [
+        {
+          "name": "entity.name.function.directive.don",
+          "match": "^\\s*(\\$?[A-Za-z_/\\[][A-Za-z0-9_$/:\\[\\]${}.-]*)"
+        }
+      ]
+    },
+    "identifier": {
+      "patterns": [
+        {
+          "name": "variable.parameter.don",
+          "match": "\\$?[A-Za-z_/\\[][A-Za-z0-9_$/:\\[\\]${}.-]*"
+        }
+      ]
+    }
+  }
+}
