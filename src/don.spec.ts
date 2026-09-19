@@ -287,19 +287,14 @@ describe("DON.parse", () => {
     expect(() => DON.parse('container { image "nginx" } extra')).toThrow(DonSyntaxError);
   });
 
-  // Known bug: docs/specs/v1/spec.md § 2.2 only ever documents a block as
+  // Fixed bug: docs/specs/v1/spec.md § 2.2 only ever documents a block as
   // `directive_name {` - a `{` is always the tail of a directive's own
   // line, immediately after its name/args, never a construct on its own.
   // A `{` with no directive name on its line (e.g. a stray block at the
-  // document root) has no valid meaning per the grammar and should raise
-  // a syntax error. Instead the parser silently drops the whole orphan
-  // block - here `{ No trir }`, right after `Foo biz` - producing just
-  // `Foo biz` with no error and no trace of the block ever existing.
-  //
-  // Skipped intentionally: this bug is not fixed yet. Marked `.skip`
-  // (rather than left failing) purely to keep CI green while the fix is
-  // pending - un-skip once the orphan-block case raises DonSyntaxError.
-  it.skip('should raise a syntax error for a block on its own line with no directive name', () => {
+  // document root) has no valid meaning per the grammar and now raises a
+  // syntax error, instead of silently dropping the whole orphan block -
+  // here `{ No trir }`, right after `Foo biz`.
+  it('should raise a syntax error for a block on its own line with no directive name', () => {
     expect(() => DON.parse(""
       + "Foo biz\n"
       + "{\n"
@@ -308,15 +303,13 @@ describe("DON.parse", () => {
     )).toThrow(DonSyntaxError);
   });
 
-  // The bug above is worse than silent data loss: the orphan block's
-  // content doesn't just vanish, it gets reattached as children of
-  // whatever directive happens to come *next* in the document - here
-  // `No trir` (from the orphan block above `after`) ends up nested
-  // *inside* `after`, a completely unrelated sibling directive.
-  //
-  // Skipped intentionally, same reason as the test above: bug not fixed
-  // yet, `.skip`-ed only to keep CI green in the meantime.
-  it.skip('should not silently reattach an orphan block\'s content to the next unrelated directive', () => {
+  // The bug above was worse than silent data loss: the orphan block's
+  // content didn't just vanish, it got reattached as children of
+  // whatever directive happened to come *next* in the document - here
+  // `No trir` (from the orphan block above `after`) used to end up nested
+  // *inside* `after`, a completely unrelated sibling directive. Now both
+  // raise the same syntax error before any misattribution can happen.
+  it('should not silently reattach an orphan block\'s content to the next unrelated directive', () => {
     expect(() => DON.parse(""
       + "Foo biz\n"
       + "{\n"

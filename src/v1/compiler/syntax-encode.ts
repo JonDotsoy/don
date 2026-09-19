@@ -143,6 +143,17 @@ export class SyntaxParser {
         endToken.current = token;
 
         if (token.type === SyntaxKind.openCurlyBrace) {
+          // Constraint (spec 2.2): a block is always the tail of a
+          // directive's own line, immediately after its name/args - never
+          // a standalone construct. A `{` with no directive name yet
+          // accumulated on this line (e.g. a stray block on its own line)
+          // has no directive to attach its children to.
+          if (partialDirective.current.name === null) {
+            throw new DonSyntaxError(
+              `Syntax error: a block must follow a directive name on the same line at Ln ${token.span.startLocation.line}, Col ${token.span.startLocation.column}`,
+            );
+          }
+
           const result = scanDirective(tokens, i + 1, depth + 1);
           i = tokens.indexOf(result.endToken);
           partialDirective.current.children = result.directives;

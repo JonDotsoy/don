@@ -139,9 +139,17 @@ documentation.
   waiting for a closing `}` token that would never arrive — an infinite
   loop that hung the process and grew memory unbounded — instead of
   reporting the malformed input.
-- All three syntax-error throw sites in the parser (`src/v1/compiler/syntax-encode.ts`)
+- All syntax-error throw sites in the parser (`src/v1/compiler/syntax-encode.ts`)
   — an unclosed string/heredoc reported by the lexer, tokens found after a
-  block's closing `}` on the same line, and an unterminated block missing
-  its closing `}` — now throw `DonSyntaxError` instead of a plain `Error`/
-  `SyntaxError`, so `error instanceof DonSyntaxError` reliably identifies a
+  block's closing `}` on the same line, an unterminated block missing its
+  closing `}`, and a block with no directive name on its line (see below)
+  — now throw `DonSyntaxError` instead of a plain `Error`/`SyntaxError`, so
+  `error instanceof DonSyntaxError` reliably identifies a
   malformed-DON-source failure from `DON.parse`.
+- `DON.parse` now raises a syntax error for a `{` block on its own line
+  with no preceding directive name (e.g. a stray block at the document
+  root). Per spec §2.2, a block is always the tail of a directive's own
+  line, never a standalone construct. Previously such an orphan block was
+  silently dropped — or, if another directive followed later in the
+  document, its content was silently reattached as children of that
+  unrelated directive instead.
