@@ -109,7 +109,7 @@ documentation.
 
 - Heredoc parsing (`<<<DELIMITER`) no longer unconditionally swallows the
   first line after the declaration into the payload. Per spec (§ 2.8
-  Heredocs), content must have *greater* indentation than the heredoc
+  Heredocs), content must have _greater_ indentation than the heredoc
   declaration line, and this rule now applies starting from the very
   first content line, not just subsequent ones — so `foo <<<EOF` followed
   by a line at the same (or lesser) indentation now yields an empty
