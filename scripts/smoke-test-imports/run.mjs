@@ -10,8 +10,8 @@
 //
 // Covers every entry point in package.json's "exports": "donly",
 // "donly/encoder", "donly/decoder", "donly/load", "donly/lint",
-// "donly/find", "donly/demo/http-proxy", and
-// "donly/plugins/scoped-variables".
+// "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables",
+// and "donly/common/errors".
 
 import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -34,6 +34,7 @@ import {
   scopedVariablesPlugin,
   createScopedVariablesPlugin,
 } from "donly/plugins/scoped-variables";
+import { DonSyntaxError } from "donly/common/errors";
 
 // "donly"
 const directive = DON.parse('name "example"');
@@ -122,6 +123,12 @@ const seededPlugin = createScopedVariablesPlugin({
 const seededResult = DON.parse("stage $env", { plugins: [seededPlugin] });
 assert.deepEqual(seededResult.args, ["prod"]);
 
+// "donly/common/errors"
+assert.ok(new DonSyntaxError("boom") instanceof DonSyntaxError);
+assert.ok(new DonSyntaxError("boom") instanceof SyntaxError);
+assert.equal(new DonSyntaxError("boom").message, "boom");
+assert.equal(new DonSyntaxError("boom").name, "DonSyntaxError");
+
 console.log(
-  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder", "donly/decoder", "donly/load", "donly/lint", "donly/find", "donly/demo/http-proxy" and "donly/plugins/scoped-variables" all resolve and work.`,
+  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder", "donly/decoder", "donly/load", "donly/lint", "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables" and "donly/common/errors" all resolve and work.`,
 );

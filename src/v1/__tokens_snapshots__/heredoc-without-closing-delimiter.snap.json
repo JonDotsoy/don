@@ -268,10 +268,10 @@
     },
     {
       "type": 18,
-      "text": "<<<HTML\n  ",
+      "text": "<<<HTML\n",
       "span": {
         "index": 12,
-        "length": 10,
+        "length": 8,
         "startLocation": {
           "line": 1,
           "column": 6,
@@ -279,8 +279,8 @@
         },
         "endLocation": {
           "line": 2,
-          "column": 2,
-          "paddingLine": 2
+          "column": 0,
+          "paddingLine": 0
         }
       },
       "parts": [
@@ -373,7 +373,27 @@
               "paddingLine": 0
             }
           }
+        }
+      ]
+    },
+    {
+      "type": 17,
+      "text": "  ",
+      "span": {
+        "index": 20,
+        "length": 2,
+        "startLocation": {
+          "line": 2,
+          "column": 0,
+          "paddingLine": 2
         },
+        "endLocation": {
+          "line": 2,
+          "column": 2,
+          "paddingLine": 2
+        }
+      },
+      "parts": [
         {
           "type": 3,
           "text": "  ",

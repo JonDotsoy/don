@@ -550,3 +550,41 @@ describe("DirectiveJSONDecoder#decode", () => {
       .toThrow();
   });
 });
+
+describe("Directive#toJSON performance (known bug, not yet fixed)", () => {
+  // Known bug: assignGrouped (src/directive-json.ts) is called once per
+  // child directive and, every single time, rescans *all* of
+  // `parent.children` with `.filter(...)` to find same-name siblings, and
+  // then rebuilds the accumulated array from scratch with
+  // `[...existing, value]`. Both are O(children.length) per child, so
+  // `Directive#toJSON()` (and therefore `JSON.stringify(directive)`) is
+  // O(n^2) in the number of same-level sibling directives instead of
+  // O(n) - a document with many repeated directives at one level (e.g.
+  // many `route` entries) gets quadratically slower to serialize as it
+  // grows, not linearly.
+  it.skip("should serialize a flat run of repeated directives roughly linearly, not quadratically", () => {
+    const build = (n: number) =>
+      Array.from({ length: n }, (_, i) => `route ${i} 1`).join("\n") + "\n";
+
+    const timeToJSON = (n: number) => {
+      const result = DON.parse(build(n));
+      const t0 = performance.now();
+      JSON.stringify(result);
+      return performance.now() - t0;
+    };
+
+    // Warm up the JIT so the timed runs below aren't skewed by it.
+    timeToJSON(500);
+    timeToJSON(500);
+
+    const small = 1500;
+    const large = small * 4;
+    const timeSmall = timeToJSON(small);
+    const timeLarge = timeToJSON(large);
+
+    // A roughly-linear implementation (even with constant-factor
+    // overhead) keeps this ratio close to 4x for a 4x input size. The
+    // current O(n^2) implementation measures 10x-15x here.
+    expect(timeLarge / timeSmall).toBeLessThan(8);
+  });
+});

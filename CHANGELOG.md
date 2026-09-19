@@ -99,3 +99,57 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+- `DonSyntaxError` (`donly/common/errors`, also at `src/common/syntax-error.ts`)
+  — a dedicated `SyntaxError` subclass for malformed DON source text, so
+  callers can check `error instanceof DonSyntaxError` to distinguish a
+  DON parsing failure from any other error a call into this library
+  might throw.
+
+### Fixed
+
+- Heredoc parsing (`<<<DELIMITER`) no longer unconditionally swallows the
+  first line after the declaration into the payload. Per spec (§ 2.8
+  Heredocs), content must have _greater_ indentation than the heredoc
+  declaration line, and this rule now applies starting from the very
+  first content line, not just subsequent ones — so `foo <<<EOF` followed
+  by a line at the same (or lesser) indentation now yields an empty
+  heredoc payload and that line becomes a sibling directive, instead of
+  being swallowed as content.
+- `DON.parse` now enforces the spec §2.2 block-close constraint: a
+  directive's `{ ... }` block may only be followed on the same line by a
+  newline, a comment, another block's closing `}`, or end of input.
+  Previously `container { image "nginx" } extra` silently parsed `extra`
+  as a positional argument of `container` instead of raising a syntax
+  error.
+- `DON.parse` now throws a `SyntaxError` for an unterminated single- or
+  double-quoted string (a quote with no matching closing quote before the
+  string's line ends or before end of input), instead of silently leaking
+  the opening quote as a literal character into the arg value and
+  producing a corrupted `Directive` tree. The lexer (`Token`) already
+  detected this case and recorded it via `Token#getErrors()`, but nothing
+  in the parsing pipeline consulted it; the syntax parser now checks every
+  token's `getErrors()` as it consumes it and fails fast on the first
+  error found. The lexer's own unclosed-string detection was also
+  extended to cover a string that runs off the end of the document (not
+  just one broken by a raw newline), which previously matched no token at
+  all instead of being flagged.
+- `DON.parse(text)` now raises a synchronous `SyntaxError` for an
+  unterminated block (a `{` with no matching `}` before the input ends),
+  e.g. `DON.parse("foo {")`. Previously the syntax parser spun forever
+  waiting for a closing `}` token that would never arrive — an infinite
+  loop that hung the process and grew memory unbounded — instead of
+  reporting the malformed input.
+- All syntax-error throw sites in the parser (`src/v1/compiler/syntax-encode.ts`)
+  — an unclosed string/heredoc reported by the lexer, tokens found after a
+  block's closing `}` on the same line, an unterminated block missing its
+  closing `}`, and a block with no directive name on its line (see below)
+  — now throw `DonSyntaxError` instead of a plain `Error`/`SyntaxError`, so
+  `error instanceof DonSyntaxError` reliably identifies a
+  malformed-DON-source failure from `DON.parse`.
+- `DON.parse` now raises a syntax error for a `{` block on its own line
+  with no preceding directive name (e.g. a stray block at the document
+  root). Per spec §2.2, a block is always the tail of a directive's own
+  line, never a standalone construct. Previously such an orphan block was
+  silently dropped — or, if another directive followed later in the
+  document, its content was silently reattached as children of that
+  unrelated directive instead.

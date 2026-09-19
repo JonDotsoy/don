@@ -1,3 +1,4 @@
+import { DonSyntaxError } from "../../common/syntax-error.js";
 import { buildLogger } from "../utils/build-logger.js";
 import { SyntaxKind } from "../utils/syntax-kind.js";
 import { DirectiveNode, DocumentNode } from "./directive-node.js";
@@ -119,10 +120,18 @@ export class SyntaxParser {
         children: [],
       });
       const directives = new State<DirectiveNode[]>([]);
+      let closedByBrace = false;
 
       for (let i = fromIndex; i < tokens.length; i++) {
         const token = tokens[i];
         if (!token) break;
+
+        const tokenErrors = token.getErrors();
+        if (tokenErrors.length > 0) {
+          throw new DonSyntaxError(
+            `${tokenErrors.join(", ")} at Ln ${token.span.startLocation.line}, Col ${token.span.startLocation.column} (${JSON.stringify(token.text())})`,
+          );
+        }
 
         // avoid whitespaces
         if (token.type === SyntaxKind.whitespace) continue;
@@ -134,13 +143,47 @@ export class SyntaxParser {
         endToken.current = token;
 
         if (token.type === SyntaxKind.openCurlyBrace) {
+          // Constraint (spec 2.2): a block is always the tail of a
+          // directive's own line, immediately after its name/args - never
+          // a standalone construct. A `{` with no directive name yet
+          // accumulated on this line (e.g. a stray block on its own line)
+          // has no directive to attach its children to.
+          if (partialDirective.current.name === null) {
+            throw new DonSyntaxError(
+              `Syntax error: a block must follow a directive name on the same line at Ln ${token.span.startLocation.line}, Col ${token.span.startLocation.column}`,
+            );
+          }
+
           const result = scanDirective(tokens, i + 1, depth + 1);
           i = tokens.indexOf(result.endToken);
           partialDirective.current.children = result.directives;
+
+          // Constraint (spec 2.2): after a block's closing `}`, only a
+          // newline (or EOF) may follow on the same directive line. Peek
+          // past whitespace for the next token and reject anything other
+          // than a newline, a comment, another block close (closing an
+          // enclosing block on the same line), or end of input.
+          for (let j = i + 1; j < tokens.length; j++) {
+            const nextToken = tokens[j];
+            if (!nextToken) break;
+            if (nextToken.type === SyntaxKind.whitespace) continue;
+            if (
+              nextToken.type === SyntaxKind.newline ||
+              nextToken.type === SyntaxKind.comment ||
+              nextToken.type === SyntaxKind.closeCurlyBrace
+            ) {
+              break;
+            }
+            throw new DonSyntaxError(
+              `Syntax error: tokens after block close are not allowed on the same line (found "${nextToken.text()}")`,
+            );
+          }
+
           continue;
         }
 
         if (token.type === SyntaxKind.closeCurlyBrace) {
+          closedByBrace = true;
           break;
         }
 
@@ -218,6 +261,12 @@ export class SyntaxParser {
         }
 
         // throw new Error(`unexpected token: ${token.type} ${token.text()}`)
+      }
+
+      if (depth > 0 && !closedByBrace) {
+        throw new DonSyntaxError(
+          `Unterminated block: missing closing '}' for '{' opened at position ${fromIndex - 1}`,
+        );
       }
 
       if (partialDirective.current.name !== null) {

@@ -55,6 +55,10 @@
       "types": "./lib/esm/lint/lint.d.ts",
       "import": "./lib/esm/lint/lint.js"
     },
+    "./common/errors": {
+      "types": "./lib/esm/common/errors.d.ts",
+      "import": "./lib/esm/common/errors.js"
+    },
     "./find": {
       "types": "./lib/esm/find.d.ts",
       "import": "./lib/esm/find.js"

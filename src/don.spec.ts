@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { DonSyntaxError } from "./common/errors.js";
 import { DON, Directive, HeredocValue } from "./don";
 import { ROOT_DIRECTIVE_NAME } from "./directive-json";
 import { donToParts } from "./index";
@@ -203,6 +204,197 @@ describe("DON.parse", () => {
     );
 
     expect(result.args[0]).toEqual(new HeredocValue(null, "npm ci\n"));
+  });
+
+  // Known bug (see docs/specs/v1/spec.md § 2.8 "Heredocs" -> Rules): "Content
+  // must have greater indentation than the heredoc declaration" and parsing
+  // "Continues until a token with indentation equal to or less than the
+  // heredoc declaration line is found". Here `bar` sits at the same
+  // indentation (0) as the `foo <<<EOF` declaration, so per spec it should
+  // never enter the heredoc payload and should instead become `foo`'s
+  // sibling directive - exactly like `baz` correctly does one line later.
+  // Instead the parser unconditionally swallows the first content line
+  // into the heredoc regardless of its indentation.
+  it('should not swallow an unindented first line into the heredoc payload', () => {
+    const result = DON.parse(""
+      + "foo <<<EOF\n"
+      + "bar\n"
+      + "baz\n"
+    );
+
+    const foo = result.children[0]!;
+    expect(foo.name).toBe("foo");
+    expect(foo.args[0]).toEqual(new HeredocValue("EOF", ""));
+
+    const bar = result.children[1]!;
+    expect(bar.name).toBe("bar");
+    expect(bar.args).toEqual([]);
+
+    const baz = result.children[2]!;
+    expect(baz.name).toBe("baz");
+    expect(baz.args).toEqual([]);
+  });
+
+  // Known bug: the lexer (src/v1/compiler/token.ts) already detects and
+  // records a "SyntaxError: Unclosed string" on the offending token (as
+  // seen in src/v1/__tokens_snapshots__/identifier-single-quoted-multiline-escaped-identifier.snap
+  // for a similar case), via Token#getErrors(). But DON.parse never reads
+  // that back - getErrors() is only ever consulted by the debug token-
+  // snapshot util (src/v1/__utils__/to-token-snapshot.ts), not by the
+  // syntax parser (src/v1/compiler/syntax-encode.ts) or DON.parse itself.
+  // So an unterminated string silently produces a corrupted directive
+  // tree (the leading quote leaks into the arg value as a literal
+  // character) instead of raising a syntax error.
+  it('should raise a syntax error for an unterminated string instead of silently corrupting the arg', () => {
+    expect(() => DON.parse('name "foo')).toThrow(DonSyntaxError);
+  });
+
+  it('should raise a syntax error for an unterminated string inside a block', () => {
+    expect(() => DON.parse(""
+      + "server {\n"
+      + '  host "localhost\n'
+      + "}\n"
+    )).toThrow(DonSyntaxError);
+  });
+
+  it('should raise a syntax error for an unterminated string alongside other directives', () => {
+    expect(() => DON.parse(""
+      + 'name "my-app"\n'
+      + 'version "1.0.0\n'
+      + 'port 8080\n'
+    )).toThrow(DonSyntaxError);
+  });
+
+  it('should still parse properly terminated strings without throwing', () => {
+    expect(() => DON.parse('name "foo"')).not.toThrow();
+    expect(() => DON.parse("name 'foo'")).not.toThrow();
+    expect(() => DON.parse('name "foo \\" bar"')).not.toThrow();
+    expect(() => DON.parse(""
+      + "server {\n"
+      + '  host "localhost"\n'
+      + "}\n"
+    )).not.toThrow();
+  });
+
+  // Known bug: docs/specs/v1/spec.md § 2.2 documents this exact input under
+  // "Constraint" / "Invalid" - "After a closing brace `}`, no additional
+  // tokens are allowed on the same directive line (except newlines)" -
+  // with the annotated error "Error: tokens after block close". The parser
+  // never enforces it: `extra` is silently merged in as another arg of
+  // `container`, right alongside its already-closed `{ ... }` block,
+  // instead of raising a syntax error.
+  it('should raise a syntax error for tokens after a block close on the same line', () => {
+    expect(() => DON.parse('container { image "nginx" } extra')).toThrow(DonSyntaxError);
+  });
+
+  // Fixed bug: docs/specs/v1/spec.md § 2.2 only ever documents a block as
+  // `directive_name {` - a `{` is always the tail of a directive's own
+  // line, immediately after its name/args, never a construct on its own.
+  // A `{` with no directive name on its line (e.g. a stray block at the
+  // document root) has no valid meaning per the grammar and now raises a
+  // syntax error, instead of silently dropping the whole orphan block -
+  // here `{ No trir }`, right after `Foo biz`.
+  it('should raise a syntax error for a block on its own line with no directive name', () => {
+    expect(() => DON.parse(""
+      + "Foo biz\n"
+      + "{\n"
+      + "  No trir \n"
+      + "}\n"
+    )).toThrow(DonSyntaxError);
+  });
+
+  // The bug above was worse than silent data loss: the orphan block's
+  // content didn't just vanish, it got reattached as children of
+  // whatever directive happened to come *next* in the document - here
+  // `No trir` (from the orphan block above `after`) used to end up nested
+  // *inside* `after`, a completely unrelated sibling directive. Now both
+  // raise the same syntax error before any misattribution can happen.
+  it('should not silently reattach an orphan block\'s content to the next unrelated directive', () => {
+    expect(() => DON.parse(""
+      + "Foo biz\n"
+      + "{\n"
+      + "  No trir \n"
+      + "}\n"
+      + "after 1\n"
+    )).toThrow(DonSyntaxError);
+  });
+});
+
+describe("DON.parse: special-character identifiers (spec § 2.3)", () => {
+  // Every special symbol the spec calls out ($, -, /, :, [, ]) — alone and
+  // combined into a single "kitchen sink" identifier — used first as a
+  // directive NAME, then the exact same tokens used again as a bare
+  // (unquoted) ARGUMENT of another directive, to prove the lexer accepts
+  // them identically in both positions.
+  it('should parse every special-character identifier from spec § 2.3 as a directive name', () => {
+    const result = DON.parse(""
+      + '$prod "on"\n'
+      + '${name} "interpolation-like"\n'
+      + '_private true\n'
+      + 'myVariable-2 42\n'
+      + '/api/:id GET 200\n'
+      + '[flag]\n'
+      + 'my-[age] 30\n'
+      + 'route-[id]-[shape] "combo"\n'
+      + 'path/to/resource "deep/path/value"\n'
+      + 'ns:key:sub "colon-namespaced"\n'
+      + 'a-b_c123$[x]:/y "kitchen-sink-name"\n'
+    );
+
+    const names = result.children.map((child) => child.name);
+    expect(names).toEqual([
+      "$prod",
+      "${name}",
+      "_private",
+      "myVariable-2",
+      "/api/:id",
+      "[flag]",
+      "my-[age]",
+      "route-[id]-[shape]",
+      "path/to/resource",
+      "ns:key:sub",
+      "a-b_c123$[x]:/y",
+    ]);
+
+    expect(result.children[0]!.args).toEqual(["on"]);
+    expect(result.children[1]!.args).toEqual(["interpolation-like"]);
+    expect(result.children[2]!.args).toEqual([true]);
+    expect(result.children[3]!.args).toEqual([42]);
+    expect(result.children[4]!.args).toEqual(["GET", 200]);
+    expect(result.children[5]!.args).toEqual([]);
+    expect(result.children[6]!.args).toEqual([30]);
+    expect(result.children[7]!.args).toEqual(["combo"]);
+    expect(result.children[8]!.args).toEqual(["deep/path/value"]);
+    expect(result.children[9]!.args).toEqual(["colon-namespaced"]);
+    expect(result.children[10]!.args).toEqual(["kitchen-sink-name"]);
+  });
+
+  it('should parse every special-character identifier from spec § 2.3 as a bare argument', () => {
+    const result = DON.parse(""
+      + "target $prod\n"
+      + "template ${name}\n"
+      + "route /api/:id\n"
+      + "alias [name]\n"
+      + "combo my-[age]\n"
+      + "deep path/to/resource\n"
+      + "key ns:key:sub\n"
+      + "mixed a-b_c123$[x]:/y\n"
+    );
+
+    const asArg = Object.fromEntries(
+      result.children.map((child) => [child.name, child.args[0]]),
+    );
+
+    expect(asArg).toEqual({
+      target: "$prod",
+      template: "${name}",
+      route: "/api/:id",
+      alias: "[name]",
+      combo: "my-[age]",
+      deep: "path/to/resource",
+      key: "ns:key:sub",
+      mixed: "a-b_c123$[x]:/y",
+    });
   });
 });
 
