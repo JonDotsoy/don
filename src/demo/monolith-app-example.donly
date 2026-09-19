@@ -19,6 +19,7 @@ app "storefront" {
 
   module auth {
     enabled true
+    host "https://10.0.0.10/api/auth"
     database "primary"
 
     feature-flags {
@@ -36,6 +37,7 @@ app "storefront" {
   module catalog {
     enabled true
     needs auth
+    host "https://10.0.0.10/api/catalog"
     database "primary"
 
     feature-flags {
@@ -52,6 +54,7 @@ app "storefront" {
   module cart {
     enabled true
     needs auth catalog
+    host "https://10.0.0.10/api/cart"
     database "primary"
 
     routes {
@@ -64,6 +67,7 @@ app "storefront" {
   module checkout {
     enabled true
     needs auth cart
+    host "https://10.0.0.10/api/checkout"
     database "primary"
 
     feature-flags {
@@ -80,6 +84,7 @@ app "storefront" {
   module notifications {
     enabled false
     needs auth
+    host "https://10.0.0.10/api/notifications"
     queue "redis"
 
     feature-flags {

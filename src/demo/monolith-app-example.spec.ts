@@ -107,6 +107,32 @@ describe("donly/demo monolith app example", () => {
     ]);
   });
 
+  it("gives each module its own host URL", () => {
+    const root = DON.parse(config);
+
+    const auth = findModule(root, "auth");
+    const catalog = findModule(root, "catalog");
+    const cart = findModule(root, "cart");
+    const checkout = findModule(root, "checkout");
+    const notifications = findModule(root, "notifications");
+
+    expect(findChild(auth, "host")?.args).toEqual([
+      "https://10.0.0.10/api/auth",
+    ]);
+    expect(findChild(catalog, "host")?.args).toEqual([
+      "https://10.0.0.10/api/catalog",
+    ]);
+    expect(findChild(cart, "host")?.args).toEqual([
+      "https://10.0.0.10/api/cart",
+    ]);
+    expect(findChild(checkout, "host")?.args).toEqual([
+      "https://10.0.0.10/api/checkout",
+    ]);
+    expect(findChild(notifications, "host")?.args).toEqual([
+      "https://10.0.0.10/api/notifications",
+    ]);
+  });
+
   it("lets a module use a different backing resource, like a queue instead of a database", () => {
     const root = DON.parse(config);
 
