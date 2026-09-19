@@ -1,6 +1,8 @@
 # donly/demo monolith app configuration.
-# A single deployable app split into several modules, each with its own
-# database, feature flags, dependencies on other modules, and routes.
+# A single deployable app split into several modules, each with feature
+# flags, dependencies on other modules, and routes. A module reaches the
+# shared database directly (`database "primary"`) or, if it fronts a
+# remote service instead, declares its own `host` URL - never both.
 
 app "storefront" {
   env "production"
@@ -20,7 +22,6 @@ app "storefront" {
   module auth {
     enabled true
     host "https://10.0.0.10/api/auth"
-    database "primary"
 
     feature-flags {
       sso true
@@ -38,7 +39,6 @@ app "storefront" {
     enabled true
     needs auth
     host "https://10.0.0.10/api/catalog"
-    database "primary"
 
     feature-flags {
       search-v2 true
@@ -55,7 +55,6 @@ app "storefront" {
     enabled true
     needs auth catalog
     host "https://10.0.0.10/api/cart"
-    database "primary"
 
     routes {
       route GET /cart
@@ -68,7 +67,6 @@ app "storefront" {
     enabled true
     needs auth cart
     host "https://10.0.0.10/api/checkout"
-    database "primary"
 
     feature-flags {
       express-checkout true

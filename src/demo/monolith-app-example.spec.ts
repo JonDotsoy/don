@@ -142,6 +142,23 @@ describe("donly/demo monolith app example", () => {
     expect(findChild(notifications, "database")).toBeUndefined();
   });
 
+  it("never declares both `host` and `database` on the same module", () => {
+    const root = DON.parse(config);
+
+    for (const module of findChildren(root, "module")) {
+      const hasHost = findChild(module, "host") !== undefined;
+      const hasDatabase = findChild(module, "database") !== undefined;
+
+      expect(hasHost && hasDatabase).toBe(false);
+    }
+
+    expect(
+      findChildren(root, "module").every(
+        (module) => findChild(module, "host") !== undefined,
+      ),
+    ).toBe(true);
+  });
+
   it("round-trips the whole config through the DirectiveJSONEncoder", () => {
     const root = DON.parse(config);
     const value = DirectiveJSONEncoder.encode(root, { reducer: null });
