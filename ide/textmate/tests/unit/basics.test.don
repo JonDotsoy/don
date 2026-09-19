@@ -1,0 +1,38 @@
+# SYNTAX TEST "source.don" "DON grammar basics"
+
+name "my-app"
+#<---- entity.name.function.directive.don
+#     ^ string.quoted.double.don
+
+port 8080
+#<--- entity.name.function.directive.don
+#    ^^^^ constant.numeric.integer.don
+
+enabled true
+#<----- entity.name.function.directive.don
+#       ^^^^ constant.language.boolean.don
+
+deprecated null
+#<--------- entity.name.function.directive.don
+#           ^^^^ constant.language.null.don
+
+timeout 30.5
+#<------ entity.name.function.directive.don
+#        ^^^^ constant.numeric.decimal.don
+
+maxSize 1024n
+#<------ entity.name.function.directive.don
+#        ^^^^^ constant.numeric.bigint.don
+
+port 0xFF
+#    ^^^^ constant.numeric.hex.don
+
+# this is a comment
+#<------------------- comment.line.number-sign.don
+
+server {
+#<----- entity.name.function.directive.don
+#      ^ punctuation.section.block.begin.don
+  port 8080
+}
+#<- punctuation.section.block.end.don

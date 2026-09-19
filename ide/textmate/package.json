@@ -6,6 +6,12 @@
   "engines": {
     "vscode": "^1.70.0"
   },
+  "scripts": {
+    "test": "vscode-tmgrammar-test 'tests/unit/**/*.test.don'"
+  },
+  "devDependencies": {
+    "vscode-tmgrammar-test": "^0.1.3"
+  },
   "categories": [
     "Programming Languages"
   ],

@@ -19,12 +19,34 @@ other editor that consumes TextMate grammars.
 - `scripts/validate-grammar.ts` — validates that the grammar is well-formed
   (valid JSON, every pattern compiles as a regular expression) and that its
   directive-name rule matches real DON source in `samples/`.
+- `tests/unit/*.test.don` — scope-assertion unit tests
+  (`# SYNTAX TEST "source.don" "..."` + `^`/`<-` assertion comments) run with
+  [`vscode-tmgrammar-test`](https://github.com/PanAeon/vscode-tmgrammar-test)
+  against the actual `vscode-textmate` tokenizer.
 
 ## Validate
 
 ```sh
 bun ide/textmate/scripts/validate-grammar.ts
 ```
+
+Runs a lightweight structural check (valid JSON, every regex compiles, the
+directive-name rule fires on the sample files) with no extra dependencies.
+
+## Test against vscode-textmate
+
+```sh
+npm install -g vscode-tmgrammar-test
+cd ide/textmate
+vscode-tmgrammar-test 'tests/unit/**/*.test.don'
+```
+
+This tokenizes `tests/unit/basics.test.don` with the real `vscode-textmate`
+engine (the same one VS Code uses) and checks the scopes assigned to
+directive names, strings, numbers, booleans, `null`, comments, and block
+braces against the `^`/`<-` assertions in the file. `package.json` in this
+directory already declares the `don` language and grammar, so no `-g`/`-c`
+flags are needed when run from `ide/textmate/`.
 
 ## Use in VS Code
 
