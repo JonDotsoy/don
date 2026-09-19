@@ -6,10 +6,10 @@ import { DirectiveJSONEncoder } from "../directive-json.js";
 
 const dir = new URL(".", import.meta.url).pathname;
 
-// A CI/CD-style pipeline: several jobs (identified with bracket
-// identifiers), dependencies between them via `needs`, conditional
-// execution via `if`, parallel processes via `matrix`, and each job
-// declaring `outputs` consumed by downstream jobs.
+// A CI/CD-style pipeline: several jobs (each named as an argument to
+// `job`), dependencies between them via `needs`, conditional execution
+// via `if`, parallel processes via `matrix`, and each job declaring
+// `outputs` consumed by downstream jobs.
 const pipeline = readFileSync(
   join(dir, "workflow-example.donly"),
   "utf8",
@@ -20,6 +20,11 @@ const findChild = (directive: Directive, name: string) =>
 
 const findChildren = (directive: Directive, name: string) =>
   directive.children.filter((child) => child.name === name);
+
+const findJob = (directive: Directive, id: string) =>
+  directive.children.find(
+    (child) => child.name === "job" && child.args[0] === id,
+  )!;
 
 describe("donly/demo workflow example", () => {
   it("parses the whole pipeline into a single root directive", () => {
@@ -44,27 +49,25 @@ describe("donly/demo workflow example", () => {
     ]);
   });
 
-  it("identifies each job by its bracketed identifier", () => {
+  it("identifies each job by its `job` directive argument", () => {
     const root = DON.parse(pipeline);
 
-    const jobs = root.children.filter((child) =>
-      /^job-\[.+\]$/.test(String(child.name)),
-    );
+    const jobs = findChildren(root, "job");
 
-    expect(jobs.map((job) => job.name)).toEqual([
-      "job-[lint]",
-      "job-[build]",
-      "job-[deploy-staging]",
-      "job-[deploy-production]",
+    expect(jobs.map((job) => job.args)).toEqual([
+      ["lint"],
+      ["build"],
+      ["deploy-staging"],
+      ["deploy-production"],
     ]);
   });
 
   it("chains jobs together with `needs`", () => {
     const root = DON.parse(pipeline);
 
-    const build = findChild(root, "job-[build]")!;
-    const deployStaging = findChild(root, "job-[deploy-staging]")!;
-    const deployProduction = findChild(root, "job-[deploy-production]")!;
+    const build = findJob(root, "build");
+    const deployStaging = findJob(root, "deploy-staging");
+    const deployProduction = findJob(root, "deploy-production");
 
     expect(findChild(build, "needs")?.args).toEqual(["lint"]);
     expect(findChild(deployStaging, "needs")?.args).toEqual(["build"]);
@@ -77,11 +80,11 @@ describe("donly/demo workflow example", () => {
   it("gates deploy jobs behind an `if` condition referencing another job's outputs", () => {
     const root = DON.parse(pipeline);
 
-    const deployStaging = findChild(root, "job-[deploy-staging]")!;
-    const deployProduction = findChild(root, "job-[deploy-production]")!;
+    const deployStaging = findJob(root, "deploy-staging");
+    const deployProduction = findJob(root, "deploy-production");
 
     expect(findChild(deployStaging, "if")?.args).toEqual([
-      "${job-[build].outputs.version} != ''",
+      "${job.build.outputs.version} != ''",
     ]);
     expect(findChild(deployProduction, "if")?.args).toEqual([
       "${on.push.branches} == 'main'",
@@ -91,7 +94,7 @@ describe("donly/demo workflow example", () => {
   it("runs a matrix of parallel processes for the build job", () => {
     const root = DON.parse(pipeline);
 
-    const build = findChild(root, "job-[build]")!;
+    const build = findJob(root, "build");
     const matrix = findChild(build, "matrix")!;
 
     expect(findChild(matrix, "os")?.args).toEqual([
@@ -105,7 +108,7 @@ describe("donly/demo workflow example", () => {
   it("runs multiple sequential processes per job via `run` steps", () => {
     const root = DON.parse(pipeline);
 
-    const build = findChild(root, "job-[build]")!;
+    const build = findJob(root, "build");
     const steps = findChild(build, "steps")!;
 
     expect(findChildren(steps, "run").map((r) => r.args)).toEqual([
@@ -118,7 +121,7 @@ describe("donly/demo workflow example", () => {
   it("declares outputs each downstream job can reference", () => {
     const root = DON.parse(pipeline);
 
-    const build = findChild(root, "job-[build]")!;
+    const build = findJob(root, "build");
     const outputs = findChild(build, "outputs")!;
 
     expect(outputs.children.map((c) => [c.name, c.args])).toEqual([
@@ -136,14 +139,14 @@ describe("donly/demo workflow example", () => {
     expect(workflow.name).toBe("workflow");
     expect(workflow.args).toEqual(["release"]);
 
-    const jobNames = workflow.children
-      .filter((c: any) => /^job-\[.+\]$/.test(c.name))
-      .map((c: any) => c.name);
-    expect(jobNames).toEqual([
-      "job-[lint]",
-      "job-[build]",
-      "job-[deploy-staging]",
-      "job-[deploy-production]",
+    const jobIds = workflow.children
+      .filter((c: any) => c.name === "job")
+      .map((c: any) => c.args[0]);
+    expect(jobIds).toEqual([
+      "lint",
+      "build",
+      "deploy-staging",
+      "deploy-production",
     ]);
   });
 });

@@ -1,8 +1,8 @@
 # donly/demo workflow example.
-# A CI/CD-style pipeline: several jobs (identified with bracket
-# identifiers), dependencies between them via `needs`, conditional
-# execution via `if`, parallel processes via `matrix`, and each job
-# declaring `outputs` consumed by downstream jobs.
+# A CI/CD-style pipeline: several jobs (each named as an argument to
+# `job`), dependencies between them via `needs`, conditional execution
+# via `if`, parallel processes via `matrix`, and each job declaring
+# `outputs` consumed by downstream jobs.
 
 workflow "release" {
   on push {
@@ -14,7 +14,7 @@ workflow "release" {
     NODE_ENV "production"
   }
 
-  job-[lint] {
+  job lint {
     runs-on "ubuntu-latest"
     steps {
       run "npm ci"
@@ -22,7 +22,7 @@ workflow "release" {
     }
   }
 
-  job-[build] {
+  job build {
     needs lint
     runs-on "ubuntu-latest"
     matrix {
@@ -40,24 +40,24 @@ workflow "release" {
     }
   }
 
-  job-[deploy-staging] {
+  job deploy-staging {
     needs build
-    if "${job-[build].outputs.version} != ''"
+    if "${job.build.outputs.version} != ''"
     runs-on "ubuntu-latest"
     steps {
-      run "deploy --env staging --version ${job-[build].outputs.version}"
+      run "deploy --env staging --version ${job.build.outputs.version}"
     }
     outputs {
       url "${steps.deploy.url}"
     }
   }
 
-  job-[deploy-production] {
+  job deploy-production {
     needs build deploy-staging
     if "${on.push.branches} == 'main'"
     runs-on "ubuntu-latest"
     steps {
-      run "deploy --env production --version ${job-[build].outputs.version}"
+      run "deploy --env production --version ${job.build.outputs.version}"
       run "notify --channel releases"
     }
     outputs {
