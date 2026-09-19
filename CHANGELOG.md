@@ -99,6 +99,21 @@ documentation.
   `process.cwd()`) and `size`/`table`/`columns` children describing a
   fake schema, via `PluginDirectiveNode#children`. Any other `resource`
   type, or a directive that isn't `resource`, passes through untouched.
+- `createClassResolverPlugin(classes)` / `parseAsClasses(text, classes,
+extraPlugins?)` / `resolveClasses(ctx)` (`donly/demo/plugins/class-resolver`)
+  — a third demo `DonPlugin`: resolves a parsed document into caller-supplied
+  class instances (`new classes[directiveName](...args)`) instead of a
+  `Directive` tree, assigning each directive's children onto the instance
+  as same-named properties (a single occurrence → the child's own
+  resolved value, a repeated directive → an array of them). A directive
+  not registered in `classes` unwraps to its own args (single arg → that
+  scalar, otherwise an array) when it has no children, or to a plain
+  object of its own children otherwise. Since `DON.parse()` always
+  returns a `Directive` regardless of plugins, the instances are built
+  into the plugin's own `ctx` via `onEnterScope`/`onExitScope` and read
+  back with `resolveClasses(ctx)`; `parseAsClasses` wires a `DON.parse()`
+  call and that read-back together in one call. See
+  `src/demo/plugins/class-resolver-plugin.md` for the full write-up.
 - `DonSyntaxError` (`donly/common/errors`, also at `src/common/syntax-error.ts`)
   — a dedicated `SyntaxError` subclass for malformed DON source text, so
   callers can check `error instanceof DonSyntaxError` to distinguish a

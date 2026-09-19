@@ -75,6 +75,10 @@
       "types": "./lib/esm/demo/plugins/resources-plugin.d.ts",
       "import": "./lib/esm/demo/plugins/resources-plugin.js"
     },
+    "./demo/plugins/class-resolver": {
+      "types": "./lib/esm/demo/plugins/class-resolver-plugin.d.ts",
+      "import": "./lib/esm/demo/plugins/class-resolver-plugin.js"
+    },
     "./plugins/scoped-variables": {
       "types": "./lib/esm/plugins/scoped-variables-plugin.d.ts",
       "import": "./lib/esm/plugins/scoped-variables-plugin.js"
