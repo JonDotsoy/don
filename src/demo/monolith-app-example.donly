@@ -1,0 +1,91 @@
+# donly/demo monolith app configuration.
+# A single deployable app split into several modules, each with its own
+# database, feature flags, dependencies on other modules, and routes.
+
+app "storefront" {
+  env "production"
+
+  server {
+    host "0.0.0.0"
+    port 3000
+  }
+
+  database "primary" {
+    driver "postgres"
+    host "db.internal"
+    port 5432
+    pool 20
+  }
+
+  module-[auth] {
+    enabled true
+    database "primary"
+
+    feature-flags {
+      sso true
+      magic-link false
+    }
+
+    routes {
+      route POST /auth/login
+      route POST /auth/logout
+      route POST /auth/refresh
+    }
+  }
+
+  module-[catalog] {
+    enabled true
+    needs auth
+    database "primary"
+
+    feature-flags {
+      search-v2 true
+    }
+
+    routes {
+      route GET /catalog/products
+      route GET /catalog/products/[id]
+      route GET /catalog/search
+    }
+  }
+
+  module-[cart] {
+    enabled true
+    needs auth catalog
+    database "primary"
+
+    routes {
+      route GET /cart
+      route POST /cart/items
+      route DELETE /cart/items/[id]
+    }
+  }
+
+  module-[checkout] {
+    enabled true
+    needs auth cart
+    database "primary"
+
+    feature-flags {
+      express-checkout true
+      buy-now-pay-later false
+    }
+
+    routes {
+      route POST /checkout
+      route GET /checkout/[id]/status
+    }
+  }
+
+  module-[notifications] {
+    enabled false
+    needs auth
+    queue "redis"
+
+    feature-flags {
+      email true
+      sms false
+      push false
+    }
+  }
+}
