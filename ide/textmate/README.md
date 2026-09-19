@@ -63,3 +63,31 @@ every pull request or push to `develop` that touches `ide/textmate/`.
 
 Point VS Code at this directory as an unpacked extension (or copy it into
 `~/.vscode/extensions/`) to get `.don`/`.donly` syntax highlighting.
+
+## Publish to the VS Code Marketplace
+
+The extension is published as [`jondotsoy.don-textmate`](https://marketplace.visualstudio.com/items?itemName=jondotsoy.don-textmate)
+with [`@vscode/vsce`](https://github.com/microsoft/vscode-vsce):
+
+```sh
+cd ide/textmate
+bun install
+bunx vsce package    # produces a .vsix locally, no publish
+bunx vsce publish --pat "$VSCE_PAT"
+```
+
+`.github/workflows/publish-textmate.yml` automates this in CI:
+
+- Runs on every push to `develop` that changes `ide/textmate/package.json`,
+  and on-demand via `workflow_dispatch`.
+- `workflow_dispatch` takes a `version_bump` input (`none` / `patch` /
+  `minor` / `major`, like the root `publish.yml` workflow) to bump
+  `ide/textmate/package.json`'s `version` and commit it before publishing.
+- Skips publishing if a `textmate-v<version>` GitHub release already exists
+  for the current version (so a re-run or an unrelated push doesn't
+  re-publish).
+- Validates the grammar (`scripts/validate-grammar.ts` +
+  `vscode-tmgrammar-test`) before publishing.
+- Requires the repository secret `VSCE_PAT` — a Personal Access Token from
+  https://marketplace.visualstudio.com/manage, scoped to the `jondotsoy`
+  publisher with Marketplace "Manage" access.
