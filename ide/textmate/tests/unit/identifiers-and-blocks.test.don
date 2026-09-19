@@ -1,0 +1,18 @@
+# SYNTAX TEST "source.don" "DON grammar identifiers and nested blocks"
+
+route /api/users GET POST
+#<---- entity.name.function.directive.don
+#     ^^^^^^^^^^ variable.parameter.don
+#                ^^^ variable.parameter.don
+
+deployment $prod _internal
+#<--------- entity.name.function.directive.don
+#          ^^^^^ variable.parameter.don
+
+server {
+  route /api/* {
+    handler "apiHandler"
+    timeout 30
+  }
+}
+#<- punctuation.section.block.end.don

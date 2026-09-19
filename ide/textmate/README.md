@@ -22,7 +22,17 @@ other editor that consumes TextMate grammars.
 - `tests/unit/*.test.don` — scope-assertion unit tests
   (`# SYNTAX TEST "source.don" "..."` + `^`/`<-` assertion comments) run with
   [`vscode-tmgrammar-test`](https://github.com/PanAeon/vscode-tmgrammar-test)
-  against the actual `vscode-textmate` tokenizer.
+  against the actual `vscode-textmate` tokenizer:
+  - `basics.test.don` — directive names, integers, booleans, `null`,
+    decimals, bigint, hex, line comments, block braces
+  - `numbers.test.don` — negative integers, octal, binary, hex bigint,
+    negative decimals, bigint
+  - `strings.test.don` — double/single-quoted strings and `\"`/`\'` escapes
+  - `comments.test.don` — inline line comments and single/multi-line block
+    comments
+  - `heredoc.test.don` — `<<<DELIMITER` heredoc opener and delimiter name
+  - `identifiers-and-blocks.test.don` — path-like/`$`-prefixed identifiers
+    as directive arguments and nested blocks
 
 ## Validate
 
@@ -41,12 +51,11 @@ cd ide/textmate
 vscode-tmgrammar-test 'tests/unit/**/*.test.don'
 ```
 
-This tokenizes `tests/unit/basics.test.don` with the real `vscode-textmate`
-engine (the same one VS Code uses) and checks the scopes assigned to
-directive names, strings, numbers, booleans, `null`, comments, and block
-braces against the `^`/`<-` assertions in the file. `package.json` in this
-directory already declares the `don` language and grammar, so no `-g`/`-c`
-flags are needed when run from `ide/textmate/`.
+This tokenizes every `tests/unit/*.test.don` file with the real
+`vscode-textmate` engine (the same one VS Code uses) and checks the
+resulting scopes against the `^`/`<-` assertions in each file.
+`package.json` in this directory already declares the `don` language and
+grammar, so no `-g`/`-c` flags are needed when run from `ide/textmate/`.
 
 ## Use in VS Code
 

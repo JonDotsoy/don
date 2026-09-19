@@ -1,0 +1,9 @@
+# SYNTAX TEST "source.don" "DON grammar strings"
+
+message "Says: \"Hello\""
+#       ^ string.quoted.double.don
+#              ^^ constant.character.escape.don
+
+path 'It\'s working'
+#    ^ string.quoted.single.don
+#       ^^ constant.character.escape.don

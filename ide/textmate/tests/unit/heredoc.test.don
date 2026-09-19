@@ -1,0 +1,10 @@
+# SYNTAX TEST "source.don" "DON grammar heredoc"
+
+template <<<HTML
+#<------- entity.name.function.directive.don
+#        ^^^ keyword.operator.heredoc.don
+#           ^^^^ entity.name.tag.heredoc-delimiter.don
+  <div>Hello</div>
+
+next "after heredoc"
+#<--- entity.name.function.directive.don
