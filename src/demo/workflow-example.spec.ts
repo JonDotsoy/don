@@ -1,75 +1,19 @@
 import { describe, it, expect } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { DON, Directive } from "../don.js";
 import { DirectiveJSONEncoder } from "../directive-json.js";
 
-/**
- * A CI/CD-style pipeline: several jobs (identified with bracket
- * identifiers), dependencies between them via `needs`, conditional
- * execution via `if`, parallel processes via `matrix`, and each job
- * declaring `outputs` consumed by downstream jobs.
- */
-const pipeline = ""
-  + 'workflow "release" {\n'
-  + "  on push {\n"
-  + '    branches "main"\n'
-  + "  }\n"
-  + "\n"
-  + "  env {\n"
-  + '    REGISTRY "registry.example.com"\n'
-  + '    NODE_ENV "production"\n'
-  + "  }\n"
-  + "\n"
-  + '  job-[lint] {\n'
-  + '    runs-on "ubuntu-latest"\n'
-  + "    steps {\n"
-  + '      run "npm ci"\n'
-  + '      run "npm run lint"\n'
-  + "    }\n"
-  + "  }\n"
-  + "\n"
-  + '  job-[build] {\n'
-  + "    needs lint\n"
-  + '    runs-on "ubuntu-latest"\n'
-  + "    matrix {\n"
-  + '      os "ubuntu-latest" "macos-latest" "windows-latest"\n'
-  + "      node 18 20 22\n"
-  + "    }\n"
-  + "    steps {\n"
-  + '      run "npm ci"\n'
-  + '      run "npm run build"\n'
-  + '      run "npm run test"\n'
-  + "    }\n"
-  + "    outputs {\n"
-  + '      version "${steps.build.version}"\n'
-  + '      artifact "${steps.build.artifact_path}"\n'
-  + "    }\n"
-  + "  }\n"
-  + "\n"
-  + '  job-[deploy-staging] {\n'
-  + "    needs build\n"
-  + '    if "${job-[build].outputs.version} != \'\'"\n'
-  + '    runs-on "ubuntu-latest"\n'
-  + "    steps {\n"
-  + '      run "deploy --env staging --version ${job-[build].outputs.version}"\n'
-  + "    }\n"
-  + "    outputs {\n"
-  + '      url "${steps.deploy.url}"\n'
-  + "    }\n"
-  + "  }\n"
-  + "\n"
-  + '  job-[deploy-production] {\n'
-  + "    needs build deploy-staging\n"
-  + '    if "${on.push.branches} == \'main\'"\n'
-  + '    runs-on "ubuntu-latest"\n'
-  + "    steps {\n"
-  + '      run "deploy --env production --version ${job-[build].outputs.version}"\n'
-  + '      run "notify --channel releases"\n'
-  + "    }\n"
-  + "    outputs {\n"
-  + '      url "${steps.deploy.url}"\n'
-  + "    }\n"
-  + "  }\n"
-  + "}\n";
+const dir = new URL(".", import.meta.url).pathname;
+
+// A CI/CD-style pipeline: several jobs (identified with bracket
+// identifiers), dependencies between them via `needs`, conditional
+// execution via `if`, parallel processes via `matrix`, and each job
+// declaring `outputs` consumed by downstream jobs.
+const pipeline = readFileSync(
+  join(dir, "workflow-example.donly"),
+  "utf8",
+);
 
 const findChild = (directive: Directive, name: string) =>
   directive.children.find((child) => child.name === name);

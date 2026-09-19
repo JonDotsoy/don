@@ -1,0 +1,67 @@
+# donly/demo workflow example.
+# A CI/CD-style pipeline: several jobs (identified with bracket
+# identifiers), dependencies between them via `needs`, conditional
+# execution via `if`, parallel processes via `matrix`, and each job
+# declaring `outputs` consumed by downstream jobs.
+
+workflow "release" {
+  on push {
+    branches "main"
+  }
+
+  env {
+    REGISTRY "registry.example.com"
+    NODE_ENV "production"
+  }
+
+  job-[lint] {
+    runs-on "ubuntu-latest"
+    steps {
+      run "npm ci"
+      run "npm run lint"
+    }
+  }
+
+  job-[build] {
+    needs lint
+    runs-on "ubuntu-latest"
+    matrix {
+      os "ubuntu-latest" "macos-latest" "windows-latest"
+      node 18 20 22
+    }
+    steps {
+      run "npm ci"
+      run "npm run build"
+      run "npm run test"
+    }
+    outputs {
+      version "${steps.build.version}"
+      artifact "${steps.build.artifact_path}"
+    }
+  }
+
+  job-[deploy-staging] {
+    needs build
+    if "${job-[build].outputs.version} != ''"
+    runs-on "ubuntu-latest"
+    steps {
+      run "deploy --env staging --version ${job-[build].outputs.version}"
+    }
+    outputs {
+      url "${steps.deploy.url}"
+    }
+  }
+
+  job-[deploy-production] {
+    needs build deploy-staging
+    if "${on.push.branches} == 'main'"
+    runs-on "ubuntu-latest"
+    steps {
+      run "deploy --env production --version ${job-[build].outputs.version}"
+      run "notify --channel releases"
+    }
+    outputs {
+      url "${steps.deploy.url}"
+    }
+  }
+}
