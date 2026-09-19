@@ -4,9 +4,9 @@
 // documented argument types and produces the documented result types,
 // for every published entry point ("donly", "donly/encoder",
 // "donly/decoder", "donly/load", "donly/lint", "donly/find",
-// "donly/demo/http-proxy", "donly/plugins/scoped-variables"). Relies on
-// the same self-reference resolution the runtime smoke test (run.mjs)
-// uses, so `lib/esm` must be built first.
+// "donly/demo/http-proxy", "donly/plugins/scoped-variables",
+// "donly/common/errors"). Relies on the same self-reference resolution
+// the runtime smoke test (run.mjs) uses, so `lib/esm` must be built first.
 
 import {
   DON,
@@ -37,6 +37,7 @@ import {
   createScopedVariablesPlugin,
 } from "donly/plugins/scoped-variables";
 import type { ScopedVariablesPluginOptions } from "donly/plugins/scoped-variables";
+import { DonSyntaxError } from "donly/common/errors";
 
 // --- "donly": DON.parse ---
 
@@ -165,6 +166,14 @@ const scopedParsed: Directive = DON.parse("stage $env", {
   plugins: [seededPlugin],
 });
 
+// --- "donly/common/errors": DonSyntaxError ---
+
+const syntaxError: DonSyntaxError = new DonSyntaxError("unterminated block");
+const syntaxErrorAsSyntaxError: SyntaxError = syntaxError;
+const syntaxErrorAsError: Error = syntaxError;
+const syntaxErrorName: string = syntaxError.name;
+const syntaxErrorMessage: string = syntaxError.message;
+
 // --- negative cases: unsupported argument/result types must not compile ---
 
 // @ts-expect-error DON.parse requires a string
@@ -218,4 +227,8 @@ void [
   scopedOptionsFromMap,
   seededPluginNoOptions,
   scopedParsed,
+  syntaxErrorAsSyntaxError,
+  syntaxErrorAsError,
+  syntaxErrorName,
+  syntaxErrorMessage,
 ];

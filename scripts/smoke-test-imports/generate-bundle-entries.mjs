@@ -1,7 +1,7 @@
 // Writes one tiny entry script per published import path ("donly",
 // "donly/encoder", "donly/decoder", "donly/load", "donly/lint",
-// "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables")
-// into the directory given as
+// "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables",
+// "donly/common/errors") into the directory given as
 // argv[2], plus a manifest.json listing, for each script, the
 // `bun build --target <target>` targets it's expected to bundle under
 // (node, bun, browser). Each script does a real `import { ... } from
@@ -82,6 +82,13 @@ console.log(serve, proxyLintRules);
     content: `
 import { scopedVariablesPlugin, createScopedVariablesPlugin } from "donly/plugins/scoped-variables";
 console.log(scopedVariablesPlugin, createScopedVariablesPlugin);
+`,
+    targets: ALL_TARGETS,
+  },
+  "donly-common-errors.mjs": {
+    content: `
+import { DonSyntaxError } from "donly/common/errors";
+console.log(DonSyntaxError);
 `,
     targets: ALL_TARGETS,
   },
