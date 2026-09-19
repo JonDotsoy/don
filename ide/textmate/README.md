@@ -88,6 +88,10 @@ bunx vsce publish --pat "$VSCE_PAT"
   re-publish).
 - Validates the grammar (`scripts/validate-grammar.ts` +
   `vscode-tmgrammar-test`) before publishing.
+- Packages a `don-textmate-<version>.vsix`, uploads it as a workflow
+  artifact (downloadable from the run's Summary page), publishes that same
+  file with `vsce publish --packagePath`, and attaches it to the
+  `textmate-v<version>` GitHub release.
 - Requires the repository secret `VSCE_PAT` — a Personal Access Token from
   https://marketplace.visualstudio.com/manage, scoped to the `jondotsoy`
   publisher with Marketplace "Manage" access.

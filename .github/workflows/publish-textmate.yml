@@ -81,6 +81,23 @@ jobs:
           bun scripts/validate-grammar.ts
           bunx vscode-tmgrammar-test 'tests/unit/**/*.test.don'
 
+      - name: Package .vsix
+        if: steps.check.outputs.exists == 'false'
+        id: vsix
+        run: |
+          version="${{ steps.package.outputs.version }}"
+          name="$(node -p "require('./package.json').name")"
+          file="${name}-${version}.vsix"
+          bunx @vscode/vsce package --no-dependencies -o "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload .vsix as workflow artifact
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vsix.outputs.file }}
+          path: ide/textmate/${{ steps.vsix.outputs.file }}
+
       - name: Publish to VS Code Marketplace
         if: steps.check.outputs.exists == 'false'
         env:
@@ -88,9 +105,9 @@ jobs:
           # stored as the repository secret VSCE_PAT (Settings > Secrets and
           # variables > Actions > Secrets).
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: bunx @vscode/vsce publish --no-dependencies --pat "$VSCE_PAT"
+        run: bunx @vscode/vsce publish --packagePath "${{ steps.vsix.outputs.file }}" --pat "$VSCE_PAT"
 
-      - name: Create GitHub release with Marketplace URL
+      - name: Create GitHub release with the .vsix and Marketplace URL
         if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -103,4 +120,5 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "don-textmate v${version}" \
             --notes "Published to VS Code Marketplace: ${marketplace_url}" \
-            --target "${{ steps.bump.outputs.sha || github.sha }}"
+            --target "${{ steps.bump.outputs.sha || github.sha }}" \
+            "${{ steps.vsix.outputs.file }}"
