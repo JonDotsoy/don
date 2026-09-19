@@ -1,5 +1,8 @@
 name: Publish
 
+run-name: >-
+  Publish - ${{ github.event_name == 'workflow_dispatch' && format('manual bump ({0})', inputs.version_bump) || github.event.head_commit.message }}
+
 on:
   push:
     branches:
