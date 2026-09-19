@@ -1,0 +1,49 @@
+{
+  "name": "don-textmate",
+  "displayName": "DON",
+  "description": "TextMate grammar and language configuration for DON (Directive Object Notation)",
+  "version": "0.0.1",
+  "publisher": "jondotsoy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JonDotsoy/don",
+    "directory": "ide/textmate"
+  },
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "scripts": {
+    "test": "vscode-tmgrammar-test 'tests/unit/**/*.test.don'"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^4.0.0",
+    "vscode-tmgrammar-test": "^0.1.3"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "don",
+        "aliases": [
+          "DON",
+          "don"
+        ],
+        "extensions": [
+          ".don",
+          ".donly"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "don",
+        "scopeName": "source.don",
+        "path": "./don.tmLanguage.json"
+      }
+    ]
+  }
+}

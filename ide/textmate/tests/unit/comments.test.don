@@ -1,0 +1,12 @@
+# SYNTAX TEST "source.don" "DON grammar comments"
+
+name "my-app" # inline comment
+#              ^ comment.line.number-sign.don
+
+/* block comment */
+#<------------------ comment.block.don
+
+/*
+  multi-line
+*/
+#<-- comment.block.don

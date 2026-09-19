@@ -1,0 +1,19 @@
+# SYNTAX TEST "source.don" "DON grammar numbers"
+
+value -123
+#      ^^^^ constant.numeric.integer.don
+
+value 0o755
+#      ^^^^^ constant.numeric.octal.don
+
+value 0b1101
+#      ^^^^^^ constant.numeric.binary.don
+
+value 0xDEADBn
+#      ^^^^^^^^ constant.numeric.hex.don
+
+value -123.456
+#      ^^^^^^^^ constant.numeric.decimal.don
+
+value 1024n
+#      ^^^^^ constant.numeric.bigint.don
