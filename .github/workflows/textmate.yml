@@ -29,8 +29,8 @@ jobs:
 
       - name: Install grammar test dependencies
         working-directory: ide/textmate
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Run vscode-tmgrammar-test suite
         working-directory: ide/textmate
-        run: npm test
+        run: bunx vscode-tmgrammar-test 'tests/unit/**/*.test.don'

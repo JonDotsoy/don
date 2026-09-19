@@ -46,9 +46,9 @@ directive-name rule fires on the sample files) with no extra dependencies.
 ## Test against vscode-textmate
 
 ```sh
-npm install -g vscode-tmgrammar-test
 cd ide/textmate
-vscode-tmgrammar-test 'tests/unit/**/*.test.don'
+bun install
+bunx vscode-tmgrammar-test 'tests/unit/**/*.test.don'
 ```
 
 This tokenizes every `tests/unit/*.test.don` file with the real
@@ -56,6 +56,8 @@ This tokenizes every `tests/unit/*.test.don` file with the real
 resulting scopes against the `^`/`<-` assertions in each file.
 `package.json` in this directory already declares the `don` language and
 grammar, so no `-g`/`-c` flags are needed when run from `ide/textmate/`.
+The `.github/workflows/textmate.yml` CI workflow runs this same command on
+every pull request or push to `develop` that touches `ide/textmate/`.
 
 ## Use in VS Code
 
