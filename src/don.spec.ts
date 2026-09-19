@@ -285,6 +285,38 @@ describe("DON.parse", () => {
   it('should raise a syntax error for tokens after a block close on the same line', () => {
     expect(() => DON.parse('container { image "nginx" } extra')).toThrow();
   });
+
+  // Known bug: docs/specs/v1/spec.md § 2.2 only ever documents a block as
+  // `directive_name {` - a `{` is always the tail of a directive's own
+  // line, immediately after its name/args, never a construct on its own.
+  // A `{` with no directive name on its line (e.g. a stray block at the
+  // document root) has no valid meaning per the grammar and should raise
+  // a syntax error. Instead the parser silently drops the whole orphan
+  // block - here `{ No trir }`, right after `Foo biz` - producing just
+  // `Foo biz` with no error and no trace of the block ever existing.
+  it('should raise a syntax error for a block on its own line with no directive name', () => {
+    expect(() => DON.parse(""
+      + "Foo biz\n"
+      + "{\n"
+      + "  No trir \n"
+      + "}\n"
+    )).toThrow();
+  });
+
+  // The bug above is worse than silent data loss: the orphan block's
+  // content doesn't just vanish, it gets reattached as children of
+  // whatever directive happens to come *next* in the document - here
+  // `No trir` (from the orphan block above `after`) ends up nested
+  // *inside* `after`, a completely unrelated sibling directive.
+  it('should not silently reattach an orphan block\'s content to the next unrelated directive', () => {
+    expect(() => DON.parse(""
+      + "Foo biz\n"
+      + "{\n"
+      + "  No trir \n"
+      + "}\n"
+      + "after 1\n"
+    )).toThrow();
+  });
 });
 
 describe("DON.parse: special-character identifiers (spec § 2.3)", () => {
