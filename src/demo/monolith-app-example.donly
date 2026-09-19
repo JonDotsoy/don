@@ -17,7 +17,7 @@ app "storefront" {
     pool 20
   }
 
-  module-[auth] {
+  module auth {
     enabled true
     database "primary"
 
@@ -33,7 +33,7 @@ app "storefront" {
     }
   }
 
-  module-[catalog] {
+  module catalog {
     enabled true
     needs auth
     database "primary"
@@ -49,7 +49,7 @@ app "storefront" {
     }
   }
 
-  module-[cart] {
+  module cart {
     enabled true
     needs auth catalog
     database "primary"
@@ -61,7 +61,7 @@ app "storefront" {
     }
   }
 
-  module-[checkout] {
+  module checkout {
     enabled true
     needs auth cart
     database "primary"
@@ -77,7 +77,7 @@ app "storefront" {
     }
   }
 
-  module-[notifications] {
+  module notifications {
     enabled false
     needs auth
     queue "redis"

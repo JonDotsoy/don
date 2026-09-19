@@ -6,8 +6,8 @@ import { DirectiveJSONEncoder } from "../directive-json.js";
 
 const dir = new URL(".", import.meta.url).pathname;
 
-// A monolithic app split into several modules (identified with bracket
-// identifiers), each toggled with `enabled`, depending on other modules
+// A monolithic app split into several modules (each named as an argument
+// to `module`), each toggled with `enabled`, depending on other modules
 // via `needs`, and declaring its own feature flags and routes.
 const config = readFileSync(join(dir, "monolith-app-example.donly"), "utf8");
 
@@ -16,6 +16,11 @@ const findChild = (directive: Directive, name: string) =>
 
 const findChildren = (directive: Directive, name: string) =>
   directive.children.filter((child) => child.name === name);
+
+const findModule = (directive: Directive, id: string) =>
+  directive.children.find(
+    (child) => child.name === "module" && child.args[0] === id,
+  )!;
 
 describe("donly/demo monolith app example", () => {
   it("parses the app into a single root directive", () => {
@@ -41,27 +46,25 @@ describe("donly/demo monolith app example", () => {
     expect(findChild(database, "pool")?.args).toEqual([20]);
   });
 
-  it("identifies each module by its bracketed identifier", () => {
+  it("identifies each module by its `module` directive argument", () => {
     const root = DON.parse(config);
 
-    const modules = root.children.filter((child) =>
-      /^module-\[.+\]$/.test(String(child.name)),
-    );
+    const modules = findChildren(root, "module");
 
-    expect(modules.map((m) => m.name)).toEqual([
-      "module-[auth]",
-      "module-[catalog]",
-      "module-[cart]",
-      "module-[checkout]",
-      "module-[notifications]",
+    expect(modules.map((m) => m.args)).toEqual([
+      ["auth"],
+      ["catalog"],
+      ["cart"],
+      ["checkout"],
+      ["notifications"],
     ]);
   });
 
   it("toggles modules on and off with `enabled`", () => {
     const root = DON.parse(config);
 
-    const auth = findChild(root, "module-[auth]")!;
-    const notifications = findChild(root, "module-[notifications]")!;
+    const auth = findModule(root, "auth");
+    const notifications = findModule(root, "notifications");
 
     expect(findChild(auth, "enabled")?.args).toEqual([true]);
     expect(findChild(notifications, "enabled")?.args).toEqual([false]);
@@ -70,9 +73,9 @@ describe("donly/demo monolith app example", () => {
   it("chains modules together with `needs`", () => {
     const root = DON.parse(config);
 
-    const catalog = findChild(root, "module-[catalog]")!;
-    const cart = findChild(root, "module-[cart]")!;
-    const checkout = findChild(root, "module-[checkout]")!;
+    const catalog = findModule(root, "catalog");
+    const cart = findModule(root, "cart");
+    const checkout = findModule(root, "checkout");
 
     expect(findChild(catalog, "needs")?.args).toEqual(["auth"]);
     expect(findChild(cart, "needs")?.args).toEqual(["auth", "catalog"]);
@@ -82,7 +85,7 @@ describe("donly/demo monolith app example", () => {
   it("declares per-module feature flags", () => {
     const root = DON.parse(config);
 
-    const checkout = findChild(root, "module-[checkout]")!;
+    const checkout = findModule(root, "checkout");
     const flags = findChild(checkout, "feature-flags")!;
 
     expect(flags.children.map((c) => [c.name, c.args])).toEqual([
@@ -94,7 +97,7 @@ describe("donly/demo monolith app example", () => {
   it("declares per-module routes", () => {
     const root = DON.parse(config);
 
-    const cart = findChild(root, "module-[cart]")!;
+    const cart = findModule(root, "cart");
     const routes = findChild(cart, "routes")!;
 
     expect(findChildren(routes, "route").map((r) => r.args)).toEqual([
@@ -107,7 +110,7 @@ describe("donly/demo monolith app example", () => {
   it("lets a module use a different backing resource, like a queue instead of a database", () => {
     const root = DON.parse(config);
 
-    const notifications = findChild(root, "module-[notifications]")!;
+    const notifications = findModule(root, "notifications");
 
     expect(findChild(notifications, "queue")?.args).toEqual(["redis"]);
     expect(findChild(notifications, "database")).toBeUndefined();
@@ -122,15 +125,15 @@ describe("donly/demo monolith app example", () => {
     expect(app.name).toBe("app");
     expect(app.args).toEqual(["storefront"]);
 
-    const moduleNames = app.children
-      .filter((c: any) => /^module-\[.+\]$/.test(c.name))
-      .map((c: any) => c.name);
-    expect(moduleNames).toEqual([
-      "module-[auth]",
-      "module-[catalog]",
-      "module-[cart]",
-      "module-[checkout]",
-      "module-[notifications]",
+    const moduleIds = app.children
+      .filter((c: any) => c.name === "module")
+      .map((c: any) => c.args[0]);
+    expect(moduleIds).toEqual([
+      "auth",
+      "catalog",
+      "cart",
+      "checkout",
+      "notifications",
     ]);
   });
 });
