@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>donly. — variant 02</title>
+    <style>
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-weight: 800;
+        font-style: normal;
+        src: local("IBM Plex Mono SemiBold"), local("IBMPlexMono-SemiBold");
+      }
+
+      :root {
+        --bg-1: #f6f4ef;
+        --bg-2: #eae6dc;
+        --text: #181511;
+        --accent: #c1611f;
+        --accent-2: #1f5fa8;
+        --line: rgba(20, 17, 10, 0.1);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-1: #0d1117;
+          --bg-2: #141a22;
+          --text: #e6edf3;
+          --accent: #ffa657;
+          --accent-2: #79c0ff;
+          --line: rgba(255, 255, 255, 0.09);
+        }
+      }
+
+      :root[data-theme="dark"] {
+        --bg-1: #0d1117;
+        --bg-2: #141a22;
+        --text: #e6edf3;
+        --accent: #ffa657;
+        --accent-2: #79c0ff;
+        --line: rgba(255, 255, 255, 0.09);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* square lockup, for avatar / icon / app-tile use instead of the 1200x630 cover */
+      .cover {
+        position: relative;
+        width: 720px;
+        height: 720px;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 20px;
+        overflow: hidden;
+        background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cover::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(
+          ellipse at center,
+          black 50%,
+          transparent 100%
+        );
+        -webkit-mask-image: radial-gradient(
+          ellipse at center,
+          black 50%,
+          transparent 100%
+        );
+      }
+
+      .cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            360px 360px at 100% 0%,
+            color-mix(in srgb, var(--accent-2) 22%, transparent),
+            transparent 60%
+          ),
+          radial-gradient(
+            360px 360px at 0% 100%,
+            color-mix(in srgb, var(--accent) 18%, transparent),
+            transparent 60%
+          );
+      }
+
+      .mark {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* dot lifted above the wordmark, like a tittle/diacritic, instead of trailing inline */
+      .dot {
+        width: 0.16em;
+        height: 0.16em;
+        border-radius: 50%;
+        background: var(--accent);
+        margin-bottom: 0.14em;
+        font-size: clamp(64px, 15vw, 152px);
+      }
+
+      .wordmark {
+        font-family:
+          "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: clamp(64px, 15vw, 152px);
+        line-height: 1;
+        color: var(--text);
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cover" id="cover">
+      <div class="mark">
+        <div class="dot"></div>
+        <div class="wordmark">donly</div>
+      </div>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const theme = params.get("theme");
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    </script>
+  </body>
+</html>
