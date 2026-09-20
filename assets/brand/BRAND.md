@@ -24,7 +24,7 @@
 
 - Lienzo base: 1200×630 px (formato estándar cover / social/og-image)
 - Responsive: escala manteniendo aspect-ratio 1200/630 a cualquier ancho
-- Tamaño del wordmark: `clamp(64px, 15vw, 168px)` — fluido entre mobile y desktop
+- Tamaño del wordmark: `clamp(64px, 24vw, 260px)` — fluido entre mobile y desktop, ocupando la mayor parte del ancho del cover
 
 **Colores**
 
