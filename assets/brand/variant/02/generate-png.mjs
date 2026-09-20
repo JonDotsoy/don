@@ -13,7 +13,8 @@ const variants = [
 ];
 
 const browser = await chromium.launch({
-  executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium",
+  executablePath:
+    process.env.PLAYWRIGHT_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium",
 });
 try {
   const page = await browser.newPage({

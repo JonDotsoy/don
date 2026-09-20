@@ -1,180 +1,192 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>donly. — variant 01</title>
-<style>
-  @font-face {
-    font-family: "JetBrains Mono";
-    font-weight: 800;
-    font-style: normal;
-    src: local("JetBrains Mono ExtraBold"), local("JetBrainsMono-ExtraBold");
-  }
+  <head>
+    <meta charset="utf-8" />
+    <title>donly. — variant 01</title>
+    <style>
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-weight: 800;
+        font-style: normal;
+        src:
+          local("JetBrains Mono ExtraBold"), local("JetBrainsMono-ExtraBold");
+      }
 
-  :root {
-    --bg-1: #f6f4ef;
-    --bg-2: #eae6dc;
-    --text: #181511;
-    --accent: #c1611f;
-    --accent-2: #1f5fa8;
-    --line: rgba(20, 17, 10, .10);
-  }
+      :root {
+        --bg-1: #f6f4ef;
+        --bg-2: #eae6dc;
+        --text: #181511;
+        --accent: #c1611f;
+        --accent-2: #1f5fa8;
+        --line: rgba(20, 17, 10, 0.1);
+      }
 
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg-1: #0d1117;
-      --bg-2: #141a22;
-      --text: #e6edf3;
-      --accent: #ffa657;
-      --accent-2: #79c0ff;
-      --line: rgba(255, 255, 255, .09);
-    }
-  }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-1: #0d1117;
+          --bg-2: #141a22;
+          --text: #e6edf3;
+          --accent: #ffa657;
+          --accent-2: #79c0ff;
+          --line: rgba(255, 255, 255, 0.09);
+        }
+      }
 
-  :root[data-theme="dark"] {
-    --bg-1: #0d1117;
-    --bg-2: #141a22;
-    --text: #e6edf3;
-    --accent: #ffa657;
-    --accent-2: #79c0ff;
-    --line: rgba(255, 255, 255, .09);
-  }
+      :root[data-theme="dark"] {
+        --bg-1: #0d1117;
+        --bg-2: #141a22;
+        --text: #e6edf3;
+        --accent: #ffa657;
+        --accent-2: #79c0ff;
+        --line: rgba(255, 255, 255, 0.09);
+      }
 
-  * {
-    box-sizing: border-box;
-  }
+      * {
+        box-sizing: border-box;
+      }
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
-  }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
 
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-  .cover {
-    position: relative;
-    width: 1200px;
-    height: 630px;
-    max-width: 100%;
-    aspect-ratio: 1200 / 630;
-    border-radius: 20px;
-    overflow: hidden;
-    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
-    display: flex;
-    align-items: flex-end;
-    justify-content: flex-start;
-    padding: 72px;
-  }
+      .cover {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        max-width: 100%;
+        aspect-ratio: 1200 / 630;
+        border-radius: 20px;
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        padding: 72px;
+      }
 
-  /* soft radial glow, no grid overlay in this variant */
-  .cover::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(560px 420px at 100% 0%, color-mix(in srgb, var(--accent-2) 24%, transparent), transparent 60%),
-      radial-gradient(480px 360px at 0% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%);
-  }
+      /* soft radial glow, no grid overlay in this variant */
+      .cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            560px 420px at 100% 0%,
+            color-mix(in srgb, var(--accent-2) 24%, transparent),
+            transparent 60%
+          ),
+          radial-gradient(
+            480px 360px at 0% 100%,
+            color-mix(in srgb, var(--accent) 16%, transparent),
+            transparent 60%
+          );
+      }
 
-  /* viewfinder corner brackets */
-  .bracket {
-    position: absolute;
-    width: 56px;
-    height: 56px;
-    border: 3px solid var(--accent-2);
-    opacity: .55;
-    z-index: 1;
-  }
+      /* viewfinder corner brackets */
+      .bracket {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border: 3px solid var(--accent-2);
+        opacity: 0.55;
+        z-index: 1;
+      }
 
-  .bracket.tl {
-    top: 40px;
-    left: 40px;
-    border-right: none;
-    border-bottom: none;
-    border-top-left-radius: 10px;
-  }
+      .bracket.tl {
+        top: 40px;
+        left: 40px;
+        border-right: none;
+        border-bottom: none;
+        border-top-left-radius: 10px;
+      }
 
-  .bracket.br {
-    bottom: 40px;
-    right: 40px;
-    border-left: none;
-    border-top: none;
-    border-bottom-right-radius: 10px;
-  }
+      .bracket.br {
+        bottom: 40px;
+        right: 40px;
+        border-left: none;
+        border-top: none;
+        border-bottom-right-radius: 10px;
+      }
 
-  .kicker {
-    position: relative;
-    z-index: 1;
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-weight: 800;
-    color: var(--accent-2);
-    font-size: 22px;
-    letter-spacing: -0.01em;
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+      .kicker {
+        position: relative;
+        z-index: 1;
+        font-family:
+          "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 800;
+        color: var(--accent-2);
+        font-size: 22px;
+        letter-spacing: -0.01em;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-  .kicker::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background: var(--accent-2);
-    border-radius: 2px;
-  }
+      .kicker::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        background: var(--accent-2);
+        border-radius: 2px;
+      }
 
-  .stack {
-    position: relative;
-    z-index: 1;
-  }
+      .stack {
+        position: relative;
+        z-index: 1;
+      }
 
-  .wordmark {
-    display: inline-flex;
-    align-items: baseline;
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    font-size: clamp(64px, 15vw, 168px);
-    line-height: 1;
-    color: var(--text);
-    user-select: none;
-  }
+      .wordmark {
+        display: inline-flex;
+        align-items: baseline;
+        font-family:
+          "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: clamp(64px, 15vw, 168px);
+        line-height: 1;
+        color: var(--text);
+        user-select: none;
+      }
 
-  .wordmark .dot {
-    display: inline-block;
-    width: 0.42em;
-    height: 0.42em;
-    margin-left: 0.12em;
-    margin-bottom: 0.02em;
-    background: var(--accent);
-    border-radius: 6px;
-  }
-</style>
-</head>
-<body>
-  <div class="cover" id="cover">
-    <div class="bracket tl"></div>
-    <div class="bracket br"></div>
-    <div class="stack">
-      <div class="kicker">npm i donly</div>
-      <div class="wordmark">donly<span class="dot"></span></div>
+      .wordmark .dot {
+        display: inline-block;
+        width: 0.42em;
+        height: 0.42em;
+        margin-left: 0.12em;
+        margin-bottom: 0.02em;
+        background: var(--accent);
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cover" id="cover">
+      <div class="bracket tl"></div>
+      <div class="bracket br"></div>
+      <div class="stack">
+        <div class="kicker">npm i donly</div>
+        <div class="wordmark">donly<span class="dot"></span></div>
+      </div>
     </div>
-  </div>
-  <script>
-    const params = new URLSearchParams(location.search);
-    const theme = params.get("theme");
-    if (theme === "light" || theme === "dark") {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-  </script>
-</body>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const theme = params.get("theme");
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    </script>
+  </body>
 </html>

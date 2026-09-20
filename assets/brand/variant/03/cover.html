@@ -1,126 +1,128 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>donly. — variant 03</title>
-<style>
-  @font-face {
-    font-family: "Martian Mono";
-    font-weight: 800;
-    font-style: normal;
-    src: url("./fonts/MartianMono-ExtraBold-latin.woff2") format("woff2");
-  }
+  <head>
+    <meta charset="utf-8" />
+    <title>donly. — variant 03</title>
+    <style>
+      @font-face {
+        font-family: "Martian Mono";
+        font-weight: 800;
+        font-style: normal;
+        src: url("./fonts/MartianMono-ExtraBold-latin.woff2") format("woff2");
+      }
 
-  :root {
-    --bg-1: #f6f4ef;
-    --bg-2: #eae6dc;
-    --text: #181511;
-    --accent: #c1611f;
-    --accent-2: #1f5fa8;
-    --line: rgba(20, 17, 10, .10);
-  }
+      :root {
+        --bg-1: #f6f4ef;
+        --bg-2: #eae6dc;
+        --text: #181511;
+        --accent: #c1611f;
+        --accent-2: #1f5fa8;
+        --line: rgba(20, 17, 10, 0.1);
+      }
 
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg-1: #0d1117;
-      --bg-2: #141a22;
-      --text: #e6edf3;
-      --accent: #ffa657;
-      --accent-2: #79c0ff;
-      --line: rgba(255, 255, 255, .09);
-    }
-  }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-1: #0d1117;
+          --bg-2: #141a22;
+          --text: #e6edf3;
+          --accent: #ffa657;
+          --accent-2: #79c0ff;
+          --line: rgba(255, 255, 255, 0.09);
+        }
+      }
 
-  :root[data-theme="dark"] {
-    --bg-1: #0d1117;
-    --bg-2: #141a22;
-    --text: #e6edf3;
-    --accent: #ffa657;
-    --accent-2: #79c0ff;
-    --line: rgba(255, 255, 255, .09);
-  }
+      :root[data-theme="dark"] {
+        --bg-1: #0d1117;
+        --bg-2: #141a22;
+        --text: #e6edf3;
+        --accent: #ffa657;
+        --accent-2: #79c0ff;
+        --line: rgba(255, 255, 255, 0.09);
+      }
 
-  * {
-    box-sizing: border-box;
-  }
+      * {
+        box-sizing: border-box;
+      }
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-  }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
 
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-  .cover {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+      .cover {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-  /* brutalist stamp: bordered tag framing the wordmark */
-  .tag {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 28px;
-    padding: 36px 48px;
-    border: 3px solid var(--text);
-    border-radius: 12px;
-  }
+      /* brutalist stamp: bordered tag framing the wordmark */
+      .tag {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 28px;
+        padding: 36px 48px;
+        border: 3px solid var(--text);
+        border-radius: 12px;
+      }
 
-  .wordmark {
-    font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    font-size: clamp(56px, 13vw, 148px);
-    line-height: 1;
-    color: var(--text);
-    user-select: none;
-  }
+      .wordmark {
+        font-family:
+          "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        font-size: clamp(56px, 13vw, 148px);
+        line-height: 1;
+        color: var(--text);
+        user-select: none;
+      }
 
-  /* dot rendered as its own bordered chip, detached from the wordmark */
-  .dot-chip {
-    width: clamp(56px, 8vw, 96px);
-    height: clamp(56px, 8vw, 96px);
-    flex: none;
-    border: 3px solid var(--accent);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+      /* dot rendered as its own bordered chip, detached from the wordmark */
+      .dot-chip {
+        width: clamp(56px, 8vw, 96px);
+        height: clamp(56px, 8vw, 96px);
+        flex: none;
+        border: 3px solid var(--accent);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-  .dot-chip::before {
-    content: "";
-    width: 42%;
-    height: 42%;
-    background: var(--accent);
-    border-radius: 50%;
-  }
-</style>
-</head>
-<body>
-  <div class="cover" id="cover">
-    <div class="tag">
-      <div class="wordmark">donly</div>
-      <div class="dot-chip"></div>
+      .dot-chip::before {
+        content: "";
+        width: 42%;
+        height: 42%;
+        background: var(--accent);
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cover" id="cover">
+      <div class="tag">
+        <div class="wordmark">donly</div>
+        <div class="dot-chip"></div>
+      </div>
     </div>
-  </div>
-  <script>
-    const params = new URLSearchParams(location.search);
-    const theme = params.get("theme");
-    if (theme === "light" || theme === "dark") {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-  </script>
-</body>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const theme = params.get("theme");
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    </script>
+  </body>
 </html>
