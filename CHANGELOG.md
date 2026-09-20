@@ -153,3 +153,21 @@ documentation.
   silently dropped — or, if another directive followed later in the
   document, its content was silently reattached as children of that
   unrelated directive instead.
+- `Location#column` (and any `loc.start`/`loc.end` derived from it, e.g. in
+  `lintSchema`/`renderReport`/`renderJSONReport` issues) is now counted in
+  characters, not raw UTF-8 bytes. The tokenizer (`Part.scan`) used to add
+  each token's byte length to the running column, so any non-ASCII
+  character earlier on the same line (an accented letter, an emoji, …)
+  pushed every later column on that line to the right by its extra byte
+  count — e.g. one emoji (4 bytes, 1 character) inflated it by 3. A UTF-8
+  continuation byte now advances the column by 0 instead of 1, so only a
+  multi-byte character's lead byte counts, once. `line` was never affected
+  (newline detection doesn't depend on byte width).
+- `lintSchema`'s default argument-constraint message (used whenever a
+  constraint has no `message` of its own) no longer reports "must be of
+  type X" for every failing constraint that also declares a `type`. A
+  value can satisfy `type` and still fail `gte`/`gt`/`lte`/`lt`,
+  `pattern`, or `enum` — that combination now produces a message naming
+  the check that actually failed (e.g. "must be >= 9000", "must match
+  pattern ^/[a-z]+$", "must be one of: rolling, recreate") instead of a
+  false type-mismatch report.

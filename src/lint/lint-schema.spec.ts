@@ -1214,14 +1214,16 @@ server "eu-west-1" {
   });
 });
 
-describe("known issues (bug regression, not yet fixed)", () => {
-  // `defaultConstraintMessage` (lint-schema.ts) picks its message purely
-  // from whether `constraint.type` is set, not from *which* check inside
-  // `matchesConstraint` actually failed. So any typed constraint that
-  // fails on `gte`/`gt`/`lte`/`lt`, `pattern`, or `enum` — with the value
-  // matching `type` just fine — is reported as a type mismatch, which is
-  // false and misleads whoever reads the report.
-  test.failing("range failure is reported as its own reason, not as a type mismatch", () => {
+describe("fixed issues (regression coverage)", () => {
+  // `defaultConstraintMessage` (lint-schema.ts) used to pick its message
+  // purely from whether `constraint.type` was set, not from *which* check
+  // inside `matchesConstraint` actually failed. So any typed constraint
+  // that failed on `gte`/`gt`/`lte`/`lt`, `pattern`, or `enum` — with the
+  // value matching `type` just fine — was reported as a type mismatch,
+  // which was false and misled whoever read the report. Fixed by having
+  // `constraintFailureReason` walk the same checks `matchesConstraint`
+  // does and name the one that actually failed.
+  test("range failure is reported as its own reason, not as a type mismatch", () => {
     const rule = {
       "/server/port": {
         "[1]": { type: "number", gte: 9000 },
@@ -1239,12 +1241,12 @@ server {
     );
 
     expect(issues).toHaveLength(1);
-    // Actual message today: "argument at position 1 must be of type number",
-    // even though the argument's type is exactly right.
-    expect(issues[0]!.message).not.toMatch(/must be of type/);
+    // Previously: "argument at position 1 must be of type number", even
+    // though the argument's type was exactly right.
+    expect(issues[0]!.message).toBe("argument at position 1 must be >= 9000");
   });
 
-  test.failing("pattern failure is reported as its own reason, not as a type mismatch", () => {
+  test("pattern failure is reported as its own reason, not as a type mismatch", () => {
     const rule = {
       "/server/route": {
         "[1]": { type: "string", pattern: "^/[a-z]+$" },
@@ -1262,10 +1264,12 @@ server {
     );
 
     expect(issues).toHaveLength(1);
-    expect(issues[0]!.message).not.toMatch(/must be of type/);
+    expect(issues[0]!.message).toBe(
+      'argument at position 1 must match pattern ^/[a-z]+$',
+    );
   });
 
-  test.failing("enum failure is reported as its own reason, not as a type mismatch", () => {
+  test("enum failure is reported as its own reason, not as a type mismatch", () => {
     const rule = {
       "/server/strategy": {
         "[1]": { type: "string", enum: ["rolling", "recreate"] },
@@ -1283,17 +1287,22 @@ server {
     );
 
     expect(issues).toHaveLength(1);
-    expect(issues[0]!.message).not.toMatch(/must be of type/);
+    expect(issues[0]!.message).toBe(
+      "argument at position 1 must be one of: rolling, recreate",
+    );
   });
 
-  // `Part.scan` (`../v1/compiler/part.ts`) tracks `column` by adding each
-  // token's *byte* length (`Span.length`, measured on the raw `u8` buffer)
-  // to a running counter, never decoding UTF-8. A multi-byte character
-  // earlier on the same line (e.g. "é", 2 bytes) therefore inflates every
-  // later column on that line by its extra byte count, so the reported
-  // column no longer matches the character position any editor — or a
-  // human counting characters — would show for that same source line.
-  test.failing("reported column matches the character position, not the UTF-8 byte offset", () => {
+  // `Part.scan` (`../v1/compiler/part.ts`) used to track `column` by adding
+  // each token's *byte* length (`Span.length`, measured on the raw `u8`
+  // buffer) to a running counter, never decoding UTF-8. A multi-byte
+  // character earlier on the same line (e.g. "é", 2 bytes) therefore
+  // inflated every later column on that line by its extra byte count, so
+  // the reported column no longer matched the character position any
+  // editor — or a human counting characters — would show for that same
+  // source line. Fixed by treating a UTF-8 continuation byte (`10xxxxxx`)
+  // as zero-width for column purposes, so only a sequence's lead byte
+  // advances the column, once per character.
+  test("reported column matches the character position, not the UTF-8 byte offset", () => {
     const rule = {
       "/titulo": { "[2]": { type: "string" } },
     } satisfies LintRuleDocument;
@@ -1305,18 +1314,19 @@ server {
 
     expect(issues).toHaveLength(1);
     const column = issues[0]!.loc!.start.span.startLocation.column + 1;
-    // Actual today: 16 — one column too far right, because "é" costs 2
-    // bytes but is only 1 character.
+    // Previously: 16 — one column too far right, because "é" cost 2 bytes
+    // but is only 1 character.
     expect(column).toBe(15);
   });
 
   // Same byte-vs-character drift as above, but with an astral emoji
   // ("🎉", U+1F389): 1 character, 2 UTF-16 code units, 4 UTF-8 bytes. The
-  // byte-counting tokenizer also tokenizes it as four separate 1-byte
-  // "unknown" parts (it isn't in any charset whitelist), each still
-  // advancing `column` by 1 — so the drift compounds with every non-ASCII
-  // character on the line instead of staying a flat off-by-one.
-  test.failing("an emoji earlier on the line doesn't multiply the column drift", () => {
+  // byte-counting tokenizer used to also tokenize it as four separate
+  // 1-byte "unknown" parts (it isn't in any charset whitelist), each still
+  // advancing `column` by 1 — so the drift compounded with every non-ASCII
+  // character on the line instead of staying a flat off-by-one. The fix
+  // (continuation bytes count as zero-width) scales to any sequence length.
+  test("an emoji earlier on the line doesn't multiply the column drift", () => {
     const rule = {
       "/titulo": { "[2]": { type: "string" } },
     } satisfies LintRuleDocument;
@@ -1328,8 +1338,8 @@ server {
 
     expect(issues).toHaveLength(1);
     const column = issues[0]!.loc!.start.span.startLocation.column + 1;
-    // Actual today: 21 — three columns too far right, three extra bytes
-    // ("🎉" costs 4 bytes for its single character) instead of zero.
+    // Previously: 21 — three columns too far right, three extra bytes
+    // ("🎉" cost 4 bytes for its single character) instead of zero.
     expect(column).toBe(18);
   });
 
