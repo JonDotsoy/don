@@ -1,0 +1,32 @@
+route GET /pets {
+  summary "List all pets"
+  param limit query integer optional
+  respond 200 array Pet
+}
+
+route POST /pets {
+  summary "Create a pet"
+  body NewPet required
+  respond 201 Pet
+}
+
+route GET /pets/{petId} {
+  summary "Get a pet by id"
+  param petId path integer required
+  respond 200 Pet
+  respond 404 Error
+}
+
+schema NewPet {
+  field name string required
+  field tag string
+}
+
+schema Pet extends NewPet {
+  field id integer required
+}
+
+schema Error {
+  field code integer required
+  field message string required
+}
