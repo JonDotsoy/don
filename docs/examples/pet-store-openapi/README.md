@@ -75,19 +75,19 @@ route GET /pets/{petId} {
 
 ## Property mapping
 
-| JSON property | DON equivalent |
-| --- | --- |
-| `openapi` | `openapi "3.0.3"` |
-| `info.title` / `.description` / `.version` | `info { title ... description ... version ... }` |
-| `servers[].url` | `server { url ... }` |
-| `paths.<path>.<method>.summary` | `route METHOD PATH { summary ... }` |
-| `.operationId` | `operationId ...` |
-| `.parameters[].name/in/description/required/schema` | `param <name> { in ... description ... required ... schema { ... } }` |
-| `.requestBody.required/content` | `requestBody { required ... content <type> { schema ... } }` |
-| `.responses.<code>.description/content` | `response <code> { description ... content <type> { schema ... } }` |
-| `components.schemas.<Name>.type/required/properties` | `schema <Name> { type ... required ... property <name> { ... } }` |
-| `allOf` | `allOf ref <Name>` / `allOf { ... }` |
-| `$ref` | `ref <Name>` |
+| JSON property                                        | DON equivalent                                                        |
+| ---------------------------------------------------- | --------------------------------------------------------------------- |
+| `openapi`                                            | `openapi "3.0.3"`                                                     |
+| `info.title` / `.description` / `.version`           | `info { title ... description ... version ... }`                      |
+| `servers[].url`                                      | `server { url ... }`                                                  |
+| `paths.<path>.<method>.summary`                      | `route METHOD PATH { summary ... }`                                   |
+| `.operationId`                                       | `operationId ...`                                                     |
+| `.parameters[].name/in/description/required/schema`  | `param <name> { in ... description ... required ... schema { ... } }` |
+| `.requestBody.required/content`                      | `requestBody { required ... content <type> { schema ... } }`          |
+| `.responses.<code>.description/content`              | `response <code> { description ... content <type> { schema ... } }`   |
+| `components.schemas.<Name>.type/required/properties` | `schema <Name> { type ... required ... property <name> { ... } }`     |
+| `allOf`                                              | `allOf ref <Name>` / `allOf { ... }`                                  |
+| `$ref`                                               | `ref <Name>`                                                          |
 
 Both files describe the same three endpoints (`GET /pets`, `POST /pets`,
 `GET /pets/{petId}`) and the same `Pet`, `NewPet`, and `Error` shapes, with a
