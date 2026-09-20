@@ -24,9 +24,9 @@ try {
   for (const { theme, out } of variants) {
     await page.goto(`file://${htmlPath}?theme=${theme}`);
     await page.evaluate(() => document.fonts.ready);
-    const cover = page.locator("#cover");
+    const tag = page.locator(".tag");
     const outPath = path.join(dir, out);
-    await cover.screenshot({ path: outPath });
+    await tag.screenshot({ path: outPath, omitBackground: true });
     console.log(`Wrote ${outPath}`);
   }
 } finally {

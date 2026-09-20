@@ -17,8 +17,9 @@ tipo "stamp"/tag bordeado.
   convierte en un chip cuadrado bordeado (`--accent`) con un círculo
   centrado, ubicado al lado derecho dentro del mismo marco
 - **Layout**: wordmark + chip del punto encerrados en un marco
-  rectangular bordeado (`--text`), como un sello/tag, centrado sobre
-  el cover 1200×630
+  rectangular bordeado (`--text`), como un sello/tag. Sin fondo de
+  card ni grilla/glow — el PNG exportado tiene fondo transparente y
+  está recortado ajustado al marco, sin margen extra alrededor
 
 Por qué Martian Mono: de las fuentes open source evaluadas (JetBrains
 Mono, Martian Mono, Source Code Pro, Maple Mono — todas OFL con peso
@@ -27,7 +28,8 @@ diferencia claramente de JetBrains Mono usada en la marca base.
 
 Archivos:
 
-- `cover.html` — cover 1200×630, soporta `?theme=light|dark`
+- `cover.html` — marca standalone (sin fondo/canvas fijo), soporta
+  `?theme=light|dark`
 - `fonts/MartianMono-ExtraBold-latin.woff2` — fuente auto-hospedada
 - `fonts/OFL.txt` — licencia SIL Open Font License 1.1
 - `generate-png.mjs` — script Playwright que exporta `cover-light.png`
