@@ -1,0 +1,107 @@
+# ============================================================
+# rules.donly — reglas de lint (ver "Authoring rules in DON syntax"
+# en docs/lint/rules.md) para validar que un archivo .donly siga la
+# gramática que `loadOpenapi` (src/schemas/openapi/load-openapi.ts)
+# sabe traducir a un documento OpenAPI 3.0.
+#
+# Uso:
+#   bunx donly lint --rules src/schemas/openapi/rules.donly \
+#     src/schemas/openapi/examples/demo-file-openapi.donly
+# ============================================================
+
+and {
+  /openapi {
+    required
+    message "el documento debe declarar un openapi con la version, p. ej. openapi 3.0.3"
+
+    [1] {
+      type "string"
+      message "openapi debe ser un string, p. ej. \"3.0.3\""
+    }
+  }
+
+  /info {
+    required
+    message "el documento debe declarar un bloque 'info { ... }'"
+
+    /title {
+      required
+      message "info debe declarar un title"
+
+      [1] {
+        type "string"
+      }
+    }
+
+    /version {
+      required
+      message "info debe declarar un version"
+
+      [1] {
+        type "string"
+      }
+    }
+  }
+
+  /server {
+    /url {
+      required
+      message "cada server debe declarar un url"
+
+      [1] {
+        type "string"
+        pattern "^https?://"
+        message "server/url debe ser una URL http(s) absoluta"
+      }
+    }
+  }
+
+  /route {
+    min 1
+    message "el documento debe declarar al menos un route"
+
+    [1] {
+      enum "GET" "POST" "PUT" "PATCH" "DELETE" "HEAD" "OPTIONS"
+      message "el primer argumento de route debe ser un método HTTP válido"
+    }
+
+    [2] {
+      type "string"
+      pattern "^/"
+      message "el segundo argumento de route debe ser un path que empiece con /"
+    }
+
+    /param {
+      [1] {
+        type "string"
+        message "el nombre de param debe ser un string"
+      }
+
+      /in {
+        [1] {
+          enum "query" "path" "header" "cookie"
+          message "param/in debe ser query, path, header o cookie"
+        }
+      }
+    }
+
+    /response {
+      min 1
+      message "cada route debe declarar al menos un response"
+
+      [1] {
+        type "number"
+        gte 100
+        lte 599
+        message "el status code de response debe estar entre 100 y 599"
+      }
+    }
+  }
+
+  /schema {
+    [1] {
+      type "string"
+      message "el nombre de schema debe ser un string"
+    }
+  }
+}

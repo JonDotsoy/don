@@ -1,0 +1,14 @@
+openapi "3.0.3"
+
+info {
+  title "Minimal API"
+  version "1.0.0"
+}
+
+route GET /health {
+  summary "Health check"
+  operationId getHealth
+  response 200 {
+    description "Service is healthy"
+  }
+}

@@ -104,6 +104,19 @@ documentation.
   callers can check `error instanceof DonSyntaxError` to distinguish a
   DON parsing failure from any other error a call into this library
   might throw.
+- `loadOpenapi(filePath)` (`donly/schemas/openapi`) — reads a `.donly` file
+  describing an HTTP API (`openapi`/`info`/`server`/`route`/`schema`
+  directives; see `src/schemas/openapi/README.md` for the full grammar)
+  and translates it into a plain OpenAPI 3.0 document object: `param`,
+  `requestBody`, and `response` build `parameters`/`requestBody`/
+  `responses` on each `route`'s operation, a `ref <Name>` argument (on
+  `schema`/`items`/`allOf`) becomes a `$ref` into `components.schemas`,
+  and top-level `schema <Name> { ... }` directives populate
+  `components.schemas` itself. `openapiFromDirective(directive)` does the
+  same conversion from an already-parsed `Directive`. Ships alongside
+  `rules.donly`, a `donly/lint` rule document that validates a `.donly`
+  file follows this grammar, and example `.donly` files under
+  `src/schemas/openapi/examples/`.
 
 ### Fixed
 
