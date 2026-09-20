@@ -1285,4 +1285,28 @@ server {
     expect(issues).toHaveLength(1);
     expect(issues[0]!.message).not.toMatch(/must be of type/);
   });
+
+  // `Part.scan` (`../v1/compiler/part.ts`) tracks `column` by adding each
+  // token's *byte* length (`Span.length`, measured on the raw `u8` buffer)
+  // to a running counter, never decoding UTF-8. A multi-byte character
+  // earlier on the same line (e.g. "é", 2 bytes) therefore inflates every
+  // later column on that line by its extra byte count, so the reported
+  // column no longer matches the character position any editor — or a
+  // human counting characters — would show for that same source line.
+  test.failing("reported column matches the character position, not the UTF-8 byte offset", () => {
+    const rule = {
+      "/titulo": { "[2]": { type: "string" } },
+    } satisfies LintRuleDocument;
+
+    // Characters (0-based): t-i-t-u-l-o(6) space(6) "café"(7..12) space(13) 42(14)
+    // so "42" starts at character column 14 (15 in the report's 1-based columns).
+    const don = `titulo "café" 42`;
+    const issues = lintSchema(don, rule);
+
+    expect(issues).toHaveLength(1);
+    const column = issues[0]!.loc!.start.span.startLocation.column + 1;
+    // Actual today: 16 — one column too far right, because "é" costs 2
+    // bytes but is only 1 character.
+    expect(column).toBe(15);
+  });
 });
