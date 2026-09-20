@@ -651,6 +651,39 @@ server {
 
 See [`docs/specs/v1/spec.md`](./docs/specs/v1/spec.md) for the full language specification.
 
+### OpenAPI Example
+
+[`docs/examples/pet-store-openapi`](./docs/examples/pet-store-openapi) has a full-length,
+side-by-side example: a "Pet Store" API described both as a standard
+[OpenAPI 3.0](https://spec.openapis.org/oas/v3.0.3) JSON document
+(`pet-store.json`) and as an equivalent DON document (`pet-store.don`), with
+every JSON property — `info`, `servers`, parameters, request bodies,
+responses, and `components.schemas` — mapped to a DON directive:
+
+```don
+route GET /pets/{petId} {
+  summary "Get a pet by id"
+  operationId getPetById
+  param petId {
+    in path
+    required true
+    schema {
+      type integer
+      format int64
+    }
+  }
+  response 200 {
+    description "The requested pet"
+    content application/json {
+      schema ref Pet
+    }
+  }
+}
+```
+
+See the folder's [README](./docs/examples/pet-store-openapi/README.md) for the full
+files and a property-by-property mapping table.
+
 ## JSON Serialization
 
 `Directive` implements `toJSON()`, so passing a parsed document straight to `JSON.stringify` produces a readable JSON representation instead of dumping the raw `{name, args, children}` instance fields:

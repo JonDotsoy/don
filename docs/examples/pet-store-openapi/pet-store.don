@@ -1,0 +1,103 @@
+openapi "3.0.3"
+
+info {
+  title "Pet Store API"
+  description "A minimal example OpenAPI document used to demonstrate how a JSON API description can be represented and compared with an equivalent DON document."
+  version "1.0.0"
+}
+
+server {
+  url "https://api.example.com/v1"
+}
+
+route GET /pets {
+  summary "List all pets"
+  operationId listPets
+  param limit {
+    in query
+    description "Maximum number of pets to return"
+    required false
+    schema {
+      type integer
+      format int32
+    }
+  }
+  response 200 {
+    description "A list of pets"
+    content application/json {
+      schema {
+        type array
+        items ref Pet
+      }
+    }
+  }
+}
+
+route POST /pets {
+  summary "Create a pet"
+  operationId createPet
+  requestBody {
+    required true
+    content application/json {
+      schema ref NewPet
+    }
+  }
+  response 201 {
+    description "The created pet"
+    content application/json {
+      schema ref Pet
+    }
+  }
+}
+
+route GET /pets/{petId} {
+  summary "Get a pet by id"
+  operationId getPetById
+  param petId {
+    in path
+    required true
+    schema {
+      type integer
+      format int64
+    }
+  }
+  response 200 {
+    description "The requested pet"
+    content application/json {
+      schema ref Pet
+    }
+  }
+  response 404 {
+    description "Pet not found"
+    content application/json {
+      schema ref Error
+    }
+  }
+}
+
+schema NewPet {
+  type object
+  required name
+  property name string
+  property tag string
+}
+
+schema Pet {
+  allOf ref NewPet
+  allOf {
+    type object
+    required id
+    property id integer {
+      format int64
+    }
+  }
+}
+
+schema Error {
+  type object
+  required code message
+  property code integer {
+    format int32
+  }
+  property message string
+}
