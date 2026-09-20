@@ -1309,4 +1309,50 @@ server {
     // bytes but is only 1 character.
     expect(column).toBe(15);
   });
+
+  // Same byte-vs-character drift as above, but with an astral emoji
+  // ("🎉", U+1F389): 1 character, 2 UTF-16 code units, 4 UTF-8 bytes. The
+  // byte-counting tokenizer also tokenizes it as four separate 1-byte
+  // "unknown" parts (it isn't in any charset whitelist), each still
+  // advancing `column` by 1 — so the drift compounds with every non-ASCII
+  // character on the line instead of staying a flat off-by-one.
+  test.failing("an emoji earlier on the line doesn't multiply the column drift", () => {
+    const rule = {
+      "/titulo": { "[2]": { type: "string" } },
+    } satisfies LintRuleDocument;
+
+    // Characters (0-based): t-i-t-u-l-o(6) space(6) "🎉fiesta"(7..16) space(17) 42(18)
+    // so "42" starts at character column 18 (in the report's 1-based columns).
+    const don = `titulo "🎉fiesta" 42`;
+    const issues = lintSchema(don, rule);
+
+    expect(issues).toHaveLength(1);
+    const column = issues[0]!.loc!.start.span.startLocation.column + 1;
+    // Actual today: 21 — three columns too far right, three extra bytes
+    // ("🎉" costs 4 bytes for its single character) instead of zero.
+    expect(column).toBe(18);
+  });
+
+  // The emoji/multi-byte drift is confined to the line it appears on: once
+  // `Part.scan` sees the newline byte it resets `column` to 0 and bumps
+  // `line`, so an ASCII-only line after a non-ASCII one still gets the
+  // right, unaffected `line`/`column` — this is not part of the bug above.
+  test("row/line numbers stay correct on later lines despite emoji or accented text earlier in the document", () => {
+    const rule = {
+      "/titulo": { "[2]": { type: "string" } },
+      "/segunda": { "[2]": { type: "string" } },
+      "/tercera": { "[2]": { type: "string" } },
+    } satisfies LintRuleDocument;
+
+    const don = `titulo "🎉🎉🎉" 1\nsegunda "ok" 2\ntercera "😀" 3`;
+    const issues = lintSchema(don, rule);
+
+    expect(issues).toHaveLength(3);
+    expect(issues.map((issue) => issue.loc!.start.span.startLocation.line)).toEqual([
+      0, 1, 2,
+    ]);
+    // "segunda" is a plain-ASCII line, so its column is unaffected by the
+    // emoji-heavy line above it: "segunda " (8) + "\"ok\"" (4) + " " (1) = 13.
+    expect(issues[1]!.loc!.start.span.startLocation.column).toBe(13);
+  });
 });
