@@ -653,7 +653,7 @@ See [`docs/specs/v1/spec.md`](./docs/specs/v1/spec.md) for the full language spe
 
 ### OpenAPI Example
 
-[`docs/examples/openapi`](./docs/examples/openapi) has a full-length,
+[`docs/examples/pet-store-openapi`](./docs/examples/pet-store-openapi) has a full-length,
 side-by-side example: a "Pet Store" API described both as a standard
 [OpenAPI 3.0](https://spec.openapis.org/oas/v3.0.3) JSON document
 (`pet-store.json`) and as an equivalent DON document (`pet-store.don`), with
@@ -681,7 +681,7 @@ route GET /pets/{petId} {
 }
 ```
 
-See the folder's [README](./docs/examples/openapi/README.md) for the full
+See the folder's [README](./docs/examples/pet-store-openapi/README.md) for the full
 files and a property-by-property mapping table.
 
 ## JSON Serialization
