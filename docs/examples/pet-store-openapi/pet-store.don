@@ -78,12 +78,8 @@ route GET /pets/{petId} {
 schema NewPet {
   type object
   required name
-  property name {
-    type string
-  }
-  property tag {
-    type string
-  }
+  property name string
+  property tag string
 }
 
 schema Pet {
@@ -91,8 +87,7 @@ schema Pet {
   allOf {
     type object
     required id
-    property id {
-      type integer
+    property id integer {
       format int64
     }
   }
@@ -101,11 +96,8 @@ schema Pet {
 schema Error {
   type object
   required code message
-  property code {
-    type integer
+  property code integer {
     format int32
   }
-  property message {
-    type string
-  }
+  property message string
 }
