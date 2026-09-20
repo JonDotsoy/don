@@ -26,7 +26,7 @@ try {
     await page.goto(`file://${htmlPath}?theme=${theme}`);
     const cover = page.locator("#cover");
     const outPath = path.join(dir, out);
-    await cover.screenshot({ path: outPath });
+    await cover.screenshot({ path: outPath, omitBackground: true });
     console.log(`Wrote ${outPath}`);
   }
 } finally {

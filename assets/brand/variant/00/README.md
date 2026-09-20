@@ -1,9 +1,10 @@
 # Variante 00 — base
 
-Implementación de referencia de `assets/brand/BRAND.md`, tal cual está
-especificada: wordmark centrado en JetBrains Mono 800, punto `.` en
-línea como acento de color, grilla sutil + glow radial en las
-esquinas, tarjeta con bordes redondeados (20px) y sombra suave.
+Implementación de referencia de `assets/brand/BRAND.md`: wordmark
+centrado en JetBrains Mono 800, punto `.` en línea como acento de
+color. Sin tarjeta ni fondo — el PNG exportado tiene fondo
+transparente y está recortado ajustado al wordmark, con un margen
+interno de ~2%.
 
 El resto de variantes (`01`, `02`, `03`, …) parten de esta base y
 cambian composición, fuente o disposición del punto.

@@ -42,5 +42,5 @@
 
 ## Archivos
 
-- `variant/00/` — implementación base tal cual descrita en este documento (`cover.html` + `generate-png.mjs`)
+- `variant/00/` — implementación base del wordmark (tipografía, tamaño, colores según este documento), exportada con fondo transparente en vez de la tarjeta con grilla/glow (`cover.html` + `generate-png.mjs`)
 - `variant/01/`, `variant/02/`, `variant/03/`, … — variaciones de layout/fuente/disposición del punto, cada una con su propio `README.md`
