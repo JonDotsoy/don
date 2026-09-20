@@ -77,14 +77,22 @@ export class Part {
     const findNextToken = (currentPos: number) => {
       for (const [type, u8, options] of matches) {
         const span = charset.span(u8, currentPos, options?.limit);
-        if (span) return { type: type, span: span };
+        if (span) return { type: type, span: span, columnWidth: span.length };
       }
       const overflowing = currentPos >= buffer.length;
       if (overflowing) return null;
-      // default next char as unknown
+      // default next char as unknown. `buffer` is scanned one byte at a
+      // time here, but a UTF-8 continuation byte (10xxxxxx) is the tail of
+      // a multi-byte character the charsets above never match as a whole
+      // (they're ASCII-only) — attributing it its own column would count
+      // one on-screen character as 2-4 columns. Give it a `columnWidth` of
+      // 0 so only the sequence's lead byte advances the column, once.
+      const byte = buffer[currentPos]!;
+      const isUtf8ContinuationByte = (byte & 0xc0) === 0x80;
       return {
         type: SyntaxKind.unknown,
         span: new PartialSpan(currentPos, 1),
+        columnWidth: isUtf8ContinuationByte ? 0 : 1,
       };
     };
 
@@ -94,7 +102,7 @@ export class Part {
       const startLin = currentLine;
       const startCol = currentColumn;
       currentPos = nextToken.span.index + nextToken.span.length;
-      currentColumn += nextToken.span.length;
+      currentColumn += nextToken.columnWidth;
       if (nextToken.type === SyntaxKind.whitespace && startCol === 0) {
         paddingLine += nextToken.span.length;
       }
