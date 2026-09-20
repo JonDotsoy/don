@@ -1213,3 +1213,76 @@ server "eu-west-1" {
     expect(otherRegionIssues).toHaveLength(0);
   });
 });
+
+describe("known issues (bug regression, not yet fixed)", () => {
+  // `defaultConstraintMessage` (lint-schema.ts) picks its message purely
+  // from whether `constraint.type` is set, not from *which* check inside
+  // `matchesConstraint` actually failed. So any typed constraint that
+  // fails on `gte`/`gt`/`lte`/`lt`, `pattern`, or `enum` — with the value
+  // matching `type` just fine — is reported as a type mismatch, which is
+  // false and misleads whoever reads the report.
+  test.failing("range failure is reported as its own reason, not as a type mismatch", () => {
+    const rule = {
+      "/server/port": {
+        "[1]": { type: "number", gte: 9000 },
+      },
+    } satisfies LintRuleDocument;
+
+    // 8080 *is* a number — it only fails the `gte: 9000` range check.
+    const issues = lintSchema(
+      `
+server {
+  port 8080
+}
+`,
+      rule,
+    );
+
+    expect(issues).toHaveLength(1);
+    // Actual message today: "argument at position 1 must be of type number",
+    // even though the argument's type is exactly right.
+    expect(issues[0]!.message).not.toMatch(/must be of type/);
+  });
+
+  test.failing("pattern failure is reported as its own reason, not as a type mismatch", () => {
+    const rule = {
+      "/server/route": {
+        "[1]": { type: "string", pattern: "^/[a-z]+$" },
+      },
+    } satisfies LintRuleDocument;
+
+    // "/API" is a string — it only fails the `pattern` check.
+    const issues = lintSchema(
+      `
+server {
+  route "/API"
+}
+`,
+      rule,
+    );
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.message).not.toMatch(/must be of type/);
+  });
+
+  test.failing("enum failure is reported as its own reason, not as a type mismatch", () => {
+    const rule = {
+      "/server/strategy": {
+        "[1]": { type: "string", enum: ["rolling", "recreate"] },
+      },
+    } satisfies LintRuleDocument;
+
+    // "big-bang" is a string — it only fails the `enum` check.
+    const issues = lintSchema(
+      `
+server {
+  strategy "big-bang"
+}
+`,
+      rule,
+    );
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.message).not.toMatch(/must be of type/);
+  });
+});
