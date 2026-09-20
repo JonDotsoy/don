@@ -1,8 +1,8 @@
 # Variante 01 — "terminal corners"
 
-Variación de la marca base (`assets/brand/cover.html`) que mantiene la
-tipografía, paleta y proporciones definidas en `assets/brand/BRAND.md`,
-pero cambia la composición:
+Variación de la marca base (`assets/brand/variant/00/cover.html`) que
+mantiene la tipografía, paleta y proporciones definidas en
+`assets/brand/BRAND.md`, pero cambia la composición:
 
 - Wordmark alineado abajo a la izquierda en vez de centrado
 - El punto `.` se reemplaza por un bloque cuadrado (`--accent`), como un

@@ -42,5 +42,5 @@
 
 ## Archivos
 
-- `cover.html` — cover de la marca (1200×630), soporta `?theme=light|dark` en la query string
-- `generate-png.mjs` — script Playwright que renderiza `cover.html` a PNG (light y dark)
+- `variant/00/` — implementación base tal cual descrita en este documento (`cover.html` + `generate-png.mjs`)
+- `variant/01/`, `variant/02/`, `variant/03/`, … — variaciones de layout/fuente/disposición del punto, cada una con su propio `README.md`
