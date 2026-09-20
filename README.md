@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/variant/03/cover-dark.png">
-  <img alt="donly" src="assets/brand/variant/03/cover-light.png" width="300">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/variant/00/cover-dark.png">
+  <img alt="donly" src="assets/brand/variant/00/cover-light.png" width="300">
 </picture>
 
 **donly** is the reference implementation of DON (Directive Object Notation), a human-readable data serialization format built around directives and subdirectives. DON was designed for writing infrastructure annotations — routes, containers, security rules, reverse proxies — in a shape that's fast for both humans and AI agents to read and generate. Instead of nesting keys and indentation levels to express a declaration, a directive takes its parameters as positional **arguments**, so a rule that needs a method, a path, and a body reads as one line instead of a tree:
