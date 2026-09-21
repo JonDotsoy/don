@@ -25,59 +25,59 @@
   },
   "homepage": "https://don.jon.soy/",
   "type": "module",
-  "main": "./lib/esm/index.js",
-  "types": "./lib/esm/index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "bin": {
-    "donly": "./lib/esm/bin/donly.js"
+    "donly": "./lib/bin/donly.js"
   },
   "exports": {
     ".": {
-      "types": "./lib/esm/index.d.ts",
-      "import": "./lib/esm/index.js"
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
     },
     "./utils": {
-      "types": "./lib/esm/utils/inspect.d.ts",
-      "import": "./lib/esm/utils/inspect.js"
+      "types": "./lib/utils/inspect.d.ts",
+      "import": "./lib/utils/inspect.js"
     },
     "./encoder": {
-      "types": "./lib/esm/directive-json.d.ts",
-      "import": "./lib/esm/directive-json.js"
+      "types": "./lib/directive-json.d.ts",
+      "import": "./lib/directive-json.js"
     },
     "./decoder": {
-      "types": "./lib/esm/directive-json.d.ts",
-      "import": "./lib/esm/directive-json.js"
+      "types": "./lib/directive-json.d.ts",
+      "import": "./lib/directive-json.js"
     },
     "./load": {
-      "types": "./lib/esm/load.d.ts",
-      "import": "./lib/esm/load.js"
+      "types": "./lib/load.d.ts",
+      "import": "./lib/load.js"
     },
     "./lint": {
-      "types": "./lib/esm/lint/lint.d.ts",
-      "import": "./lib/esm/lint/lint.js"
+      "types": "./lib/lint/lint.d.ts",
+      "import": "./lib/lint/lint.js"
     },
     "./common/errors": {
-      "types": "./lib/esm/common/errors.d.ts",
-      "import": "./lib/esm/common/errors.js"
+      "types": "./lib/common/errors.d.ts",
+      "import": "./lib/common/errors.js"
     },
     "./find": {
-      "types": "./lib/esm/find.d.ts",
-      "import": "./lib/esm/find.js"
+      "types": "./lib/find.d.ts",
+      "import": "./lib/find.js"
     },
     "./demo/http-proxy": {
-      "types": "./lib/esm/demo/proxy/http-proxy.d.ts",
-      "import": "./lib/esm/demo/proxy/http-proxy.js"
+      "types": "./lib/demo/proxy/http-proxy.d.ts",
+      "import": "./lib/demo/proxy/http-proxy.js"
     },
     "./demo/plugins/variables": {
-      "types": "./lib/esm/demo/plugins/variables-plugin.d.ts",
-      "import": "./lib/esm/demo/plugins/variables-plugin.js"
+      "types": "./lib/demo/plugins/variables-plugin.d.ts",
+      "import": "./lib/demo/plugins/variables-plugin.js"
     },
     "./demo/plugins/resources": {
-      "types": "./lib/esm/demo/plugins/resources-plugin.d.ts",
-      "import": "./lib/esm/demo/plugins/resources-plugin.js"
+      "types": "./lib/demo/plugins/resources-plugin.d.ts",
+      "import": "./lib/demo/plugins/resources-plugin.js"
     },
     "./plugins/scoped-variables": {
-      "types": "./lib/esm/plugins/scoped-variables-plugin.d.ts",
-      "import": "./lib/esm/plugins/scoped-variables-plugin.js"
+      "types": "./lib/plugins/scoped-variables-plugin.d.ts",
+      "import": "./lib/plugins/scoped-variables-plugin.js"
     }
   },
   "files": [
@@ -87,7 +87,7 @@
     "prepack": "npm run lint && npm run build",
     "build": "npm run build:esm && npm run build:assets && npm run build:pkg",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:assets": "mkdir -p lib/esm/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/esm/demo/proxy/certs/",
+    "build:assets": "mkdir -p lib/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/demo/proxy/certs/",
     "build:pkg": "mkdir -p lib && node scripts/build-lib-pkg.mjs",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",

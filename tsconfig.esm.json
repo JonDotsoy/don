@@ -2,7 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "module": "ESNext",
-    "outDir": "./lib/esm",
+    "outDir": "./lib",
     "rootDir": "./src",
     "noEmit": false,
     "allowImportingTsExtensions": false,
