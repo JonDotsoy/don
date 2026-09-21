@@ -18,7 +18,7 @@ Commands:
 
 const pack = async (): Promise<number> => {
   console.log(`==> Packing ${repoRoot} (npm pack runs prepack: lint + build)`);
-  const output = await $`npm pack`.cwd(repoRoot).text();
+  const output = await $`npm pack ./`.cwd(repoRoot).text();
 
   const tarballName = output.trim().split("\n").pop();
   if (!tarballName) {
