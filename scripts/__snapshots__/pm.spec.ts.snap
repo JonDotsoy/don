@@ -1,0 +1,34 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`trimLibPackageJson rewrites ./lib/... paths and drops dev-only fields 1`] = `
+{
+  "bin": {
+    "donly": "./bin/donly.js",
+  },
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "types": "./index.d.ts",
+    },
+    "./lint": {
+      "import": "./lint/lint.js",
+      "types": "./lint/lint.d.ts",
+    },
+  },
+  "main": "./index.js",
+  "name": "donly",
+  "types": "./index.d.ts",
+  "version": "1.2.3",
+}
+`;
+
+exports[`trimLibPackageJson leaves paths outside ./lib/ untouched 1`] = `
+{
+  "homepage": "https://don.jon.soy/",
+  "name": "donly",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JonDotsoy/don",
+  },
+}
+`;

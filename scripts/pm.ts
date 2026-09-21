@@ -40,6 +40,14 @@ const rewritePaths = (value: unknown): unknown => {
   return value;
 };
 
+// Pure transform, exported so tests can snapshot it without running tsc.
+export function trimLibPackageJson(
+  pkg: Record<string, unknown>,
+): Record<string, unknown> {
+  const { scripts, devDependencies, files, ...rest } = pkg;
+  return rewritePaths(rest) as Record<string, unknown>;
+}
+
 async function pack() {
   await rm(LIB_DIR, { recursive: true, force: true });
 
@@ -60,8 +68,7 @@ async function pack() {
   const pkg = JSON.parse(
     await readFile(join(REPO_ROOT, "package.json"), "utf8"),
   );
-  const { scripts, devDependencies, files, ...rest } = pkg;
-  const trimmed = rewritePaths(rest);
+  const trimmed = trimLibPackageJson(pkg);
   await writeFile(
     join(LIB_DIR, "package.json"),
     JSON.stringify(trimmed, null, 2) + "\n",
@@ -70,13 +77,15 @@ async function pack() {
   console.log("lib/ ready.");
 }
 
-const [, , command] = process.argv;
+if (import.meta.main) {
+  const [, , command] = process.argv;
 
-switch (command) {
-  case "pack":
-    await pack();
-    break;
-  default:
-    console.error("Usage: bun run scripts/pm.ts <pack>");
-    process.exit(1);
+  switch (command) {
+    case "pack":
+      await pack();
+      break;
+    default:
+      console.error("Usage: bun run scripts/pm.ts <pack>");
+      process.exit(1);
+  }
 }
