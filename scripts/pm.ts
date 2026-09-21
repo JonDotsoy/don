@@ -2,8 +2,8 @@
 // Package-manager helper for this repo. Run with `bun scripts/pm.ts <command>`.
 //
 // Commands:
-//   pack   Pack the project into a .tgz (via `npm pack`, which runs the
-//          `prepack` lifecycle: lint + build) and print its absolute path.
+//   pack   Build the project (./lib) and pack it into a .tgz via
+//          `npm pack`, printing its absolute path.
 
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +17,10 @@ Commands:
   pack   Pack the project into a .tgz and print its absolute path`;
 
 const pack = async (): Promise<number> => {
-  console.log(`==> Packing ${repoRoot} (npm pack runs prepack: lint + build)`);
+  console.log(`==> Building ${repoRoot} (npm run build)`);
+  await $`npm run build`.cwd(repoRoot);
+
+  console.log(`==> Packing ${repoRoot}`);
   const output = await $`npm pack ./`.cwd(repoRoot).text();
 
   const tarballName = output.trim().split("\n").pop();
