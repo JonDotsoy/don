@@ -1,0 +1,328 @@
+openapi "3.1.0"
+
+info {
+  title "E-commerce API"
+  version "1.0.0"
+  description <<<EOF
+    This is an e-commerce API spec for a storefront. 
+    It includes authentication, product browsing, cart, and checkout operations.
+    Auth is token-based. Explore, test, and mock this API freely.
+}
+
+server {
+  url "https://api.demo-ecommerce.com/v1"
+  description "Production environment"
+}
+
+server {
+  url "https://api.dev.demo-ecommerce.com/v1"
+  description "Development environment"
+}
+
+securityScheme BearerAuth {
+  type http
+  scheme bearer
+  bearerFormat JWT
+}
+
+schema Product {
+  type object
+  required id name price stock category
+  property id string {
+    format uuid
+    example "eda5cbc1-a615-4da5-ae73-4a33a9acfb6a"
+  }
+  property name string {
+    example "Worry Management"
+  }
+  property description string {
+    example "Mr street sell would civil. People through shake southern force."
+  }
+  property price number {
+    format float
+    example 91.37
+  }
+  property category string {
+    example "wrong"
+  }
+  property image_url string {
+    format uri
+    example "https://dummyimage.com/766x809"
+  }
+  property stock integer {
+    example 94
+  }
+  property created_at string {
+    format date-time
+  }
+  property updated_at string {
+    format date-time
+  }
+}
+
+schema CartItem {
+  type object
+  required product_id quantity
+  property product_id string {
+    format uuid
+  }
+  property quantity integer {
+    minimum 1
+  }
+}
+
+schema Address {
+  type object
+  required line1 city state postal_code country
+  property line1 string
+  property line2 string
+  property city string
+  property state string
+  property postal_code string
+  property country string
+}
+
+schema Order {
+  type object
+  required id items total_amount status created_at
+  property id string {
+    format uuid
+  }
+  property items array {
+    items ref CartItem
+  }
+  property total_amount number
+  property status string {
+    enum pending confirmed shipped delivered
+  }
+  property created_at string {
+    format date-time
+  }
+}
+
+route POST /auth/register {
+  summary "Create a new user account"
+  requestBody {
+    required true
+    content application/json {
+      schema {
+        type object
+        required email password
+        property email string {
+          format email
+        }
+        property password string {
+          format password
+        }
+        property name string
+      }
+    }
+  }
+  response 201 {
+    description "User created"
+  }
+  response 400 {
+    description "Invalid input"
+  }
+}
+
+route POST /auth/login {
+  summary "Login and get access token"
+  requestBody {
+    required true
+    content application/json {
+      schema {
+        type object
+        required email password
+        property email string
+        property password string
+      }
+    }
+  }
+  response 200 {
+    description "Authenticated successfully"
+  }
+  response 401 {
+    description "Unauthorized"
+  }
+}
+
+route GET /products {
+  summary "List all products with filters"
+  param category {
+    in query
+    schema {
+      type string
+    }
+  }
+  param search {
+    in query
+    schema {
+      type string
+    }
+  }
+  param min_price {
+    in query
+    schema {
+      type number
+    }
+  }
+  param max_price {
+    in query
+    schema {
+      type number
+    }
+  }
+  response 200 {
+    description "List of products"
+    content application/json {
+      schema {
+        type array
+        items ref Product
+      }
+    }
+  }
+}
+
+route GET /products/{id} {
+  summary "Get product details by ID"
+  param id {
+    in path
+    required true
+    schema {
+      type string
+      format uuid
+    }
+  }
+  response 200 {
+    description "Product details"
+    content application/json {
+      schema ref Product
+    }
+  }
+}
+
+route GET /cart {
+  summary "Get current user's cart"
+  security {
+    BearerAuth
+  }
+  response 200 {
+    description "Your cart items"
+    content application/json {
+      schema {
+        type array
+        items ref CartItem
+      }
+    }
+  }
+}
+
+route POST /cart/items {
+  summary "Add item to cart"
+  security {
+    BearerAuth
+  }
+  requestBody {
+    required true
+    content application/json {
+      schema ref CartItem
+    }
+  }
+  response 200 {
+    description "Item added to cart"
+  }
+}
+
+route POST /checkout {
+  summary "Checkout and place order"
+  security {
+    BearerAuth
+  }
+  requestBody {
+    required true
+    content application/json {
+      schema {
+        type object
+        required address_id payment_method_id
+        property address_id string
+        property payment_method_id string
+      }
+    }
+  }
+  response 201 {
+    description "Order created"
+    content application/json {
+      schema ref Order
+    }
+  }
+}
+
+route GET /orders {
+  summary "List your past orders"
+  security {
+    BearerAuth
+  }
+  response 200 {
+    description "Order history"
+    content application/json {
+      schema {
+        type array
+        items ref Order
+      }
+    }
+  }
+}
+
+route GET /orders/{orderId} {
+  summary "Get order details"
+  security {
+    BearerAuth
+  }
+  param orderId {
+    in path
+    required true
+    schema {
+      type string
+      format uuid
+    }
+  }
+  response 200 {
+    description "Order detail"
+    content application/json {
+      schema ref Order
+    }
+  }
+}
+
+route GET /addresses {
+  summary "Get your saved addresses"
+  security {
+    BearerAuth
+  }
+  response 200 {
+    description "List of saved addresses"
+    content application/json {
+      schema {
+        type array
+        items ref Address
+      }
+    }
+  }
+}
+
+route POST /addresses {
+  summary "Add a new address"
+  security {
+    BearerAuth
+  }
+  requestBody {
+    required true
+    content application/json {
+      schema ref Address
+    }
+  }
+  response 201 {
+    description "Address added"
+  }
+}

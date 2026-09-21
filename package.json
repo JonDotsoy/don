@@ -59,6 +59,10 @@
       "types": "./lib/esm/common/errors.d.ts",
       "import": "./lib/esm/common/errors.js"
     },
+    "./schemas/openapi": {
+      "types": "./lib/esm/schemas/openapi/index.d.ts",
+      "import": "./lib/esm/schemas/openapi/index.js"
+    },
     "./find": {
       "types": "./lib/esm/find.d.ts",
       "import": "./lib/esm/find.js"

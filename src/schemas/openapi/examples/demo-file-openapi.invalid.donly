@@ -1,0 +1,18 @@
+info {
+  title "Broken API"
+}
+
+server {
+  host "api.example.com"
+}
+
+route FETCH pets {
+  summary "Missing method, missing leading slash, missing response"
+}
+
+route GET /widgets {
+  summary "Response code out of range"
+  response 999 {
+    description "Not a valid HTTP status"
+  }
+}
