@@ -21,7 +21,7 @@ const pack = async (): Promise<number> => {
   await $`npm run build`.cwd(repoRoot);
 
   console.log(`==> Packing ${repoRoot}`);
-  const output = await $`npm pack ./`.cwd(repoRoot).text();
+  const output = await $`npm pack ./lib/esm/`.cwd(repoRoot).text();
 
   const tarballName = output.trim().split("\n").pop();
   if (!tarballName) {

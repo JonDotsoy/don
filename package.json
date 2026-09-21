@@ -87,7 +87,7 @@
     "prepack": "npm run lint && npm run build",
     "build": "npm run build:esm && npm run build:assets",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:assets": "mkdir -p lib/esm/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/esm/demo/proxy/certs/ && printf '{\n  \"type\": \"module\"\n}\n' > lib/esm/package.json",
+    "build:assets": "mkdir -p lib/esm/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/esm/demo/proxy/certs/ && node scripts/build-lib-package-json.mjs",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
