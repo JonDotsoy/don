@@ -65,7 +65,7 @@ describe("loadOpenapi", () => {
     ]);
     expect(Object.keys(getPetById?.responses ?? {})).toEqual(["200", "404"]);
 
-    expect(doc.components?.schemas["NewPet"]).toEqual({
+    expect(doc.components?.schemas?.["NewPet"]).toEqual({
       type: "object",
       required: ["name"],
       properties: {
@@ -73,7 +73,7 @@ describe("loadOpenapi", () => {
         tag: { type: "string" },
       },
     });
-    expect(doc.components?.schemas["Pet"]).toEqual({
+    expect(doc.components?.schemas?.["Pet"]).toEqual({
       allOf: [
         { $ref: "#/components/schemas/NewPet" },
         {
@@ -85,7 +85,7 @@ describe("loadOpenapi", () => {
         },
       ],
     });
-    expect(doc.components?.schemas["Error"]).toEqual({
+    expect(doc.components?.schemas?.["Error"]).toEqual({
       type: "object",
       required: ["code", "message"],
       properties: {

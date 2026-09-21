@@ -24,11 +24,22 @@ info {
 
 server {                  # zero or more
   url "https://api.example.com/v1"
+  description "..."      # optional
+}
+
+securityScheme BearerAuth {  # zero or more component security schemes
+  type http
+  scheme bearer
+  bearerFormat JWT
 }
 
 route GET /pets {          # zero or more
   summary "List all pets"  # optional
   operationId listPets     # optional
+
+  security {                # optional; each child is one required scheme,
+    BearerAuth               # its args the OAuth2 scopes ([] when omitted)
+  }
 
   param limit {             # zero or more
     in query                # query | path | header | cookie
@@ -88,6 +99,18 @@ See [`examples/demo-file-openapi.donly`](./examples/demo-file-openapi.donly)
 for a complete file exercising every construct above, and
 [`examples/minimal-api.donly`](./examples/minimal-api.donly) for the
 smallest file `loadOpenapi` accepts (just `openapi`/`info`/one `route`).
+
+[`examples/ecommerce-api.donly`](./examples/ecommerce-api.donly) is a
+larger, real-world translation: the full grammar above applied to
+[Beeceptor's sample e-commerce OpenAPI spec](https://beeceptor.com/docs/concepts/openapi-sample-spec/)
+(auth, products, cart, checkout, orders, addresses — `securityScheme`/
+`security`, multiple `server`s, inline object request bodies, `enum`,
+and extra JSON Schema keywords like `example`/`minimum` via the generic
+child-copy fallback). [`examples/ecommerce-openapi.yaml`](./examples/ecommerce-openapi.yaml)
+and [`examples/ecommerce-openapi.json`](./examples/ecommerce-openapi.json)
+are Beeceptor's own spec and its official JSON export, downloaded
+verbatim; `ecommerce-api.spec.ts` asserts `loadOpenapi` on the `.donly`
+file produces exactly that JSON.
 
 ## Linting a `.donly` API file
 

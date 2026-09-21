@@ -28,7 +28,12 @@ export interface OpenAPIInfo {
 
 export interface OpenAPIServer {
   url: string;
+  description?: string;
 }
+
+export type OpenAPISecurityRequirement = Record<string, string[]>;
+
+export type OpenAPISecurityScheme = Record<string, unknown>;
 
 export interface OpenAPIParameter {
   name: string;
@@ -55,13 +60,15 @@ export interface OpenAPIResponse {
 export interface OpenAPIOperation {
   summary?: string;
   operationId?: string;
+  security?: OpenAPISecurityRequirement[];
   parameters?: OpenAPIParameter[];
   requestBody?: OpenAPIRequestBody;
   responses: Record<string, OpenAPIResponse>;
 }
 
 export interface OpenAPIComponents {
-  schemas: Record<string, OpenAPISchema>;
+  schemas?: Record<string, OpenAPISchema>;
+  securitySchemes?: Record<string, OpenAPISecurityScheme>;
 }
 
 export interface OpenAPIDocument {
@@ -161,9 +168,35 @@ const parseInfo = (directive: Directive): OpenAPIInfo => {
   return info;
 };
 
-const parseServer = (directive: Directive): OpenAPIServer => ({
-  url: stringArg(findChild(directive, "url")) ?? "",
-});
+const parseServer = (directive: Directive): OpenAPIServer => {
+  const server: OpenAPIServer = {
+    url: stringArg(findChild(directive, "url")) ?? "",
+  };
+  const description = stringArg(findChild(directive, "description"));
+  if (description !== undefined) server.description = description;
+  return server;
+};
+
+/** `securityScheme <Name> { type http scheme bearer bearerFormat JWT }` — copied through as a flat object. */
+const parseSecurityScheme = (directive: Directive): OpenAPISecurityScheme => {
+  const scheme: OpenAPISecurityScheme = {};
+  for (const child of directive.children) {
+    scheme[String(child.name)] =
+      child.args.length <= 1 ? child.args[0] : child.args;
+  }
+  return scheme;
+};
+
+/** `security { BearerAuth }` — each child directive is one scheme name, its args the OAuth2 scopes (`[]` when omitted). */
+const parseSecurityRequirement = (
+  directive: Directive,
+): OpenAPISecurityRequirement => {
+  const requirement: OpenAPISecurityRequirement = {};
+  for (const child of directive.children) {
+    requirement[String(child.name)] = child.args.map((arg) => String(arg));
+  }
+  return requirement;
+};
 
 const parseParameter = (directive: Directive): OpenAPIParameter => {
   const parameter: OpenAPIParameter = {
@@ -232,6 +265,11 @@ const parseOperation = (directive: Directive): OpenAPIOperation => {
   if (operationIdChild)
     operation.operationId = String(operationIdChild.args[0]);
 
+  const securityDirectives = findChildren(directive, "security");
+  if (securityDirectives.length > 0) {
+    operation.security = securityDirectives.map(parseSecurityRequirement);
+  }
+
   const parameters = findChildren(directive, "param").map(parseParameter);
   if (parameters.length > 0) operation.parameters = parameters;
 
@@ -245,6 +283,10 @@ const parseOperation = (directive: Directive): OpenAPIOperation => {
 /** A top-level `schema <Name> { ... }` component definition, vs. an inline `schema ref X` / `schema { ... }` usage. */
 const isComponentSchemaDirective = (directive: Directive): boolean =>
   directive.name === "schema" && directive.args.length === 1;
+
+/** A top-level `securityScheme <Name> { ... }` component definition. */
+const isSecuritySchemeDirective = (directive: Directive): boolean =>
+  directive.name === "securityScheme" && directive.args.length === 1;
 
 /**
  * Translates a parsed DON `Directive` tree — following the `openapi`/
@@ -262,6 +304,7 @@ export const openapiFromDirective = (root: Directive): OpenAPIDocument => {
   const serverDirectives = children.filter((child) => child.name === "server");
   const routeDirectives = children.filter((child) => child.name === "route");
   const schemaDirectives = children.filter(isComponentSchemaDirective);
+  const securitySchemeDirectives = children.filter(isSecuritySchemeDirective);
 
   const document: OpenAPIDocument = {
     openapi: stringArg(openapiDirective) ?? "3.0.3",
@@ -280,13 +323,28 @@ export const openapiFromDirective = (root: Directive): OpenAPIDocument => {
     document.paths[path]![method] = parseOperation(routeDirective);
   }
 
-  if (schemaDirectives.length > 0) {
-    const schemas: Record<string, OpenAPISchema> = {};
-    for (const schemaDirective of schemaDirectives) {
-      schemas[String(schemaDirective.args[0])] =
-        parseSchemaLike(schemaDirective);
+  if (schemaDirectives.length > 0 || securitySchemeDirectives.length > 0) {
+    const components: OpenAPIComponents = {};
+
+    if (securitySchemeDirectives.length > 0) {
+      const securitySchemes: Record<string, OpenAPISecurityScheme> = {};
+      for (const directive of securitySchemeDirectives) {
+        securitySchemes[String(directive.args[0])] =
+          parseSecurityScheme(directive);
+      }
+      components.securitySchemes = securitySchemes;
     }
-    document.components = { schemas };
+
+    if (schemaDirectives.length > 0) {
+      const schemas: Record<string, OpenAPISchema> = {};
+      for (const schemaDirective of schemaDirectives) {
+        schemas[String(schemaDirective.args[0])] =
+          parseSchemaLike(schemaDirective);
+      }
+      components.schemas = schemas;
+    }
+
+    document.components = components;
   }
 
   return document;

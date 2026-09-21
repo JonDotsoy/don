@@ -10,4 +10,6 @@ export type {
   OpenAPIOperation,
   OpenAPIComponents,
   OpenAPISchema,
+  OpenAPISecurityRequirement,
+  OpenAPISecurityScheme,
 } from "./load-openapi.js";
