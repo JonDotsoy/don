@@ -85,10 +85,7 @@
   ],
   "scripts": {
     "prepack": "npm run lint && npm run build",
-    "build": "npm run build:esm && npm run build:assets && npm run build:pkg",
-    "build:esm": "tsc -p tsconfig.esm.json",
-    "build:assets": "mkdir -p lib/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/demo/proxy/certs/",
-    "build:pkg": "mkdir -p lib && node scripts/build-lib-pkg.mjs",
+    "build": "bun run scripts/pm.ts pack",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",
