@@ -1,7 +1,8 @@
 // Writes one tiny entry script per published import path ("donly",
-// "donly/encoder", "donly/decoder", "donly/load", "donly/lint",
-// "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables",
-// "donly/common/errors") into the directory given as
+// "donly/utils", "donly/encoder", "donly/decoder", "donly/load",
+// "donly/lint", "donly/find", "donly/demo/http-proxy",
+// "donly/plugins/scoped-variables", "donly/common/errors") into the
+// directory given as
 // argv[2], plus a manifest.json listing, for each script, the
 // `bun build --target <target>` targets it's expected to bundle under
 // (node, bun, browser). Each script does a real `import { ... } from
@@ -31,6 +32,13 @@ const entries = {
     content: `
 import { DON, Directive, DirectiveJSONEncoder, DirectiveJSONDecoder } from "donly";
 console.log(DON, Directive, DirectiveJSONEncoder, DirectiveJSONDecoder);
+`,
+    targets: ALL_TARGETS,
+  },
+  "donly-utils.mjs": {
+    content: `
+import { inspect } from "donly/utils";
+console.log(inspect);
 `,
     targets: ALL_TARGETS,
   },

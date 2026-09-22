@@ -1,6 +1,6 @@
 {
   "name": "donly",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "description": "DON (Directive Object Notation) - A human-readable data serialization format based on directives and subdirectives for configuration files, infrastructure definitions, and structured data",
   "keywords": [
     "don",
@@ -25,60 +25,24 @@
   },
   "homepage": "https://don.jon.soy/",
   "type": "module",
-  "main": "./lib/esm/index.js",
-  "types": "./lib/esm/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "bin": {
-    "donly": "./lib/esm/bin/donly.js"
+    "donly": "./src/bin/donly.ts"
   },
   "exports": {
-    ".": {
-      "types": "./lib/esm/index.d.ts",
-      "import": "./lib/esm/index.js"
-    },
-    "./utils": {
-      "types": "./lib/esm/utils/inspect.d.ts",
-      "import": "./lib/esm/utils/inspect.js"
-    },
-    "./encoder": {
-      "types": "./lib/esm/directive-json.d.ts",
-      "import": "./lib/esm/directive-json.js"
-    },
-    "./decoder": {
-      "types": "./lib/esm/directive-json.d.ts",
-      "import": "./lib/esm/directive-json.js"
-    },
-    "./load": {
-      "types": "./lib/esm/load.d.ts",
-      "import": "./lib/esm/load.js"
-    },
-    "./lint": {
-      "types": "./lib/esm/lint/lint.d.ts",
-      "import": "./lib/esm/lint/lint.js"
-    },
-    "./common/errors": {
-      "types": "./lib/esm/common/errors.d.ts",
-      "import": "./lib/esm/common/errors.js"
-    },
-    "./find": {
-      "types": "./lib/esm/find.d.ts",
-      "import": "./lib/esm/find.js"
-    },
-    "./demo/http-proxy": {
-      "types": "./lib/esm/demo/proxy/http-proxy.d.ts",
-      "import": "./lib/esm/demo/proxy/http-proxy.js"
-    },
-    "./demo/plugins/variables": {
-      "types": "./lib/esm/demo/plugins/variables-plugin.d.ts",
-      "import": "./lib/esm/demo/plugins/variables-plugin.js"
-    },
-    "./demo/plugins/resources": {
-      "types": "./lib/esm/demo/plugins/resources-plugin.d.ts",
-      "import": "./lib/esm/demo/plugins/resources-plugin.js"
-    },
-    "./plugins/scoped-variables": {
-      "types": "./lib/esm/plugins/scoped-variables-plugin.d.ts",
-      "import": "./lib/esm/plugins/scoped-variables-plugin.js"
-    }
+    ".": "./src/index.ts",
+    "./utils": "./src/utils.ts",
+    "./encoder": "./src/directive-json.ts",
+    "./decoder": "./src/directive-json.ts",
+    "./load": "./src/load.ts",
+    "./lint": "./src/lint/lint.ts",
+    "./common/errors": "./src/common/errors.ts",
+    "./find": "./src/find.ts",
+    "./demo/http-proxy": "./src/demo/proxy/http-proxy.ts",
+    "./demo/plugins/variables": "./src/demo/plugins/variables-plugin.ts",
+    "./demo/plugins/resources": "./src/demo/plugins/resources-plugin.ts",
+    "./plugins/scoped-variables": "./src/plugins/scoped-variables-plugin.ts"
   },
   "files": [
     "lib"
@@ -87,7 +51,7 @@
     "prepack": "npm run lint && npm run build",
     "build": "npm run build:esm && npm run build:assets",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:assets": "mkdir -p lib/esm/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/esm/demo/proxy/certs/",
+    "build:assets": "mkdir -p lib/esm/demo/proxy/certs && cp src/demo/proxy/certs/*.pem lib/esm/demo/proxy/certs/ && node scripts/build-lib-package-json.mjs",
     "clean": "rm -rf lib",
     "lint": "prettier --check .",
     "fmt": "prettier --write .",

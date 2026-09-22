@@ -1,7 +1,7 @@
 name: Publish
 
 run-name: >-
-  Publish - ${{ github.event_name == 'workflow_dispatch' && format('manual bump ({0})', inputs.version_bump) || github.event.head_commit.message }}
+  Publish - ${{ github.event_name == 'workflow_dispatch' && format('manual bump ({0}, tag: {1})', inputs.version_bump, inputs.dist_tag) || github.event.head_commit.message }}
 
 on:
   push:
@@ -26,6 +26,15 @@ on:
         description: Move CHANGELOG.md's [Unreleased] section under the new version
         type: boolean
         default: false
+      dist_tag:
+        description: npm dist-tag to publish under
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+          - demo
+        default: latest
 
 permissions:
   contents: write
@@ -89,18 +98,34 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: bun install
 
+      # The root package.json's main/types/bin/exports point at src/*.ts
+      # (a single source of truth, run natively by bun for
+      # self-reference/tests within this repo) — not at what actually
+      # ships to npm. `npm run build` compiles src/ into lib/esm/ and
+      # generates lib/esm/package.json with those fields rewritten to the
+      # compiled .js/.d.ts pair, making lib/esm/ itself a complete,
+      # publishable package (see scripts/build-lib-package-json.mjs).
+      - name: Build package
+        if: steps.check.outputs.exists == 'false'
+        run: npm run lint && npm run build
+
       - name: Publish to npm (OIDC trusted publisher)
         if: steps.check.outputs.exists == 'false'
+        working-directory: lib/esm
         env:
           # "stage" queues the version for manual 2FA approval on npmjs.com;
           # "publish" goes live immediately. Set via repository variable
           # NPM_PUBLISH_MODE (Settings > Secrets and variables > Actions > Variables).
           NPM_PUBLISH_MODE: ${{ vars.NPM_PUBLISH_MODE || 'stage' }}
+          # Only workflow_dispatch exposes the dist_tag input; a plain
+          # push (e.g. a version bump merged to develop) always publishes
+          # under "latest".
+          DIST_TAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.dist_tag) || 'latest' }}
         run: |
           if [ "$NPM_PUBLISH_MODE" = "publish" ]; then
-            npm publish --provenance --access public
+            npm publish --provenance --access public --tag "$DIST_TAG"
           else
-            npm stage publish --provenance --access public
+            npm stage publish --provenance --access public --tag "$DIST_TAG"
           fi
 
       - name: Create GitHub release with npm URL
@@ -108,14 +133,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_PUBLISH_MODE: ${{ vars.NPM_PUBLISH_MODE || 'stage' }}
+          DIST_TAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.dist_tag) || 'latest' }}
         run: |
           version="${{ steps.package.outputs.version }}"
           package_name="$(node -p "require('./package.json').name")"
           npm_url="https://www.npmjs.com/package/${package_name}/v/${version}"
           if [ "$NPM_PUBLISH_MODE" = "publish" ]; then
-            notes="Published to npm: ${npm_url}"
+            notes="Published to npm under dist-tag \`${DIST_TAG}\`: ${npm_url}"
           else
-            notes="Staged on npm, pending manual 2FA approval: ${npm_url}"
+            notes="Staged on npm under dist-tag \`${DIST_TAG}\`, pending manual 2FA approval: ${npm_url}"
           fi
           gh release create "v${version}" \
             --repo "${{ github.repository }}" \

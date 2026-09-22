@@ -104,6 +104,12 @@ documentation.
   callers can check `error instanceof DonSyntaxError` to distinguish a
   DON parsing failure from any other error a call into this library
   might throw.
+- `inspect(directive, strategy?)` (`donly/utils`) — encodes a `Directive`
+  (or `Directive[]`) to a plain JSON value using one of `InspectStrategy`'s
+  shapes: `"nested"` (default, `DirectiveJSONEncoder.nestedReducer`),
+  `"tuple"` (`DirectiveJSONEncoder.tupleReducer`), or `"raw"` (the lossless
+  `{name, args, children}` array shape, no reducer). Backs the CLI's
+  `donly inspect` command.
 
 ### Fixed
 

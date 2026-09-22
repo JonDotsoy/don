@@ -9,9 +9,9 @@
 // import its own "exports" by name), so no packing/installing is needed.
 //
 // Covers every entry point in package.json's "exports": "donly",
-// "donly/encoder", "donly/decoder", "donly/load", "donly/lint",
-// "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables",
-// and "donly/common/errors".
+// "donly/utils", "donly/encoder", "donly/decoder", "donly/load",
+// "donly/lint", "donly/find", "donly/demo/http-proxy",
+// "donly/plugins/scoped-variables", and "donly/common/errors".
 
 import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -23,6 +23,7 @@ import {
   DirectiveJSONEncoder,
   DirectiveJSONDecoder,
 } from "donly";
+import { inspect } from "donly/utils";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
 import { load } from "donly/load";
@@ -43,6 +44,12 @@ assert.equal(directive.name, "name");
 assert.deepEqual(directive.args, ["example"]);
 assert.equal(typeof DirectiveJSONEncoder.encode, "function");
 assert.equal(typeof DirectiveJSONDecoder, "function");
+
+// "donly/utils"
+assert.deepEqual(inspect(directive), { name: "example" });
+assert.deepEqual(inspect(directive, "raw"), [
+  { name: "name", args: ["example"], children: [] },
+]);
 
 // "donly/encoder"
 assert.equal(EncoderOnly, DirectiveJSONEncoder);
@@ -130,5 +137,5 @@ assert.equal(new DonSyntaxError("boom").message, "boom");
 assert.equal(new DonSyntaxError("boom").name, "DonSyntaxError");
 
 console.log(
-  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/encoder", "donly/decoder", "donly/load", "donly/lint", "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables" and "donly/common/errors" all resolve and work.`,
+  `OK (${globalThis.Bun ? `bun ${Bun.version}` : `node ${process.version}`}): "donly", "donly/utils", "donly/encoder", "donly/decoder", "donly/load", "donly/lint", "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables" and "donly/common/errors" all resolve and work.`,
 );

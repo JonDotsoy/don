@@ -26,10 +26,13 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
-echo "==> Packing $REPO_ROOT (npm pack runs prepack: lint + build)"
+echo "==> Packing $REPO_ROOT via scripts/pm.ts (bun scripts/pm.ts pack)"
 cd "$REPO_ROOT"
-npm pack --pack-destination "$WORK_DIR"
-TARBALL_PATH="$(ls "$WORK_DIR"/*.tgz)"
+PACK_OUTPUT="$(bun scripts/pm.ts pack)"
+echo "$PACK_OUTPUT"
+TARBALL_SRC="$(echo "$PACK_OUTPUT" | tail -n 1)"
+mv "$TARBALL_SRC" "$WORK_DIR/"
+TARBALL_PATH="$WORK_DIR/$(basename "$TARBALL_SRC")"
 echo "==> Packed: $TARBALL_PATH"
 
 PROJECT_DIR="$WORK_DIR/project"
