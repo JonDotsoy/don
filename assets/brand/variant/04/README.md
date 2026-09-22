@@ -10,7 +10,8 @@ la marca base. Mantiene la tipografía y paleta de
 - **Fuente**: `JetBrains Mono` 800 (extra bold), mismo fallback
   monoespaciado que la marca base
 - **Layout**: lienzo cuadrado 1024×1024, wordmark centrado, fondo
-  transparente (sin card/grilla/glow)
+  sólido (`--bg-1`) con esquinas redondeadas al 5% (`border-radius: 5%`)
+  para dar contraste a la marca, en vez de fondo transparente
 
 Archivos:
 
