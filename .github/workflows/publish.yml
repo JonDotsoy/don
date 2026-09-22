@@ -89,8 +89,20 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: bun install
 
+      # The root package.json's main/types/bin/exports point at src/*.ts
+      # (a single source of truth, run natively by bun for
+      # self-reference/tests within this repo) — not at what actually
+      # ships to npm. `npm run build` compiles src/ into lib/esm/ and
+      # generates lib/esm/package.json with those fields rewritten to the
+      # compiled .js/.d.ts pair, making lib/esm/ itself a complete,
+      # publishable package (see scripts/build-lib-package-json.mjs).
+      - name: Build package
+        if: steps.check.outputs.exists == 'false'
+        run: npm run lint && npm run build
+
       - name: Publish to npm (OIDC trusted publisher)
         if: steps.check.outputs.exists == 'false'
+        working-directory: lib/esm
         env:
           # "stage" queues the version for manual 2FA approval on npmjs.com;
           # "publish" goes live immediately. Set via repository variable
