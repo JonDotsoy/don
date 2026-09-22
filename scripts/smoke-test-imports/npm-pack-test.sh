@@ -43,21 +43,6 @@ npm init -y >/dev/null
 echo "==> Installing the packed tarball as a real dependency"
 npm install "$TARBALL_PATH" --silent
 
-echo "==> Files installed in node_modules/donly"
-INSTALLED_FILES="$(cd node_modules/donly && find . -type f | sed 's|^\./||' | sort)"
-echo "$INSTALLED_FILES"
-
-if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-  {
-    echo "### Files installed in \`node_modules/donly\` ($MODE)"
-    echo
-    echo '```'
-    echo "$INSTALLED_FILES"
-    echo '```'
-    echo
-  } >>"$GITHUB_STEP_SUMMARY"
-fi
-
 case "$MODE" in
   node | bun)
     cp "$REPO_ROOT/scripts/smoke-test-imports/run.mjs" ./run.mjs
