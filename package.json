@@ -36,8 +36,8 @@
       "import": "./lib/esm/index.js"
     },
     "./utils": {
-      "types": "./lib/esm/utils/inspect.d.ts",
-      "import": "./lib/esm/utils/inspect.js"
+      "types": "./lib/esm/utils.d.ts",
+      "import": "./lib/esm/utils.js"
     },
     "./encoder": {
       "types": "./lib/esm/directive-json.d.ts",

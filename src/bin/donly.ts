@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import { DON } from "../don.js";
-import { DirectiveJSONEncoder } from "../directive-json.js";
-import type { DirectiveReducer } from "../directive-json.js";
+import { inspect, type InspectStrategy } from "../utils.js";
 import { lintSchema } from "../lint/lint.js";
 import { parseLintRulesDonly } from "../lint/rules-dsl.js";
 import { renderReport, renderJSONReport } from "../lint/report.js";
@@ -88,8 +87,6 @@ const runLint = async (args: string[]): Promise<number> => {
 
 const inspectUsage = `Usage: donly inspect [--strategy|-s nested|tuple|raw] <file.donly>`;
 
-type InspectStrategy = "nested" | "tuple" | "raw";
-
 interface InspectArgs {
   filePath: string;
   strategy: InspectStrategy;
@@ -122,25 +119,12 @@ const parseInspectArgs = (args: string[]): InspectArgs => {
   return { filePath: positionals[0]!, strategy };
 };
 
-const reducerOf = (strategy: InspectStrategy): DirectiveReducer | null => {
-  switch (strategy) {
-    case "nested":
-      return DirectiveJSONEncoder.nestedReducer;
-    case "tuple":
-      return DirectiveJSONEncoder.tupleReducer;
-    case "raw":
-      return null;
-  }
-};
-
 const runInspect = async (args: string[]): Promise<number> => {
   const { filePath, strategy } = parseInspectArgs(args);
 
   const source = await readFile(filePath, "utf8");
   const directive = DON.parse(source);
-  const encoded = new DirectiveJSONEncoder().encode(directive, {
-    reducer: reducerOf(strategy),
-  });
+  const encoded = inspect(directive, strategy);
 
   console.log(JSON.stringify(encoded, null, 2));
 

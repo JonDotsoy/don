@@ -2,9 +2,9 @@
 // directory (see tsconfig.json). It is never executed — the goal is to
 // confirm each public export's TypeScript signature accepts the
 // documented argument types and produces the documented result types,
-// for every published entry point ("donly", "donly/encoder",
-// "donly/decoder", "donly/load", "donly/lint", "donly/find",
-// "donly/demo/http-proxy", "donly/plugins/scoped-variables",
+// for every published entry point ("donly", "donly/utils",
+// "donly/encoder", "donly/decoder", "donly/load", "donly/lint",
+// "donly/find", "donly/demo/http-proxy", "donly/plugins/scoped-variables",
 // "donly/common/errors"). Relies on the same self-reference resolution
 // the runtime smoke test (run.mjs) uses, so `lib/esm` must be built first.
 
@@ -20,6 +20,8 @@ import type {
   DirectiveJSONEncoderOptions,
   DonPlugin,
 } from "donly";
+import { inspect } from "donly/utils";
+import type { InspectStrategy } from "donly/utils";
 import { DirectiveJSONEncoder as EncoderOnly } from "donly/encoder";
 import { DirectiveJSONDecoder as DecoderOnly } from "donly/decoder";
 import { load } from "donly/load";
@@ -88,6 +90,13 @@ const encoderOptions: DirectiveJSONEncoderOptions = {
 // --- "donly": DirectiveJSONDecoder (instance-only) ---
 
 const decoded: Directive = new DirectiveJSONDecoder().decode(staticValue);
+
+// --- "donly/utils": inspect ---
+
+const inspectStrategy: InspectStrategy = "nested";
+const inspected: unknown = inspect(parsed);
+const inspectedWithStrategy: unknown = inspect(parsed, inspectStrategy);
+const inspectedArray: unknown = inspect([parsed]);
 
 // --- "donly/encoder" and "donly/decoder" re-export the same classes ---
 
@@ -191,6 +200,9 @@ DirectiveJSONEncoder.encode(parsed, { reducer: "nope" });
 // Silence unused-variable noise from the assertions above; nothing here runs.
 void [
   parseFn,
+  inspected,
+  inspectedWithStrategy,
+  inspectedArray,
   directiveNoChildren,
   directiveName,
   directiveArgs,
