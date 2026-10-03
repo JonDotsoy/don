@@ -129,13 +129,75 @@ const matchesConstraint = (
   return true;
 };
 
+/**
+ * Identifies *which* check inside `matchesConstraint` a value actually
+ * fails, in the same evaluation order, so the default message names the
+ * real reason instead of always blaming `type` when it's set.
+ */
+const constraintFailureReason = (
+  value: unknown,
+  constraint: ArgumentConstraint,
+): string => {
+  if (constraint.or) return "does not satisfy any of the allowed alternatives";
+  if (constraint.and) {
+    const failing = constraint.and.find((c) => !matchesConstraint(value, c));
+    return failing
+      ? constraintFailureReason(value, failing)
+      : "does not satisfy the constraint";
+  }
+  if (constraint.not) return "must not satisfy the given constraint";
+
+  if (constraint.type !== undefined && !matchesType(value, constraint.type)) {
+    return `must be of type ${constraint.type}`;
+  }
+
+  if (
+    constraint.enum &&
+    !constraint.enum.some((literal) => literal === value)
+  ) {
+    return `must be one of: ${constraint.enum.join(", ")}`;
+  }
+
+  if ("pattern" in constraint && constraint.pattern !== undefined) {
+    const subject = patternSubject(value);
+    if (
+      subject === undefined ||
+      !new RegExp(constraint.pattern, constraint.flags).test(subject)
+    ) {
+      return `must match pattern ${constraint.pattern}`;
+    }
+  }
+
+  if ("gte" in constraint && constraint.gte !== undefined) {
+    if (!isNumeric(value) || !((value as never) >= (constraint.gte as never))) {
+      return `must be >= ${constraint.gte}`;
+    }
+  }
+  if ("gt" in constraint && constraint.gt !== undefined) {
+    if (!isNumeric(value) || !((value as never) > (constraint.gt as never))) {
+      return `must be > ${constraint.gt}`;
+    }
+  }
+  if ("lte" in constraint && constraint.lte !== undefined) {
+    if (!isNumeric(value) || !((value as never) <= (constraint.lte as never))) {
+      return `must be <= ${constraint.lte}`;
+    }
+  }
+  if ("lt" in constraint && constraint.lt !== undefined) {
+    if (!isNumeric(value) || !((value as never) < (constraint.lt as never))) {
+      return `must be < ${constraint.lt}`;
+    }
+  }
+
+  return "does not satisfy the constraint";
+};
+
 const defaultConstraintMessage = (
   argIndex: number,
+  value: unknown,
   constraint: ArgumentConstraint,
 ): string =>
-  constraint.type
-    ? `argument at position ${argIndex} must be of type ${constraint.type}`
-    : `argument at position ${argIndex} does not satisfy the constraint`;
+  `argument at position ${argIndex} ${constraintFailureReason(value, constraint)}`;
 
 const evaluateArgumentConstraint = (
   directive: Directive,
@@ -147,7 +209,8 @@ const evaluateArgumentConstraint = (
   if (!matchesConstraint(value, constraint)) {
     issues.push({
       message:
-        constraint.message ?? defaultConstraintMessage(argIndex, constraint),
+        constraint.message ??
+        defaultConstraintMessage(argIndex, value, constraint),
       severity: constraint.severity ?? "error",
       loc: argumentLoc(directive, argIndex - 1),
     });
