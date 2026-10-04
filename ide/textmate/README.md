@@ -9,7 +9,7 @@ other editor that consumes TextMate grammars.
 - `don.tmLanguage.json` — the TextMate grammar (`scopeName: source.don`),
   covering directives, blocks (`{ }`), identifiers, strings, numbers
   (integer/hex/octal/binary/decimal/bigint), booleans, `null`, heredocs
-  (`<<<DELIMITER`), and line/block comments.
+  (`<<<DESCRIPTOR`), and line/block comments.
 - `language-configuration.json` — comment tokens, bracket pairs, and
   auto-closing/surrounding pairs for the `don` language.
 - `package.json` — a minimal VS Code extension manifest that registers the
@@ -30,7 +30,7 @@ other editor that consumes TextMate grammars.
   - `strings.test.don` — double/single-quoted strings and `\"`/`\'` escapes
   - `comments.test.don` — inline line comments and single/multi-line block
     comments
-  - `heredoc.test.don` — `<<<DELIMITER` heredoc opener and delimiter name
+  - `heredoc.test.don` — `<<<DESCRIPTOR` heredoc opener and descriptor name
   - `identifiers-and-blocks.test.don` — path-like/`$`-prefixed identifiers
     as directive arguments and nested blocks
 

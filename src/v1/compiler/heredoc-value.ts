@@ -4,12 +4,12 @@ const inspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 // (e.g. `Bun.inspect`) print a class's own methods (`toString`,
 // `toJSON`) as if they were enumerable data properties. Returning an
 // instance of this plain, method-less view from `[inspectSymbol]`
-// keeps the inspected output to just `delimiter`/`content` while still
+// keeps the inspected output to just `descriptor`/`content` while still
 // tagging it "HeredocValue".
 const HeredocInspectView = (() => {
   class HeredocValue {
     constructor(
-      readonly delimiter: unknown,
+      readonly descriptor: unknown,
       readonly content: unknown,
     ) {}
   }
@@ -17,15 +17,25 @@ const HeredocInspectView = (() => {
 })();
 
 /**
- * Parsed value of a heredoc token (`<<<DELIM\n...body...`), split into
- * the opening delimiter (`delimiter`, `null` when omitted) and the raw
- * body that follows it (`content`).
+ * Parsed value of a heredoc token (`<<<DESCRIPTOR\n...body...`), split into
+ * the opening descriptor (`descriptor`, `null` when omitted) and the raw
+ * body that follows it (`content`). The descriptor is a free-form label
+ * describing the content (e.g. `HTML`, `BASH`); it does not delimit anything.
  */
 export class HeredocValue {
   constructor(
-    readonly delimiter: string | null,
+    readonly descriptor: string | null,
     readonly content: string,
   ) {}
+
+  /**
+   * @deprecated Use {@link HeredocValue.descriptor}. This alias is renamed to
+   * `deprecated_delimiter` on 2027-01-04 (3 months after 2026-10-04) and
+   * removed entirely on 2027-04-04 (6 months after 2026-10-04).
+   */
+  get delimiter(): string | null {
+    return this.descriptor;
+  }
 
   toString(): string {
     return this.content;
@@ -36,7 +46,7 @@ export class HeredocValue {
   }
 
   [inspectSymbol]() {
-    return new HeredocInspectView(this.delimiter, this.content);
+    return new HeredocInspectView(this.descriptor, this.content);
   }
 
   /** Parses the raw text of a heredoc token, e.g. `<<<HTML\n<div/>\n`. */
@@ -46,10 +56,10 @@ export class HeredocValue {
 
     if (newlineIndex === -1) return new HeredocValue(body || null, "");
 
-    const delimiter = body.slice(0, newlineIndex);
+    const descriptor = body.slice(0, newlineIndex);
 
     return new HeredocValue(
-      delimiter || null,
+      descriptor || null,
       dedent(body.slice(newlineIndex + 1)),
     );
   }

@@ -60,7 +60,8 @@ const directiveJSON: unknown = directive.toJSON();
 
 const heredoc: HeredocValue = new HeredocValue("HTML", "<div></div>\n");
 const directiveWithHeredoc: Directive = new Directive("name", [heredoc]);
-const heredocDelimiter: string | null = heredoc.delimiter;
+const heredocDescriptor: string | null = heredoc.descriptor;
+const heredocDelimiter: string | null = heredoc.delimiter; // deprecated alias
 const heredocContent: string = heredoc.content;
 
 // --- "donly": DirectiveJSONEncoder (static + instance) ---
@@ -209,6 +210,7 @@ void [
   directiveChildren,
   directiveJSON,
   directiveWithHeredoc,
+  heredocDescriptor,
   heredocDelimiter,
   heredocContent,
   staticValueFromArray,

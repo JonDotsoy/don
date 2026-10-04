@@ -197,7 +197,32 @@ describe("DON.parse", () => {
     expect(handler.args).toEqual([]);
   });
 
-  it('should parse a heredoc argument without a delimiter', () => {
+  describe("heredoc descriptor", () => {
+    const expectDescriptor = (directive: Directive) => {
+      const heredoc = directive.args[0] as HeredocValue;
+      expect(heredoc.descriptor).toBe("HTML");
+      expect(heredoc.content).toBe("<b/>\n");
+      // deprecated alias
+      expect(heredoc.delimiter).toBe(heredoc.descriptor);
+    };
+
+    it("is exposed at the document root", () => {
+      expectDescriptor(DON.parse("tpl <<<HTML\n  <b/>\n"));
+    });
+
+    it("is exposed inside a block", () => {
+      const result = DON.parse("server {\n  tpl <<<HTML\n    <b/>\n}\n");
+      expectDescriptor(result.children[0]!);
+    });
+
+    it("is exposed next to other directives and arguments", () => {
+      const result = DON.parse("a 1\ntpl <<<HTML\n  <b/>\nb 2\n");
+      expect(result.children.map((c) => c.name)).toEqual(["a", "tpl", "b"]);
+      expectDescriptor(result.children[1]!);
+    });
+  });
+
+  it('should parse a heredoc argument without a descriptor', () => {
     const result = DON.parse(""
       + "step <<<\n"
       + "    npm ci\n"
@@ -459,7 +484,7 @@ describe("HeredocValue custom inspect", () => {
     const inspected = Bun.inspect(heredoc);
 
     expect(inspected).toContain("HeredocValue");
-    expect(inspected).toContain('delimiter: "HTML"');
+    expect(inspected).toContain('descriptor: "HTML"');
     expect(inspected).not.toContain("toJSON");
     expect(inspected).not.toContain("toString");
   });

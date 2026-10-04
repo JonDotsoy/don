@@ -14,35 +14,53 @@ export const wrapAsRoot = (directives: Directive[]): Directive =>
     ? directives[0]!
     : new Directive(ROOT_DIRECTIVE_NAME, [], directives);
 
-type HeredocJSON = { delimiter: string | null; content: string };
+type HeredocJSON = { descriptor: string | null; content: string };
+
+// Legacy shape emitted before `delimiter` was renamed to `descriptor`.
+type LegacyHeredocJSON = { delimiter: string | null; content: string };
 
 interface DirectiveJSON {
   name: string;
-  args: (number | string | boolean | HeredocJSON)[];
+  args: (number | string | boolean | HeredocJSON | LegacyHeredocJSON)[];
   children: DirectiveJSON[];
 }
 
-const isHeredocJSON = (value: unknown): value is HeredocJSON =>
+const isNullableString = (value: unknown): value is string | null =>
+  typeof value === "string" || value === null;
+
+const isCurrentHeredocJSON = (value: unknown): value is HeredocJSON =>
   typeof value === "object" &&
   value !== null &&
-  (typeof (value as HeredocJSON).delimiter === "string" ||
-    (value as HeredocJSON).delimiter === null) &&
+  isNullableString((value as HeredocJSON).descriptor) &&
   typeof (value as HeredocJSON).content === "string";
+
+const isLegacyHeredocJSON = (value: unknown): value is LegacyHeredocJSON =>
+  typeof value === "object" &&
+  value !== null &&
+  isNullableString((value as LegacyHeredocJSON).delimiter) &&
+  typeof (value as LegacyHeredocJSON).content === "string";
+
+const isHeredocJSON = (
+  value: unknown,
+): value is HeredocJSON | LegacyHeredocJSON =>
+  isCurrentHeredocJSON(value) || isLegacyHeredocJSON(value);
 
 const isDirectiveArg = (
   value: unknown,
-): value is number | string | boolean | HeredocJSON =>
+): value is number | string | boolean | HeredocJSON | LegacyHeredocJSON =>
   typeof value === "number" ||
   typeof value === "string" ||
   typeof value === "boolean" ||
   isHeredocJSON(value);
 
 const toDirectiveArg = (
-  value: number | string | boolean | HeredocJSON,
+  value: number | string | boolean | HeredocJSON | LegacyHeredocJSON,
 ): number | string | boolean | HeredocValue =>
-  isHeredocJSON(value)
-    ? new HeredocValue(value.delimiter, value.content)
-    : value;
+  isCurrentHeredocJSON(value)
+    ? new HeredocValue(value.descriptor, value.content)
+    : isLegacyHeredocJSON(value)
+      ? new HeredocValue(value.delimiter, value.content)
+      : value;
 
 const requireStringName = (name: string | symbol): string => {
   if (typeof name !== "string") {
@@ -58,7 +76,7 @@ const toDirectiveJSON = (directive: Directive): DirectiveJSON => ({
   name: requireStringName(directive.name),
   args: directive.args.map((arg) =>
     arg instanceof HeredocValue
-      ? { delimiter: arg.delimiter, content: arg.content }
+      ? { descriptor: arg.descriptor, content: arg.content }
       : arg,
   ),
   children: directive.children.map(toDirectiveJSON),

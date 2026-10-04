@@ -34,7 +34,7 @@
           "begin": "(<<<)([A-Za-z_][A-Za-z0-9_]*)?",
           "beginCaptures": {
             "1": { "name": "keyword.operator.heredoc.don" },
-            "2": { "name": "entity.name.tag.heredoc-delimiter.don" }
+            "2": { "name": "entity.name.tag.heredoc-descriptor.don" }
           },
           "end": "^(?=\\S)",
           "patterns": []

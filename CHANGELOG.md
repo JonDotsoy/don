@@ -25,7 +25,7 @@ documentation.
   (`0b`), and BigInt (`n` suffix, including hex/octal/binary BigInt).
 - String literals with single or double quotes and escaped delimiters (`\"`, `\'`).
 - Boolean (`true`/`false`) and `null` literals.
-- Heredoc syntax (`<<<DELIMITER`) for multi-line content blocks with
+- Heredoc syntax (`<<<DESCRIPTOR`) for multi-line content blocks with
   indentation-based payload extraction.
 - Single-line (`#`) and multi-line (`/* ... */`, non-nesting) comments.
 - `LexerParser` and `SyntaxEncode` — lower-level tokenizer and syntax parser
@@ -111,9 +111,22 @@ documentation.
   `{name, args, children}` array shape, no reducer). Backs the CLI's
   `donly inspect` command.
 
+### Changed
+
+- `HeredocValue.delimiter` is now `HeredocValue.descriptor`: the identifier after
+  `<<<` is a free-form label describing the content (`HTML`, `BASH`), not a
+  delimiter. The JSON shape produced by `DirectiveJSONEncoder` uses
+  `descriptor` (the legacy `delimiter` key is still accepted when decoding), and
+  the TextMate scope is now `entity.name.tag.heredoc-descriptor.don`.
+
+### Deprecated
+
+- `HeredocValue.delimiter` (alias of `descriptor`). It is renamed to
+  `deprecated_delimiter` on 2027-01-04 and removed entirely on 2027-04-04.
+
 ### Fixed
 
-- Heredoc parsing (`<<<DELIMITER`) no longer unconditionally swallows the
+- Heredoc parsing (`<<<DESCRIPTOR`) no longer unconditionally swallows the
   first line after the declaration into the payload. Per spec (§ 2.8
   Heredocs), content must have _greater_ indentation than the heredoc
   declaration line, and this rule now applies starting from the very

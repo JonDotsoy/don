@@ -463,6 +463,29 @@ describe("DirectiveJSONDecoder#decode", () => {
     );
   });
 
+  it("encodes a heredoc as `descriptor` and still decodes the legacy `delimiter` key", () => {
+    const encoded = DirectiveJSONEncoder.encode(
+      new Directive("response", [new HeredocValue("HTML", "<html></html>\n")]),
+      { reducer: null },
+    );
+
+    const json = JSON.stringify(encoded);
+    expect(json).toContain('"descriptor":"HTML"');
+    expect(json).not.toContain('"delimiter"');
+
+    const legacy = [
+      {
+        name: "response",
+        args: [{ delimiter: "HTML", content: "<html></html>\n" }],
+        children: [],
+      },
+    ];
+
+    expect(new DirectiveJSONDecoder().decode(legacy).args[0]).toEqual(
+      new HeredocValue("HTML", "<html></html>\n"),
+    );
+  });
+
   it("decodes a reduced (object) JSON shape back into a directive", () => {
     const value = { server: { host: "localhost", port: 8080 } };
 

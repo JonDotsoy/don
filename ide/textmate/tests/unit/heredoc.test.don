@@ -3,7 +3,7 @@
 template <<<HTML
 #<------- entity.name.function.directive.don
 #        ^^^ keyword.operator.heredoc.don
-#           ^^^^ entity.name.tag.heredoc-delimiter.don
+#           ^^^^ entity.name.tag.heredoc-descriptor.don
   <div>Hello</div>
 
 next "after heredoc"

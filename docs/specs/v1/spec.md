@@ -972,19 +972,19 @@ null
 
 ### 2.8 Heredocs
 
-Heredocs provide syntax for multi-line content blocks with custom delimiters.
+Heredocs provide syntax for multi-line content blocks with an optional descriptor.
 
 **Syntax**:
 
 ```don
-directive <<<DELIMITER
+directive <<<DESCRIPTOR
   content line 1
   content line 2
 ```
 
 **Rules**:
 
-- Starts with `<<<` followed by a delimiter identifier (e.g., `HTML`, `SCRIPT`)
+- Starts with `<<<` followed by an optional descriptor identifier (e.g., `HTML`, `SCRIPT`)
 - Content begins on the next line
 - Content must have greater indentation than the heredoc declaration
 - Continues until a token with indentation equal to or less than the heredoc declaration line is found
@@ -1021,7 +1021,7 @@ Directive {
   name: 'template',
   args: [
     HeredocValue {
-      delimiter: 'HTML',
+      descriptor: 'HTML',
       content: '<div>\n  <h1>Hello</h1>\n</div>\n'
     }
   ],
@@ -1060,7 +1060,7 @@ Directive {
   name: 'template',
   args: [
     HeredocValue {
-      delimiter: null,
+      descriptor: null,
       content: '  foo\ntar\n'
     }
   ],
@@ -1110,7 +1110,7 @@ Directive {
       name: 'response',
       args: [
         HeredocValue {
-          delimiter: 'HTML',
+          descriptor: 'HTML',
           content: '<html>\n  <body>Content</body>\n</html>\n'
         }
       ],
@@ -1170,7 +1170,7 @@ Directive {
       name: 'content',
       args: [
         HeredocValue {
-          delimiter: 'HTML',
+          descriptor: 'HTML',
           content: 'div foo\nhandler\n'
         }
       ],
@@ -1540,7 +1540,7 @@ Directive {
       name: 'template',
       args: [
         HeredocValue {
-          delimiter: 'HTML',
+          descriptor: 'HTML',
           content: '<!DOCTYPE html>\n' +
             '<html>\n' +
             '  <head>\n' +
@@ -1560,7 +1560,7 @@ Directive {
       name: 'script',
       args: [
         HeredocValue {
-          delimiter: 'BASH',
+          descriptor: 'BASH',
           content: '#!/bin/bash\necho "Deploying..."\nnpm run build\n'
         }
       ],
