@@ -13,6 +13,8 @@ documentation.
 
 ### Added
 
+- `LintRuleDocument` argument types `"date"` (ISO 8601 date) and `"date-time"`
+  (alias `"datetime"`; ISO 8601 date-time, UTC `Z` or numeric offset).
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
 - `Directive` — represents a parsed directive with `name`, `args`
   (`number | string | boolean`), and nested `children: Directive[]`.

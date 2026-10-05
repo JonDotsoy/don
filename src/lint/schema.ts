@@ -16,7 +16,10 @@ export type ArgumentType =
   | "bigint"
   | "boolean"
   | "null"
-  | "heredoc";
+  | "heredoc"
+  | "date"
+  | "date-time"
+  | "datetime";
 
 /** A literal value an argument's `enum` constraint may compare against. */
 export type ArgumentLiteral = string | number | boolean | null;
@@ -86,6 +89,23 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
   flags?: string;
 }
 
+/**
+ * A constraint on a `"date"` argument: a string holding an ISO 8601 calendar
+ * date (`YYYY-MM-DD`, e.g. `"2024-02-29"`). `pattern`/`flags` are not offered.
+ */
+export interface DateArgumentConstraint extends BaseArgumentConstraint {
+  type: "date";
+}
+
+/**
+ * A constraint on a `"date-time"` argument (alias `"datetime"`): a string
+ * holding an ISO 8601 date-time in UTC (`YYYY-MM-DDTHH:mm:ss[.sss]Z`) or with
+ * an explicit numeric offset (`+hh:mm`).
+ */
+export interface DateTimeArgumentConstraint extends BaseArgumentConstraint {
+  type: "date-time" | "datetime";
+}
+
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
 export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
   type?: undefined;
@@ -99,6 +119,8 @@ export type ArgumentConstraint =
   | BooleanArgumentConstraint
   | NullArgumentConstraint
   | HeredocArgumentConstraint
+  | DateArgumentConstraint
+  | DateTimeArgumentConstraint
   | UntypedArgumentConstraint;
 
 /** Key selecting a child directive by a path relative to its parent, e.g. `"/route"`. */
