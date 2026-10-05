@@ -15,6 +15,10 @@ documentation.
 
 - `LintRuleDocument` argument types `"date"` (ISO 8601 date) and `"date-time"`
   (alias `"datetime"`; ISO 8601 date-time, UTC `Z` or numeric offset).
+- `LintRuleDocument` Temporal-inspired argument types `"duration"`
+  (`Temporal.Duration.from()`-compatible ISO 8601 duration), `"plain-date"`,
+  `"plain-time"` and `"plain-date-time"` (aliases `"PlainDate"`, `"PlainTime"`,
+  `"PlainDateTime"`).
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
 - `Directive` — represents a parsed directive with `name`, `args`
   (`number | string | boolean`), and nested `children: Directive[]`.

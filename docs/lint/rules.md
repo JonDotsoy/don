@@ -275,6 +275,16 @@ only once the argument's type has already been checked as `string`.
 - `"date-time"` (alias `"datetime"`) matches a string holding an ISO 8601
   date-time in UTC (`2024-02-29T10:30:00Z`, optional fractional seconds) or
   with a numeric offset (`2024-02-29T10:30:00+02:00`).
+- Inspired by the JS Temporal API (checked without requiring `Temporal` at
+  runtime), all string-based:
+  - `"duration"`: an ISO 8601 duration that `Temporal.Duration.from()` accepts,
+    e.g. `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`. At least one component is
+    required.
+  - `"plain-date"` (alias `"PlainDate"`): `YYYY-MM-DD`.
+  - `"plain-time"` (alias `"PlainTime"`): `HH:mm`, `HH:mm:ss` or
+    `HH:mm:ss.fffffffff`.
+  - `"plain-date-time"` (alias `"PlainDateTime"`): `YYYY-MM-DDTHH:mm[:ss[.f]]`
+    with no `Z` or offset (use `"date-time"` for those).
 
 ## JSON example: argument at position 1 must be a number
 

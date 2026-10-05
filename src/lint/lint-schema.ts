@@ -74,6 +74,29 @@ const isIsoDateTime = (value: unknown): boolean => {
   return m !== null && isCalendarDate(m[1]!, m[2]!, m[3]!);
 };
 
+const PLAIN_TIME_SRC = "([01]\\d|2[0-3]):([0-5]\\d)(?::([0-5]\\d)(?:[.,]\\d{1,9})?)?";
+const PLAIN_TIME_RE = new RegExp(`^${PLAIN_TIME_SRC}$`);
+const PLAIN_DATE_TIME_RE = new RegExp(
+  `^(\\d{4})-(\\d{2})-(\\d{2})[Tt ]${PLAIN_TIME_SRC}$`,
+);
+const DURATION_RE =
+  /^[+-]?P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:[.,]\d{1,9})?S)?)?$/i;
+
+const isPlainDate = isIsoDate;
+const isPlainTime = (value: unknown): boolean =>
+  typeof value === "string" && PLAIN_TIME_RE.test(value);
+const isPlainDateTime = (value: unknown): boolean => {
+  if (typeof value !== "string") return false;
+  const m = PLAIN_DATE_TIME_RE.exec(value);
+  return m !== null && isCalendarDate(m[1]!, m[2]!, m[3]!);
+};
+const isDuration = (value: unknown): boolean =>
+  typeof value === "string" &&
+  DURATION_RE.test(value) &&
+  // at least one component, and no dangling `T`
+  /\d[YMWDHS]/i.test(value) &&
+  !/T$/i.test(value);
+
 const matchesType = (value: unknown, type: ArgumentType): boolean => {
   switch (type) {
     case "string":
@@ -97,6 +120,17 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
     case "date-time":
     case "datetime":
       return isIsoDateTime(value);
+    case "duration":
+      return isDuration(value);
+    case "plain-date":
+    case "PlainDate":
+      return isPlainDate(value);
+    case "plain-time":
+    case "PlainTime":
+      return isPlainTime(value);
+    case "plain-date-time":
+    case "PlainDateTime":
+      return isPlainDateTime(value);
   }
 };
 

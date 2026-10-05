@@ -19,7 +19,14 @@ export type ArgumentType =
   | "heredoc"
   | "date"
   | "date-time"
-  | "datetime";
+  | "datetime"
+  | "duration"
+  | "plain-date"
+  | "PlainDate"
+  | "plain-time"
+  | "PlainTime"
+  | "plain-date-time"
+  | "PlainDateTime";
 
 /** A literal value an argument's `enum` constraint may compare against. */
 export type ArgumentLiteral = string | number | boolean | null;
@@ -106,6 +113,29 @@ export interface DateTimeArgumentConstraint extends BaseArgumentConstraint {
   type: "date-time" | "datetime";
 }
 
+/**
+ * Constraints inspired by the Temporal API. They are string-based and are
+ * checked without depending on `Temporal` being available at runtime.
+ *
+ * - `"duration"`: an ISO 8601 duration accepted by `Temporal.Duration.from()`
+ *   (e.g. `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`).
+ * - `"plain-date"` / `"PlainDate"`: `YYYY-MM-DD`, like `Temporal.PlainDate`.
+ * - `"plain-time"` / `"PlainTime"`: `HH:mm[:ss[.fffffffff]]`, like
+ *   `Temporal.PlainTime`.
+ * - `"plain-date-time"` / `"PlainDateTime"`: `YYYY-MM-DDTHH:mm[:ss[.f]]` with
+ *   no `Z` or offset, like `Temporal.PlainDateTime`.
+ */
+export interface TemporalArgumentConstraint extends BaseArgumentConstraint {
+  type:
+    | "duration"
+    | "plain-date"
+    | "PlainDate"
+    | "plain-time"
+    | "PlainTime"
+    | "plain-date-time"
+    | "PlainDateTime";
+}
+
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
 export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
   type?: undefined;
@@ -121,6 +151,7 @@ export type ArgumentConstraint =
   | HeredocArgumentConstraint
   | DateArgumentConstraint
   | DateTimeArgumentConstraint
+  | TemporalArgumentConstraint
   | UntypedArgumentConstraint;
 
 /** Key selecting a child directive by a path relative to its parent, e.g. `"/route"`. */

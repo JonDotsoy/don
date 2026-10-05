@@ -1248,4 +1248,51 @@ event {
       expect(lintSchema(doc, rule)).toHaveLength(1);
     });
   });
+
+  describe("Temporal-inspired types", () => {
+    const rule = {
+      "/t/duration": { "[1]": { type: "duration" } },
+      "/t/date": { "[1]": { type: "plain-date" } },
+      "/t/time": { "[1]": { type: "plain-time" } },
+      "/t/dt": { "[1]": { type: "plain-date-time" } },
+      "/t/dateAlias": { "[1]": { type: "PlainDate" } },
+      "/t/timeAlias": { "[1]": { type: "PlainTime" } },
+      "/t/dtAlias": { "[1]": { type: "PlainDateTime" } },
+    } satisfies LintRuleDocument;
+
+    test("accepts valid values at the root and inside a block", () => {
+      const doc = `t {
+  duration "P1Y2M3DT4H5M6.5S"
+  date "2024-02-29"
+  time "10:30:15.123"
+  dt "2024-02-29T10:30"
+  dateAlias "2024-01-01"
+  timeAlias "23:59"
+  dtAlias "2024-01-01T00:00:00"
+}`;
+      expect(lintSchema(doc, rule)).toHaveLength(0);
+      expect(lintSchema(`name "x"\n${doc}`, rule)).toHaveLength(0);
+    });
+
+    test("rejects invalid values", () => {
+      const doc = `t {
+  duration "P"
+  date "2023-02-29"
+  time "24:00"
+  dt "2024-02-29T10:30Z"
+  dateAlias 5
+  timeAlias "10"
+  dtAlias "2024-02-30T10:30"
+}`;
+      expect(lintSchema(doc, rule)).toHaveLength(7);
+    });
+
+    test("duration edge cases", () => {
+      const r = { "/d": { "[1]": { type: "duration" } } } satisfies LintRuleDocument;
+      for (const ok of ["PT30M", "-P1W", "P1D", "PT0.5S"])
+        expect(lintSchema(`d "${ok}"`, r)).toHaveLength(0);
+      for (const bad of ["P", "PT", "P1DT", "1D", "PT1.5X"])
+        expect(lintSchema(`d "${bad}"`, r)).toHaveLength(1);
+    });
+  });
 });
