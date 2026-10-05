@@ -269,8 +269,7 @@ only once the argument's type has already been checked as `string`.
   [§2.8 Heredocs](../specs/v1/spec.md#28-heredocs)); `pattern` applies to its
   `content` string, and `enum` is not meaningful since heredoc content is
   rarely one of a fixed set of literals.
-- Inspired by the JS Temporal API (checked without requiring `Temporal` at
-  runtime), all string-based:
+- Inspired by the JS Temporal API, all string-based:
   - `"duration"`: an ISO 8601 duration that `Temporal.Duration.from()` accepts,
     e.g. `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`. At least one component is
     required.
@@ -288,10 +287,11 @@ only once the argument's type has already been checked as `string`.
     offset and a required IANA time zone (or offset) in brackets, e.g.
     `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
 
-  The accepted syntax is cross-checked in the test suite against
+  Values are validated by parsing them with
   [`temporal-polyfill`](https://github.com/fullcalendar/temporal-polyfill)
-  (`Temporal.<Type>.from()`), including the basic ISO formats it accepts
-  (`20240229`, `103015`, a leading `T` on times, date-only plain date-times).
+  (`Temporal.<Type>.from(value)`, rejecting out-of-range fields), so the
+  accepted syntax is exactly what Temporal accepts, including the basic ISO
+  formats (`20240229`, `103015`, a leading `T` on times).
 
 ## JSON example: argument at position 1 must be a number
 

@@ -4,13 +4,13 @@ import { lintSchema } from "./lint-schema";
 import type { ArgumentType } from "./schema";
 
 /**
- * Cross-checks the Temporal-inspired argument types against the reference
- * implementation (`temporal-polyfill`): a value is accepted by the lint type
- * exactly when `Temporal.<Type>.from()` accepts it.
+ * The Temporal-inspired argument types are backed by `temporal-polyfill`: a
+ * value is accepted by the lint type exactly when `Temporal.<Type>.from()`
+ * accepts it (with `overflow: "reject"`).
  */
 const parsers: Record<string, (value: string) => unknown> = {
   duration: (v) => Temporal.Duration.from(v),
-  "plain-date": (v) => Temporal.PlainDate.from(v),
+  "plain-date": (v) => Temporal.PlainDate.from(v, { overflow: "reject" }),
   "plain-time": (v) => Temporal.PlainTime.from(v),
   "plain-date-time": (v) => Temporal.PlainDateTime.from(v),
   instant: (v) => Temporal.Instant.from(v),

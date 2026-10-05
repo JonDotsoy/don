@@ -13,7 +13,7 @@ documentation.
 
 ### Added
 
-- `LintRuleDocument` Temporal-inspired argument types `"duration"`
+- `LintRuleDocument` Temporal-inspired argument types (validated with `temporal-polyfill`) `"duration"`
   (`Temporal.Duration.from()`-compatible ISO 8601 duration), `"plain-date"`,
   `"plain-time"`, `"plain-date-time"`, `"instant"`, `"plain-year-month"`,
   `"plain-month-day"` and `"zoned-date-time"` (PascalCase aliases such as

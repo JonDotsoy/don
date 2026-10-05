@@ -103,7 +103,8 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
 
 /**
  * Constraints inspired by the Temporal API. They are string-based and are
- * checked without depending on `Temporal` being available at runtime.
+ * checked by parsing the argument with `temporal-polyfill`'s
+ * `Temporal.<Type>.from(value)`.
  *
  * - `"duration"`: an ISO 8601 duration accepted by `Temporal.Duration.from()`
  *   (e.g. `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`).
