@@ -279,6 +279,19 @@ only once the argument's type has already been checked as `string`.
     `HH:mm:ss.fffffffff`.
   - `"plain-date-time"` (alias `"PlainDateTime"`): `YYYY-MM-DDTHH:mm[:ss[.f]]`
     with no `Z` or offset.
+  - `"instant"` (alias `"Instant"`): a date-time with a required `Z` or numeric
+    offset, e.g. `2024-02-29T10:30:00Z`.
+  - `"plain-year-month"` (alias `"PlainYearMonth"`): `YYYY-MM`.
+  - `"plain-month-day"` (alias `"PlainMonthDay"`): `MM-DD` or `--MM-DD`;
+    `02-29` is valid, `02-30` is not.
+  - `"zoned-date-time"` (alias `"ZonedDateTime"`): a date-time with an optional
+    offset and a required IANA time zone (or offset) in brackets, e.g.
+    `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
+
+  The accepted syntax is cross-checked in the test suite against
+  [`temporal-polyfill`](https://github.com/fullcalendar/temporal-polyfill)
+  (`Temporal.<Type>.from()`), including the basic ISO formats it accepts
+  (`20240229`, `103015`, a leading `T` on times, date-only plain date-times).
 
 ## JSON example: argument at position 1 must be a number
 

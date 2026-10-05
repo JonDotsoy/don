@@ -63,6 +63,7 @@
     "@types/bun": "latest",
     "playwright": "^1.63.0",
     "prettier": "3.7.4",
+    "temporal-polyfill": "^1.0.5",
     "typescript": "^5"
   },
   "engines": {

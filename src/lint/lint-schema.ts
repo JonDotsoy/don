@@ -45,7 +45,9 @@ const isSubPathOnlyEntry = (entry: RuleBody): boolean => {
   return keys.length > 0 && keys.every((key) => key.startsWith("/"));
 };
 
-const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+// Extended (`2024-02-29`) or basic (`20240229`) date; separators must be consistent.
+const DATE_SRC = "(\\d{4})(?:-(\\d{2})-(\\d{2})|(\\d{2})(\\d{2}))";
+const DATE_RE = new RegExp(`^${DATE_SRC}$`);
 
 const isCalendarDate = (year: string, month: string, day: string): boolean => {
   const y = Number(year);
@@ -60,16 +62,22 @@ const isCalendarDate = (year: string, month: string, day: string): boolean => {
   );
 };
 
+/** Checks the year/month/day captured by `DATE_SRC` (groups 1-5 of `m`). */
+const isMatchedDate = (m: RegExpExecArray): boolean =>
+  isCalendarDate(m[1]!, (m[2] ?? m[4])!, (m[3] ?? m[5])!);
+
 const isIsoDate = (value: unknown): boolean => {
   if (typeof value !== "string") return false;
   const m = DATE_RE.exec(value);
-  return m !== null && isCalendarDate(m[1]!, m[2]!, m[3]!);
+  return m !== null && isMatchedDate(m);
 };
 
-const PLAIN_TIME_SRC = "([01]\\d|2[0-3]):([0-5]\\d)(?::([0-5]\\d)(?:[.,]\\d{1,9})?)?";
-const PLAIN_TIME_RE = new RegExp(`^${PLAIN_TIME_SRC}$`);
+// Extended (`10:30[:15[.5]]`, `10`) or basic (`103015[.5]`, needs seconds) time.
+const PLAIN_TIME_SRC =
+  "(?:(?:[01]\\d|2[0-3])(?::[0-5]\\d(?::[0-5]\\d(?:[.,]\\d{1,9})?)?)?|(?:[01]\\d|2[0-3])[0-5]\\d[0-5]\\d(?:[.,]\\d{1,9})?)";
+const PLAIN_TIME_RE = new RegExp(`^[Tt]?${PLAIN_TIME_SRC}$`);
 const PLAIN_DATE_TIME_RE = new RegExp(
-  `^(\\d{4})-(\\d{2})-(\\d{2})[Tt ]${PLAIN_TIME_SRC}$`,
+  `^${DATE_SRC}(?:[Tt ]${PLAIN_TIME_SRC})?$`,
 );
 const DURATION_RE =
   /^[+-]?P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:[.,]\d{1,9})?S)?)?$/i;
@@ -80,8 +88,48 @@ const isPlainTime = (value: unknown): boolean =>
 const isPlainDateTime = (value: unknown): boolean => {
   if (typeof value !== "string") return false;
   const m = PLAIN_DATE_TIME_RE.exec(value);
-  return m !== null && isCalendarDate(m[1]!, m[2]!, m[3]!);
+  return m !== null && isMatchedDate(m);
 };
+
+const OFFSET_SRC = "[+-](?:[01]\\d|2[0-3]):[0-5]\\d";
+const DATE_TIME_SRC = `${DATE_SRC}[Tt ]${PLAIN_TIME_SRC}`;
+const INSTANT_RE = new RegExp(`^${DATE_TIME_SRC}(?:[Zz]|${OFFSET_SRC})$`);
+const ZONED_RE = new RegExp(
+  `^${DATE_TIME_SRC}(?:[Zz]|${OFFSET_SRC})?\\[([^\\]]+)\\]$`,
+);
+const YEAR_MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;
+const MONTH_DAY_RE = /^(?:--)?(\d{2})-(\d{2})$/;
+
+const isInstant = (value: unknown): boolean => {
+  if (typeof value !== "string") return false;
+  const m = INSTANT_RE.exec(value);
+  return m !== null && isMatchedDate(m);
+};
+const isPlainYearMonth = (value: unknown): boolean =>
+  typeof value === "string" && YEAR_MONTH_RE.test(value);
+const isPlainMonthDay = (value: unknown): boolean => {
+  if (typeof value !== "string") return false;
+  const m = MONTH_DAY_RE.exec(value);
+  // 2000 is a leap year, so `02-29` is a valid month-day.
+  return m !== null && isCalendarDate("2000", m[1]!, m[2]!);
+};
+const isTimeZone = (zone: string): boolean => {
+  if (new RegExp(`^${OFFSET_SRC}$`).test(zone)) return true;
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: zone });
+    return true;
+  } catch {
+    return false;
+  }
+};
+const isZonedDateTime = (value: unknown): boolean => {
+  if (typeof value !== "string") return false;
+  const m = ZONED_RE.exec(value);
+  return (
+    m !== null && isMatchedDate(m) && isTimeZone(m[m.length - 1]!)
+  );
+};
+
 const isDuration = (value: unknown): boolean =>
   typeof value === "string" &&
   DURATION_RE.test(value) &&
@@ -118,6 +166,18 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
     case "plain-date-time":
     case "PlainDateTime":
       return isPlainDateTime(value);
+    case "instant":
+    case "Instant":
+      return isInstant(value);
+    case "plain-year-month":
+    case "PlainYearMonth":
+      return isPlainYearMonth(value);
+    case "plain-month-day":
+    case "PlainMonthDay":
+      return isPlainMonthDay(value);
+    case "zoned-date-time":
+    case "ZonedDateTime":
+      return isZonedDateTime(value);
   }
 };
 

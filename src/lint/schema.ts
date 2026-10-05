@@ -23,7 +23,15 @@ export type ArgumentType =
   | "plain-time"
   | "PlainTime"
   | "plain-date-time"
-  | "PlainDateTime";
+  | "PlainDateTime"
+  | "instant"
+  | "Instant"
+  | "plain-year-month"
+  | "PlainYearMonth"
+  | "plain-month-day"
+  | "PlainMonthDay"
+  | "zoned-date-time"
+  | "ZonedDateTime";
 
 /** A literal value an argument's `enum` constraint may compare against. */
 export type ArgumentLiteral = string | number | boolean | null;
@@ -104,6 +112,14 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
  *   `Temporal.PlainTime`.
  * - `"plain-date-time"` / `"PlainDateTime"`: `YYYY-MM-DDTHH:mm[:ss[.f]]` with
  *   no `Z` or offset, like `Temporal.PlainDateTime`.
+ * - `"instant"` / `"Instant"`: a date-time with a required `Z` or numeric
+ *   offset, like `Temporal.Instant` (`2024-02-29T10:30:00Z`).
+ * - `"plain-year-month"` / `"PlainYearMonth"`: `YYYY-MM`.
+ * - `"plain-month-day"` / `"PlainMonthDay"`: `MM-DD` or `--MM-DD` (`02-29` is
+ *   valid, `02-30` is not).
+ * - `"zoned-date-time"` / `"ZonedDateTime"`: a date-time with an optional
+ *   offset and a required IANA time zone (or offset) in brackets, e.g.
+ *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
  */
 export interface TemporalArgumentConstraint extends BaseArgumentConstraint {
   type:
@@ -113,7 +129,15 @@ export interface TemporalArgumentConstraint extends BaseArgumentConstraint {
     | "plain-time"
     | "PlainTime"
     | "plain-date-time"
-    | "PlainDateTime";
+    | "PlainDateTime"
+    | "instant"
+    | "Instant"
+    | "plain-year-month"
+    | "PlainYearMonth"
+    | "plain-month-day"
+    | "PlainMonthDay"
+    | "zoned-date-time"
+    | "ZonedDateTime";
 }
 
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
