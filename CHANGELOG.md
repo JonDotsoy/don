@@ -18,6 +18,9 @@ documentation.
   `"plain-time"`, `"plain-date-time"`, `"instant"`, `"plain-year-month"`,
   `"plain-month-day"` and `"zoned-date-time"` (PascalCase aliases such as
   `"PlainDate"` and `"ZonedDateTime"`).
+- `LintRuleDocument` Unix epoch argument types `"epoch-seconds"` (alias
+  `"unix"`), `"epoch-milliseconds"` (`number`) and `"epoch-nanoseconds"`
+  (`bigint`), with `gte`/`gt`/`lte`/`lt` range checks.
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
 - `Directive` — represents a parsed directive with `name`, `args`
   (`number | string | boolean`), and nested `children: Directive[]`.

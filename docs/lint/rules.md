@@ -287,6 +287,17 @@ only once the argument's type has already been checked as `string`.
     offset and a required IANA time zone (or offset) in brackets, e.g.
     `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
 
+- Unix epoch types, which take a number rather than a string (validated with
+  `Temporal.Instant.fromEpochMilliseconds()` / `fromEpochNanoseconds()`, so
+  values outside Temporal's range are rejected). `gte`/`gt`/`lte`/`lt` bound
+  the value in the type's own unit:
+  - `"epoch-seconds"` (aliases `"EpochSeconds"`, `"unix"`): an integer
+    `number`, e.g. `1709202600`.
+  - `"epoch-milliseconds"` (alias `"EpochMilliseconds"`): an integer `number`,
+    e.g. `1709202600000`.
+  - `"epoch-nanoseconds"` (alias `"EpochNanoseconds"`): a `bigint`, e.g.
+    `1709202600000000000n`.
+
   Values are validated by parsing them with
   [`temporal-polyfill`](https://github.com/fullcalendar/temporal-polyfill)
   (`Temporal.<Type>.from(value)`, rejecting out-of-range fields), so the

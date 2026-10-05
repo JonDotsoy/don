@@ -1,7 +1,11 @@
 import { describe, test, expect } from "bun:test";
 import { Temporal } from "temporal-polyfill";
 import { lintSchema } from "./lint-schema";
-import type { ArgumentType, LintRuleDocument } from "./schema";
+import type {
+  ArgumentConstraint,
+  ArgumentType,
+  LintRuleDocument,
+} from "./schema";
 
 /**
  * The Temporal-inspired argument types are backed by `temporal-polyfill`: a
@@ -39,7 +43,7 @@ const samples: Record<string, string[]> = {
 };
 
 const accepts = (type: ArgumentType, value: string): boolean =>
-  lintSchema(`d ${JSON.stringify(value)}`, { "/d": { "[1]": { type } } }).length === 0;
+  lintSchema(`d ${JSON.stringify(value)}`, { "/d": { "[1]": { type } as ArgumentConstraint } }).length === 0;
 
 const polyfillAccepts = (type: string, value: string): boolean => {
   try {
@@ -135,7 +139,7 @@ describe("Temporal types edge cases", () => {
     for (const type of Object.keys(edgeCases)) {
       for (const literal of literals) {
         const issues = lintSchema(`d ${literal}`, {
-          "/d": { "[1]": { type: type as ArgumentType } },
+          "/d": { "[1]": { type: type as ArgumentType } as ArgumentConstraint },
         });
         expect([type, literal, issues.length]).toEqual([type, literal, 1]);
       }
@@ -157,5 +161,72 @@ describe("Temporal types edge cases", () => {
     expect(lintSchema('d "2024-02-29"\nd "P1D"\nn "nope"', rule)).toHaveLength(0);
     expect(lintSchema('d "nope"', rule)).toHaveLength(1);
     expect(lintSchema('n "2024-02-29T10:30:00Z"', rule)).toHaveLength(1);
+  });
+});
+
+describe("Unix epoch types", () => {
+  const ok = (type: ArgumentType, literal: string, extra = {}) =>
+    lintSchema(`d ${literal}`, { "/d": { "[1]": { type, ...extra } as ArgumentConstraint } }).length ===
+    0;
+
+  test("epoch-seconds accepts integer seconds within Instant's range", () => {
+    for (const v of ["0", "-1", "1709202600", "8640000000000", "-8640000000000"])
+      expect([v, ok("epoch-seconds", v)]).toEqual([v, true]);
+  });
+
+  test("epoch-seconds rejects decimals, out of range, bigint and strings", () => {
+    for (const v of [
+      "1.5",
+      "8640000000001",
+      "-8640000000001",
+      "1709202600n",
+      '"1709202600"',
+      "true",
+      "null",
+    ])
+      expect([v, ok("epoch-seconds", v)]).toEqual([v, false]);
+  });
+
+  test("epoch-milliseconds accepts and rejects at the Instant limits", () => {
+    for (const v of ["0", "-1", "1709202600000", "8640000000000000", "-8640000000000000"])
+      expect([v, ok("epoch-milliseconds", v)]).toEqual([v, true]);
+    for (const v of ["1.5", "8640000000000001", "-8640000000000001", "5n", '"5"'])
+      expect([v, ok("epoch-milliseconds", v)]).toEqual([v, false]);
+  });
+
+  test("epoch-nanoseconds takes a bigint within Instant's range", () => {
+    for (const v of ["0n", "1709202600000000000n", "8640000000000000000000n"])
+      expect([v, ok("epoch-nanoseconds", v)]).toEqual([v, true]);
+    for (const v of ["8640000000000000000001n", "5", "1.5", '"5"'])
+      expect([v, ok("epoch-nanoseconds", v)]).toEqual([v, false]);
+  });
+
+  test("aliases behave like their canonical types", () => {
+    expect(ok("unix", "1709202600")).toBe(true);
+    expect(ok("unix", "1.5")).toBe(false);
+    expect(ok("EpochSeconds", "0")).toBe(true);
+    expect(ok("EpochMilliseconds", "0")).toBe(true);
+    expect(ok("EpochNanoseconds", "0n")).toBe(true);
+    expect(ok("EpochNanoseconds", "0")).toBe(false);
+  });
+
+  test("gte/lte bound the value in the type's own unit", () => {
+    const since2024 = { gte: 1704067200 };
+    expect(ok("epoch-seconds", "1709202600", since2024)).toBe(true);
+    expect(ok("epoch-seconds", "1000", since2024)).toBe(false);
+    expect(ok("epoch-nanoseconds", "10n", { gt: 5n, lt: 20n })).toBe(true);
+    expect(ok("epoch-nanoseconds", "30n", { gt: 5n, lt: 20n })).toBe(false);
+  });
+
+  test("works inside a block next to other directives", () => {
+    const rule = {
+      "/job/createdAt": { "[1]": { type: "unix" } },
+      "/job/expiresAt": { "[1]": { type: "epoch-milliseconds" } },
+      "/job/tick": { "[1]": { type: "epoch-nanoseconds" } },
+    } satisfies LintRuleDocument;
+    const doc = (a: string, b: string, c: string) =>
+      `name "x"\njob {\n  createdAt ${a}\n  expiresAt ${b}\n  tick ${c}\n}`;
+    expect(lintSchema(doc("1709202600", "1709202600000", "5n"), rule)).toHaveLength(0);
+    expect(lintSchema(doc("1.5", "1709202600000", "5"), rule)).toHaveLength(2);
   });
 });

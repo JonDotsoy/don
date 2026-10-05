@@ -76,6 +76,26 @@ const isPlainYearMonth = parsesAs((v) =>
 const isPlainMonthDay = parsesAs((v) => Temporal.PlainMonthDay.from(v, reject));
 const isZonedDateTime = parsesAs((v) => Temporal.ZonedDateTime.from(v, reject));
 
+const tryInstant = (create: () => unknown): boolean => {
+  try {
+    create();
+    return true;
+  } catch {
+    return false;
+  }
+};
+const isEpochSeconds = (value: unknown): boolean =>
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  tryInstant(() => Temporal.Instant.fromEpochMilliseconds(value * 1000));
+const isEpochMilliseconds = (value: unknown): boolean =>
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  tryInstant(() => Temporal.Instant.fromEpochMilliseconds(value));
+const isEpochNanoseconds = (value: unknown): boolean =>
+  typeof value === "bigint" &&
+  tryInstant(() => Temporal.Instant.fromEpochNanoseconds(value));
+
 const matchesType = (value: unknown, type: ArgumentType): boolean => {
   switch (type) {
     case "string":
@@ -117,6 +137,16 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
     case "zoned-date-time":
     case "ZonedDateTime":
       return isZonedDateTime(value);
+    case "epoch-seconds":
+    case "EpochSeconds":
+    case "unix":
+      return isEpochSeconds(value);
+    case "epoch-milliseconds":
+    case "EpochMilliseconds":
+      return isEpochMilliseconds(value);
+    case "epoch-nanoseconds":
+    case "EpochNanoseconds":
+      return isEpochNanoseconds(value);
   }
 };
 

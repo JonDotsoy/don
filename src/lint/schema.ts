@@ -31,7 +31,14 @@ export type ArgumentType =
   | "plain-month-day"
   | "PlainMonthDay"
   | "zoned-date-time"
-  | "ZonedDateTime";
+  | "ZonedDateTime"
+  | "epoch-seconds"
+  | "EpochSeconds"
+  | "unix"
+  | "epoch-milliseconds"
+  | "EpochMilliseconds"
+  | "epoch-nanoseconds"
+  | "EpochNanoseconds";
 
 /** A literal value an argument's `enum` constraint may compare against. */
 export type ArgumentLiteral = string | number | boolean | null;
@@ -141,6 +148,38 @@ export interface TemporalArgumentConstraint extends BaseArgumentConstraint {
     | "ZonedDateTime";
 }
 
+/**
+ * A constraint on a Unix epoch `number` argument holding an integer count of
+ * seconds (`"epoch-seconds"`, alias `"unix"`) or milliseconds
+ * (`"epoch-milliseconds"`) since 1970-01-01T00:00:00Z. The value must be an
+ * instant `Temporal.Instant.fromEpochMilliseconds()` accepts; `gte`/`gt`/
+ * `lte`/`lt` bound it in the same unit.
+ */
+export interface EpochNumberArgumentConstraint extends BaseArgumentConstraint {
+  type:
+    | "epoch-seconds"
+    | "EpochSeconds"
+    | "unix"
+    | "epoch-milliseconds"
+    | "EpochMilliseconds";
+  gte?: number;
+  gt?: number;
+  lte?: number;
+  lt?: number;
+}
+
+/**
+ * A constraint on a Unix epoch `bigint` argument holding nanoseconds since
+ * 1970-01-01T00:00:00Z (`Temporal.Instant.fromEpochNanoseconds()`).
+ */
+export interface EpochNanosecondsArgumentConstraint extends BaseArgumentConstraint {
+  type: "epoch-nanoseconds" | "EpochNanoseconds";
+  gte?: bigint;
+  gt?: bigint;
+  lte?: bigint;
+  lt?: bigint;
+}
+
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
 export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
   type?: undefined;
@@ -155,6 +194,8 @@ export type ArgumentConstraint =
   | NullArgumentConstraint
   | HeredocArgumentConstraint
   | TemporalArgumentConstraint
+  | EpochNumberArgumentConstraint
+  | EpochNanosecondsArgumentConstraint
   | UntypedArgumentConstraint;
 
 /** Key selecting a child directive by a path relative to its parent, e.g. `"/route"`. */
