@@ -17,9 +17,6 @@ export type ArgumentType =
   | "boolean"
   | "null"
   | "heredoc"
-  | "date"
-  | "date-time"
-  | "datetime"
   | "duration"
   | "plain-date"
   | "PlainDate"
@@ -97,23 +94,6 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
 }
 
 /**
- * A constraint on a `"date"` argument: a string holding an ISO 8601 calendar
- * date (`YYYY-MM-DD`, e.g. `"2024-02-29"`). `pattern`/`flags` are not offered.
- */
-export interface DateArgumentConstraint extends BaseArgumentConstraint {
-  type: "date";
-}
-
-/**
- * A constraint on a `"date-time"` argument (alias `"datetime"`): a string
- * holding an ISO 8601 date-time in UTC (`YYYY-MM-DDTHH:mm:ss[.sss]Z`) or with
- * an explicit numeric offset (`+hh:mm`).
- */
-export interface DateTimeArgumentConstraint extends BaseArgumentConstraint {
-  type: "date-time" | "datetime";
-}
-
-/**
  * Constraints inspired by the Temporal API. They are string-based and are
  * checked without depending on `Temporal` being available at runtime.
  *
@@ -149,8 +129,6 @@ export type ArgumentConstraint =
   | BooleanArgumentConstraint
   | NullArgumentConstraint
   | HeredocArgumentConstraint
-  | DateArgumentConstraint
-  | DateTimeArgumentConstraint
   | TemporalArgumentConstraint
   | UntypedArgumentConstraint;
 

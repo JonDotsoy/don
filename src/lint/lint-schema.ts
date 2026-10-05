@@ -46,8 +46,6 @@ const isSubPathOnlyEntry = (entry: RuleBody): boolean => {
 };
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
-const DATE_TIME_RE =
-  /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(\.\d+)?(Z|[+-]([01]\d|2[0-3]):[0-5]\d)$/;
 
 const isCalendarDate = (year: string, month: string, day: string): boolean => {
   const y = Number(year);
@@ -65,12 +63,6 @@ const isCalendarDate = (year: string, month: string, day: string): boolean => {
 const isIsoDate = (value: unknown): boolean => {
   if (typeof value !== "string") return false;
   const m = DATE_RE.exec(value);
-  return m !== null && isCalendarDate(m[1]!, m[2]!, m[3]!);
-};
-
-const isIsoDateTime = (value: unknown): boolean => {
-  if (typeof value !== "string") return false;
-  const m = DATE_TIME_RE.exec(value);
   return m !== null && isCalendarDate(m[1]!, m[2]!, m[3]!);
 };
 
@@ -115,11 +107,6 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
       return value === null || value === "null";
     case "heredoc":
       return value instanceof HeredocValue;
-    case "date":
-      return isIsoDate(value);
-    case "date-time":
-    case "datetime":
-      return isIsoDateTime(value);
     case "duration":
       return isDuration(value);
     case "plain-date":

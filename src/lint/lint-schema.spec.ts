@@ -1213,42 +1213,6 @@ server "eu-west-1" {
     expect(otherRegionIssues).toHaveLength(0);
   });
 
-  describe("date and date-time types", () => {
-    const rule = {
-      "/event/day": { "[1]": { type: "date" } },
-      "/event/at": { "[1]": { type: "date-time" } },
-      "/event/alias": { "[1]": { type: "datetime" } },
-    } satisfies LintRuleDocument;
-
-    test("accepts valid values at the document root level", () => {
-      const doc = `event {
-  day "2024-02-29"
-  at "2024-02-29T10:30:00Z"
-  alias "2024-02-29T10:30:00.123+02:00"
-}`;
-      expect(lintSchema(doc, rule)).toHaveLength(0);
-    });
-
-    test("rejects invalid values", () => {
-      const doc = `event {
-  day "2023-02-29"
-  at "2024-02-29T10:30:00"
-  alias 20240229
-}`;
-      expect(lintSchema(doc, rule)).toHaveLength(3);
-    });
-
-    test("works inside a block alongside other directives", () => {
-      const doc = `name "x"
-event {
-  day "2024-13-01"
-  at "2024-01-01T00:00:00Z"
-  alias "2024-01-01T00:00:00Z"
-}`;
-      expect(lintSchema(doc, rule)).toHaveLength(1);
-    });
-  });
-
   describe("Temporal-inspired types", () => {
     const rule = {
       "/t/duration": { "[1]": { type: "duration" } },

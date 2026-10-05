@@ -257,8 +257,7 @@ only once the argument's type has already been checked as `string`.
 
 `type` covers every argument kind DON v1 produces (see
 [`docs/specs/v1/spec.md`](../specs/v1/spec.md)): `"string"`, `"number"`, `"bigint"`,
-`"boolean"`, `"null"`, and `"heredoc"`, plus the string-based `"date"` and
-`"date-time"` (alias `"datetime"`).
+`"boolean"`, `"null"`, and `"heredoc"`, plus the Temporal-inspired string types described below.
 
 - `"number"` and `"bigint"` are distinct types (mirroring JS `typeof`, and
   DON's own `123` vs. `123n` literals) — both accept `gte`/`gt`/`lte`/`lt`
@@ -270,11 +269,6 @@ only once the argument's type has already been checked as `string`.
   [§2.8 Heredocs](../specs/v1/spec.md#28-heredocs)); `pattern` applies to its
   `content` string, and `enum` is not meaningful since heredoc content is
   rarely one of a fixed set of literals.
-- `"date"` matches a string holding a valid ISO 8601 calendar date
-  (`YYYY-MM-DD`, e.g. `"2024-02-29"`).
-- `"date-time"` (alias `"datetime"`) matches a string holding an ISO 8601
-  date-time in UTC (`2024-02-29T10:30:00Z`, optional fractional seconds) or
-  with a numeric offset (`2024-02-29T10:30:00+02:00`).
 - Inspired by the JS Temporal API (checked without requiring `Temporal` at
   runtime), all string-based:
   - `"duration"`: an ISO 8601 duration that `Temporal.Duration.from()` accepts,
@@ -284,7 +278,7 @@ only once the argument's type has already been checked as `string`.
   - `"plain-time"` (alias `"PlainTime"`): `HH:mm`, `HH:mm:ss` or
     `HH:mm:ss.fffffffff`.
   - `"plain-date-time"` (alias `"PlainDateTime"`): `YYYY-MM-DDTHH:mm[:ss[.f]]`
-    with no `Z` or offset (use `"date-time"` for those).
+    with no `Z` or offset.
 
 ## JSON example: argument at position 1 must be a number
 
