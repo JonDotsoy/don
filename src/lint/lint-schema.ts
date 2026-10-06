@@ -6,6 +6,17 @@ import { Temporal } from "temporal-polyfill";
 import { DON, Directive, HeredocValue } from "../don.js";
 import { PathExpression } from "../path-expression/path-expression.js";
 import { ROOT_DIRECTIVE_NAME } from "../root-directive-name.js";
+import {
+  isEmail,
+  isHostname,
+  isIpv4,
+  isIpv6,
+  isPort,
+  isRegexp,
+  isSemver,
+  isUrl,
+  isUuid,
+} from "./string-formats.js";
 import { argumentLoc, directiveLoc, type LintIssue } from "./types.js";
 import type {
   ArgumentConstraint,
@@ -109,6 +120,15 @@ const isJson = (value: unknown): boolean => {
 
 const formatValidators: Record<string, (value: unknown) => boolean> = {
   json: isJson,
+  url: isUrl,
+  ipv4: isIpv4,
+  ipv6: isIpv6,
+  hostname: isHostname,
+  port: isPort,
+  uuid: isUuid,
+  email: isEmail,
+  regexp: isRegexp,
+  semver: isSemver,
   duration: isDuration,
   "plain-date": isPlainDate,
   PlainDate: isPlainDate,

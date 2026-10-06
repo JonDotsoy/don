@@ -301,6 +301,23 @@ With `type: "heredoc"`, `format` applies to the heredoc's `content`:
   in quoted strings verbatim, so write inline JSON in single quotes
   (`'{"a":1}'`) or, better, in a heredoc.
 
+Also with `type: "string"`, dependency-free formats for common config values:
+
+| `format`     | Accepts                                                                                                                                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"url"`      | an absolute URL that `URL.canParse()` accepts (`https://example.com/a`, `file:///x`); a bare host or a relative path is not                                                                                                 |
+| `"ipv4"`     | dotted quad with octets 0-255 and no leading zeros (`192.0.2.1`)                                                                                                                                                            |
+| `"ipv6"`     | any textual IPv6 form (`::1`, `2001:db8::1`, `::ffff:192.0.2.1`), without brackets or a zone id                                                                                                                             |
+| `"hostname"` | RFC 1123: labels of 1-63 letters/digits/hyphens (no leading or trailing hyphen), at most 253 characters, optional trailing dot; the last label can't be all digits (so `1.2.3.4` is not a hostname)                         |
+| `"uuid"`     | canonical 8-4-4-4-12 UUID, any case: versions 1-8 with the RFC variant, plus the nil and max UUIDs                                                                                                                          |
+| `"email"`    | RFC 5322 `addr-spec`: dot-atom or quoted-string local part (max 64), and a hostname or address-literal domain (`[192.0.2.1]`, `[IPv6:::1]`), max 254 overall. No comments, folding whitespace, obsolete syntax or non-ASCII |
+| `"regexp"`   | a string that compiles with `new RegExp(value)`                                                                                                                                                                             |
+| `"semver"`   | Semantic Versioning 2.0.0 (`1.2.3-rc.1+build.5`); a leading `v` is not accepted                                                                                                                                             |
+
+With `type: "number"`, `"port"` accepts an integer from 0 to 65535.
+`gte`/`gt`/`lte`/`lt` still apply, e.g. `{ "type": "number", "format": "port", "gte": 1024 }`
+forbids privileged ports.
+
 With `type: "number"` (an integer Unix epoch, within the range
 `Temporal.Instant.fromEpochMilliseconds()` accepts; `gte`/`gt`/`lte`/`lt` bound
 it in the same unit):

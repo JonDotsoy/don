@@ -62,9 +62,24 @@ export interface BaseArgumentConstraint {
  *   offset and a required IANA time zone (or offset) in brackets, e.g.
  *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
  * - `"json"`: text `JSON.parse` accepts (any JSON value, e.g. `'{"a":1}'`).
+ * - `"url"`: an absolute URL `URL.canParse()` accepts (`https://example.com/a`).
+ * - `"ipv4"` / `"ipv6"`: an IP address (`192.0.2.1`, `2001:db8::1`).
+ * - `"hostname"`: an RFC 1123 hostname (`api.example.com`).
+ * - `"uuid"`: a canonical UUID (`123e4567-e89b-42d3-a456-426614174000`).
+ * - `"email"`: an RFC 5322 `addr-spec` (`user@example.com`).
+ * - `"regexp"`: a valid JavaScript regular expression source.
+ * - `"semver"`: a Semantic Versioning 2.0.0 version (`1.2.3-rc.1+build.5`).
  */
 export type StringFormat =
   | "json"
+  | "url"
+  | "ipv4"
+  | "ipv6"
+  | "hostname"
+  | "uuid"
+  | "email"
+  | "regexp"
+  | "semver"
   | "duration"
   | "plain-date"
   | "PlainDate"
@@ -84,9 +99,11 @@ export type StringFormat =
 /**
  * `format` values for a `"number"` argument: a Unix epoch as an integer count
  * of seconds or milliseconds since 1970-01-01T00:00:00Z, within the range
- * `Temporal.Instant.fromEpochMilliseconds()` accepts.
+ * `Temporal.Instant.fromEpochMilliseconds()` accepts. `"port"` is an integer
+ * TCP/UDP port from 0 to 65535.
  */
 export type NumberFormat =
+  | "port"
   | "epoch-seconds"
   | "EpochSeconds"
   | "unix"
@@ -154,6 +171,8 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
 export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
   type?: undefined;
+  /** Without a `type`, any `format` applies to whichever argument it matches. */
+  format?: StringFormat | NumberFormat | BigintFormat | HeredocFormat;
 }
 
 /** A single, self-contained validation for one directive argument. */
