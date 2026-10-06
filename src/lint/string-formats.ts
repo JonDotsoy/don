@@ -16,15 +16,24 @@ export const isUrl = (value: unknown): boolean => {
 // Four dot-separated decimal groups of 1-3 digits, without leading zeros.
 const IPV4_SHAPE_RE = /^(?:0|[1-9]\d{0,2})(?:\.(?:0|[1-9]\d{0,2})){3}$/;
 
+// A CIDR prefix length: 0-32 without leading zeros (checked with Number below).
+const IPV4_PREFIX_RE = /^(?:0|[1-9]\d?)$/;
+
 /**
- * Dotted-quad IPv4: the shape is checked with a regular expression, then the
- * value is split on `.` and every part, converted with `Number(part)`, must
- * fit in one byte (0-255).
+ * Dotted-quad IPv4, optionally followed by a CIDR range (`<ip>/<range>`).
+ * The shape is checked with a regular expression, then the address is split
+ * on `.` and every part, converted with `Number(part)`, must fit in one byte
+ * (0-255). When a `/<range>` is present it must be an integer from 0 to 32.
  */
 export const isIpv4 = (value: unknown): boolean => {
   const text = asString(value);
-  if (text === undefined || !IPV4_SHAPE_RE.test(text)) return false;
-  return text.split(".").every((part) => Number(part) <= 255);
+  if (text === undefined) return false;
+  const [address, prefix, ...rest] = text.split("/");
+  if (rest.length > 0 || address === undefined) return false;
+  if (!IPV4_SHAPE_RE.test(address)) return false;
+  if (!address.split(".").every((part) => Number(part) <= 255)) return false;
+  if (prefix === undefined) return true;
+  return IPV4_PREFIX_RE.test(prefix) && Number(prefix) <= 32;
 };
 
 /**

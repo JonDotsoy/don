@@ -63,7 +63,9 @@ export interface BaseArgumentConstraint {
  *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
  * - `"json"`: text `JSON.parse` accepts (any JSON value, e.g. `'{"a":1}'`).
  * - `"url"`: an absolute URL `URL.canParse()` accepts (`https://example.com/a`).
- * - `"ipv4"` / `"ipv6"`: an IP address (`192.0.2.1`, `2001:db8::1`).
+ * - `"ipv4"` / `"CIDR"`: an IPv4 address, optionally with a CIDR range of 0-32
+ *   (`192.0.2.1`, `10.0.0.0/8`).
+ * - `"ipv6"`: an IPv6 address (`2001:db8::1`).
  * - `"hostname"`: an RFC 1123 hostname (`api.example.com`).
  * - `"uuid"`: a canonical UUID (`123e4567-e89b-42d3-a456-426614174000`).
  * - `"email"`: an RFC 5322 `addr-spec` (`user@example.com`).
@@ -74,6 +76,7 @@ export type StringFormat =
   | "json"
   | "url"
   | "ipv4"
+  | "CIDR"
   | "ipv6"
   | "hostname"
   | "uuid"

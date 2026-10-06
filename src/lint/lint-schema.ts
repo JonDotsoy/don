@@ -122,6 +122,7 @@ const formatValidators: Record<string, (value: unknown) => boolean> = {
   json: isJson,
   url: isUrl,
   ipv4: isIpv4,
+  CIDR: isIpv4,
   ipv6: isIpv6,
   hostname: isHostname,
   port: isPort,

@@ -20,7 +20,7 @@ documentation.
   aliases such as `"PlainDate"`). With `type: "number"`: `"epoch-seconds"`
   (alias `"unix"`) and `"epoch-milliseconds"`. With `type: "bigint"`:
   `"epoch-nanoseconds"`. With `type: "string"` or `type: "heredoc"` (checked
-  against its content): `"json"`. With `type: "string"`: `"url"`, `"ipv4"`,
+  against its content): `"json"`. With `type: "string"`: `"url"`, `"ipv4"` (alias `"CIDR"`; optional `/0`-`/32` range),
   `"ipv6"`, `"hostname"` (RFC 1123), `"uuid"`, `"email"` (RFC 5322),
   `"regexp"` and `"semver"`. With `type: "number"`: `"port"`.
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.

@@ -27,8 +27,13 @@ const cases: Record<string, { accept: string[]; reject: string[] }> = {
     reject: ["", "example.com", "/relative/path", "//host/path", "http://", "http://exa mple.com", "https://host:99999", "://x"],
   },
   ipv4: {
-    accept: ["0.0.0.0", "127.0.0.1", "192.168.1.254", "255.255.255.255", "10.0.0.1"],
-    reject: ["", "256.0.0.1", "1.2.3", "1.2.3.4.5", "01.2.3.4", "1.2.3.04", "1.2.3.-4", " 1.2.3.4", "1.2.3.4 ", "a.b.c.d", "::1", "1.2.3.4/24", "1..3.4", "999.999.999.999", "255.255.255.256", "1.256.3.4", "1.2.300.4", "1000.1.1.1"],
+    accept: [
+      "10.0.0.0/8",
+      "192.168.1.0/24",
+      "1.2.3.4/32",
+      "0.0.0.0/0",
+      "1.2.3.4/0","0.0.0.0", "127.0.0.1", "192.168.1.254", "255.255.255.255", "10.0.0.1"],
+    reject: ["", "1.2.3.4/33", "1.2.3.4/99", "1.2.3.4/100", "1.2.3.4/", "1.2.3.4/-1", "1.2.3.4/08", "1.2.3.4/1.5", "1.2.3.4/a", "1.2.3.4/24/8", "/24", "256.0.0.1/24", "1.2.3/24", "1.2.3.4 /24", "1.2.3.4/ 24", "1.2.3.4/0x10", "256.0.0.1", "1.2.3", "1.2.3.4.5", "01.2.3.4", "1.2.3.04", "1.2.3.-4", " 1.2.3.4", "1.2.3.4 ", "a.b.c.d", "::1", "1..3.4", "999.999.999.999", "255.255.255.256", "1.256.3.4", "1.2.300.4", "1000.1.1.1"],
   },
   ipv6: {
     accept: ["::", "::1", "2001:db8::1", "2001:0db8:0000:0000:0000:0000:0000:0001", "fe80::1", "::ffff:192.0.2.1", "1::", "FE80::ABCD"],
@@ -116,6 +121,14 @@ describe("string formats", () => {
         expect([literal, check(format, literal)]).toEqual([literal, false]);
     });
   }
+
+  test("CIDR is an alias of ipv4", () => {
+    const { accept, reject } = cases.ipv4!;
+    for (const value of accept)
+      expect([value, check("CIDR", quote(value))]).toEqual([value, true]);
+    for (const value of reject)
+      expect([value, check("CIDR", quote(value))]).toEqual([value, false]);
+  });
 
   test("a quoted number is a string, not a port", () => {
     expect(check("semver", "'1.2.3'")).toBe(true);
