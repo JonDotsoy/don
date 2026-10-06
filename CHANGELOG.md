@@ -19,7 +19,8 @@ documentation.
   `"plain-year-month"`, `"plain-month-day"` and `"zoned-date-time"` (PascalCase
   aliases such as `"PlainDate"`). With `type: "number"`: `"epoch-seconds"`
   (alias `"unix"`) and `"epoch-milliseconds"`. With `type: "bigint"`:
-  `"epoch-nanoseconds"`.
+  `"epoch-nanoseconds"`. With `type: "string"` or `type: "heredoc"` (checked
+  against its content): `"json"`.
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
 - `Directive` — represents a parsed directive with `name`, `args`
   (`number | string | boolean`), and nested `children: Directive[]`.

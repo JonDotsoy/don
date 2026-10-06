@@ -96,7 +96,19 @@ const isEpochNanoseconds = (value: unknown): boolean =>
   typeof value === "bigint" &&
   tryInstant(() => Temporal.Instant.fromEpochNanoseconds(value));
 
+const isJson = (value: unknown): boolean => {
+  const text = patternSubject(value);
+  if (text === undefined) return false;
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const formatValidators: Record<string, (value: unknown) => boolean> = {
+  json: isJson,
   duration: isDuration,
   "plain-date": isPlainDate,
   PlainDate: isPlainDate,

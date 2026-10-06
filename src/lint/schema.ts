@@ -61,8 +61,10 @@ export interface BaseArgumentConstraint {
  * - `"zoned-date-time"` / `"ZonedDateTime"`: a date-time with an optional
  *   offset and a required IANA time zone (or offset) in brackets, e.g.
  *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
+ * - `"json"`: text `JSON.parse` accepts (any JSON value, e.g. `'{"a":1}'`).
  */
 export type StringFormat =
+  | "json"
   | "duration"
   | "plain-date"
   | "PlainDate"
@@ -96,6 +98,12 @@ export type NumberFormat =
  * (`Temporal.Instant.fromEpochNanoseconds()`).
  */
 export type BigintFormat = "epoch-nanoseconds" | "EpochNanoseconds";
+
+/**
+ * `format` values for a `"heredoc"` argument; they apply to its `content`.
+ * `"json"`: the content must be valid JSON (`JSON.parse`).
+ */
+export type HeredocFormat = "json";
 
 /** A constraint on a `"string"` argument. */
 export interface StringArgumentConstraint extends BaseArgumentConstraint {
@@ -138,6 +146,7 @@ export interface NullArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint on a `"heredoc"` argument; `pattern`/`flags` apply to its `content`. */
 export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
   type: "heredoc";
+  format?: HeredocFormat;
   pattern?: string;
   flags?: string;
 }

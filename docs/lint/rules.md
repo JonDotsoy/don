@@ -294,6 +294,13 @@ With `type: "string"`:
 | `"plain-month-day"` (`"PlainMonthDay"`)   | `MM-DD` or `--MM-DD` (`02-29` is valid, `02-30` is not)                          |
 | `"zoned-date-time"` (`"ZonedDateTime"`)   | date-time with a required `[IANA zone]`: `2024-02-29T10:30+01:00[Europe/Madrid]` |
 
+With `type: "heredoc"`, `format` applies to the heredoc's `content`:
+
+- `"json"`: the content must be valid JSON (`JSON.parse`). `"json"` is also
+  valid with `type: "string"` (any JSON value as text). DON keeps backslashes
+  in quoted strings verbatim, so write inline JSON in single quotes
+  (`'{"a":1}'`) or, better, in a heredoc.
+
 With `type: "number"` (an integer Unix epoch, within the range
 `Temporal.Instant.fromEpochMilliseconds()` accepts; `gte`/`gt`/`lte`/`lt` bound
 it in the same unit):

@@ -290,3 +290,63 @@ describe("format attribute", () => {
     expect(run('d "2024-02-29"', { not: date })).toHaveLength(1);
   });
 });
+
+describe("json format", () => {
+  // DON keeps backslashes verbatim, so JSON text goes in single quotes.
+  const single = (text: string) => `'${text}'`;
+  const run = (doc: string, constraint: object) =>
+    lintSchema(doc, { "/d": { "[1]": constraint as ArgumentConstraint } });
+
+  test("string accepts any valid JSON text", () => {
+    for (const json of [
+      '{"a":1}',
+      "[1,2,3]",
+      '"text"',
+      "123",
+      "true",
+      "null",
+      '{"a":{"b":[{"c":null}]}}',
+      " [] ",
+    ]) {
+      const doc = `d ${single(json)}`;
+      expect([json, run(doc, { type: "string", format: "json" }).length]).toEqual([json, 0]);
+    }
+  });
+
+  test("string rejects invalid JSON text", () => {
+    for (const json of ["", "  ", "{a:1}", "{'a':1}", "[1,]", '{"a":1,}', "undefined", "NaN", '{"a":1} x', "01"]) {
+      const doc = `d ${single(json)}`;
+      expect([json, run(doc, { type: "string", format: "json" }).length]).toEqual([json, 1]);
+    }
+  });
+
+  test("rejects non-string, non-heredoc arguments", () => {
+    // (`null` is decoded by DON as the string "null", which is valid JSON.)
+    for (const literal of ["123", "123n", "true"]) {
+      expect(run(`d ${literal}`, { format: "json" })).toHaveLength(1);
+    }
+  });
+
+  test("heredoc validates its content", () => {
+    const valid = 'd <<<JSON\n  {"a": [1, 2]}\nJSON\n';
+    const invalid = "d <<<JSON\n  {a: 1}\nJSON\n";
+    expect(run(valid, { type: "heredoc", format: "json" })).toHaveLength(0);
+    expect(run(invalid, { type: "heredoc", format: "json" })).toHaveLength(1);
+    expect(run(valid, { format: "json" })).toHaveLength(0);
+  });
+
+  test("a heredoc JSON can be combined with pattern", () => {
+    const doc = 'd <<<JSON\n  {"name": "x"}\nJSON\n';
+    expect(run(doc, { type: "heredoc", format: "json", pattern: '"name"' })).toHaveLength(0);
+    expect(run(doc, { type: "heredoc", format: "json", pattern: '"id"' })).toHaveLength(1);
+  });
+
+  test("works inside a block next to other directives", () => {
+    const rule = {
+      "/job/payload": { "[1]": { type: "string", format: "json" } },
+    } satisfies LintRuleDocument;
+    const doc = (payload: string) => `name "x"\njob { payload '${payload}' }`;
+    expect(lintSchema(doc('{"a":1}'), rule)).toHaveLength(0);
+    expect(lintSchema(doc("{a}"), rule)).toHaveLength(1);
+  });
+});
