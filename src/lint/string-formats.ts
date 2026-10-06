@@ -36,19 +36,54 @@ export const isIpv4 = (value: unknown): boolean => {
   return IPV4_PREFIX_RE.test(prefix) && Number(prefix) <= 32;
 };
 
+/** A dotted quad with no CIDR range: the IPv4 tail of an IPv6 address. */
+const isDottedQuad = (text: string): boolean =>
+  !text.includes("/") && isIpv4(text);
+
+const IPV6_GROUP_RE = /^[0-9a-fA-F]{1,4}$/;
+
+/**
+ * Splits one side of an IPv6 address into its `:`-separated parts and
+ * returns how many 16-bit groups they stand for, or `undefined` if a part is
+ * invalid. Every part must be 1-4 hex digits; only the very last part of the
+ * whole address (`allowQuad`) may instead be a dotted-quad IPv4, which counts
+ * as two groups.
+ */
+const countIpv6Groups = (
+  side: string,
+  allowQuad: boolean,
+): number | undefined => {
+  if (side === "") return 0;
+  const parts = side.split(":");
+  let groups = 0;
+  for (const [index, part] of parts.entries()) {
+    if (IPV6_GROUP_RE.test(part)) {
+      groups += 1;
+    } else if (allowQuad && index === parts.length - 1 && isDottedQuad(part)) {
+      groups += 2;
+    } else {
+      return undefined;
+    }
+  }
+  return groups;
+};
+
 /**
  * IPv6 in any textual form (`::1`, `2001:db8::1`, `::ffff:1.2.3.4`), without
- * brackets or a zone id. Delegates the grammar to the URL parser's IPv6 host
- * parsing, after rejecting everything that is not an address character.
+ * brackets, a zone id or a range. It is validated by its parts: at most one
+ * `::`; each remaining part is 1-4 hex digits (the last one may be an IPv4
+ * dotted quad worth two groups); and the address has exactly 8 groups, or
+ * fewer than 8 when a `::` stands for the missing zero groups.
  */
 export const isIpv6 = (value: unknown): boolean => {
   const text = asString(value);
-  return (
-    text !== undefined &&
-    text.includes(":") &&
-    /^[0-9a-fA-F:.]+$/.test(text) &&
-    URL.canParse(`http://[${text}]`)
-  );
+  if (text === undefined) return false;
+  const gap = text.indexOf("::");
+  if (gap === -1) return countIpv6Groups(text, true) === 8;
+  if (text.lastIndexOf("::") !== gap) return false;
+  const head = countIpv6Groups(text.slice(0, gap), false);
+  const tail = countIpv6Groups(text.slice(gap + 2), true);
+  return head !== undefined && tail !== undefined && head + tail <= 7;
 };
 
 const HOST_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
