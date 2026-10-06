@@ -13,13 +13,18 @@ export const isUrl = (value: unknown): boolean => {
   return text !== undefined && URL.canParse(text);
 };
 
-const IPV4_OCTET = "(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)";
-const IPV4_RE = new RegExp(`^${IPV4_OCTET}(?:\\.${IPV4_OCTET}){3}$`);
+// Four dot-separated decimal groups of 1-3 digits, without leading zeros.
+const IPV4_SHAPE_RE = /^(?:0|[1-9]\d{0,2})(?:\.(?:0|[1-9]\d{0,2})){3}$/;
 
-/** Dotted-quad IPv4 with octets 0-255 and no leading zeros. */
+/**
+ * Dotted-quad IPv4: the shape is checked with a regular expression, then the
+ * value is split on `.` and every part, converted with `Number(part)`, must
+ * fit in one byte (0-255).
+ */
 export const isIpv4 = (value: unknown): boolean => {
   const text = asString(value);
-  return text !== undefined && IPV4_RE.test(text);
+  if (text === undefined || !IPV4_SHAPE_RE.test(text)) return false;
+  return text.split(".").every((part) => Number(part) <= 255);
 };
 
 /**
