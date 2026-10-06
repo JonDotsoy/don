@@ -122,6 +122,22 @@ describe("string formats", () => {
   });
 });
 
+describe("ipv4 with an out-of-range octet", () => {
+  test('validates "256.0.0.1" without throwing and reports one issue', () => {
+    const rule = {
+      "/d": { "[1]": { type: "string", format: "ipv4" } },
+    } satisfies LintRuleDocument;
+    const run = () => lintSchema("d '256.0.0.1'", rule);
+
+    // Only the outcome matters here: validation runs to completion and the
+    // value is flagged, rather than crashing on the invalid octet.
+    expect(run).not.toThrow();
+    const issues = run();
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ severity: "error" });
+  });
+});
+
 describe("port format", () => {
   const port = (literal: string, extra = {}) =>
     lintSchema(`d ${literal}`, {
