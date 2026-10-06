@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DON.</title>
+    <style>
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-weight: 800;
+        font-style: normal;
+        src:
+          local("JetBrains Mono ExtraBold"), local("JetBrainsMono-ExtraBold");
+      }
+
+      :root {
+        --bg-1: #f6f4ef;
+        --bg-2: #eae6dc;
+        --text: #181511;
+        --accent: #c1611f;
+        --accent-2: #1f5fa8;
+        --line: rgba(20, 17, 10, 0.1);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg-1: #0d1117;
+          --bg-2: #141a22;
+          --text: #e6edf3;
+          --accent: #ffa657;
+          --accent-2: #79c0ff;
+          --line: rgba(255, 255, 255, 0.09);
+        }
+      }
+
+      :root[data-theme="dark"] {
+        --bg-1: #0d1117;
+        --bg-2: #141a22;
+        --text: #e6edf3;
+        --accent: #ffa657;
+        --accent-2: #79c0ff;
+        --line: rgba(255, 255, 255, 0.09);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cover {
+        position: relative;
+        width: 1024px;
+        height: 1024px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-1);
+        border-radius: 5%;
+      }
+
+      .wordmark {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: baseline;
+        font-family:
+          "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: 280px;
+        line-height: 1;
+        color: var(--text);
+        user-select: none;
+      }
+
+      .wordmark .dot {
+        color: var(--accent);
+        margin-left: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cover" id="cover">
+      <div class="wordmark">DON<span class="dot">.</span></div>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const theme = params.get("theme");
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    </script>
+  </body>
+</html>

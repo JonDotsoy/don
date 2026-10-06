@@ -1,7 +1,7 @@
 {
   "name": "don-textmate",
   "displayName": "DON",
-  "description": "TextMate grammar and language configuration for DON (Directive Object Notation)",
+  "description": "DON Language support",
   "version": "0.0.1",
   "publisher": "jondotsoy",
   "license": "MIT",
