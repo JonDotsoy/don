@@ -300,7 +300,7 @@ describe("default message for a failing format", () => {
 
   test("names the format, what a valid value is and an example", () => {
     expect(message("d '256.0.0.1'", { type: "string", format: "ipv4" })).toBe(
-      "argument at position 1 must be a valid ipv4: an IPv4 address with an optional /0-32 range (e.g. 192.0.2.1 or 10.0.0.0/8)",
+      "argument at position 1 must be a valid ipv4: an IPv4 address (e.g. 192.0.2.1)",
     );
     expect(message("d 70000", { type: "number", format: "port" })).toBe(
       "argument at position 1 must be a valid port: an integer port from 0 to 65535 (e.g. 8080)",
@@ -310,12 +310,45 @@ describe("default message for a failing format", () => {
     );
   });
 
+  test("IP formats only mention a range when the value used one", () => {
+    const ipv4 = { type: "string", format: "ipv4" };
+    expect(message("d '256.0.0.1'", ipv4)).toBe(
+      "argument at position 1 must be a valid ipv4: an IPv4 address (e.g. 192.0.2.1)",
+    );
+    expect(message("d '10.0.0.0/33'", ipv4)).toBe(
+      "argument at position 1 must be a valid ipv4: an IPv4 address with a range from /0 to /32 (e.g. 10.0.0.0/8)",
+    );
+    expect(message("d '256.0.0.1/24'", ipv4)).toContain("with a range from /0 to /32");
+    expect(message("d '10.0.0.0/'", ipv4)).toContain("with a range from /0 to /32");
+
+    const ipv6 = { type: "string", format: "ipv6" };
+    expect(message("d 'nope'", ipv6)).toBe(
+      "argument at position 1 must be a valid ipv6: an IPv6 address (e.g. 2001:db8::1)",
+    );
+    expect(message("d '::1/129'", ipv6)).toBe(
+      "argument at position 1 must be a valid ipv6: an IPv6 address with a range from /0 to /128 (e.g. 2001:db8::/32)",
+    );
+  });
+
+  test("CIDR names the family's own range once a range is used", () => {
+    const cidr = { type: "string", format: "CIDR" };
+    expect(message("d 'nope'", cidr)).toBe(
+      "argument at position 1 must be a valid CIDR: an IPv4 or IPv6 address (e.g. 192.0.2.1 or 2001:db8::1)",
+    );
+    expect(message("d '10.0.0.0/33'", cidr)).toBe(
+      "argument at position 1 must be a valid CIDR: an IPv4 address with a range from /0 to /32 (e.g. 10.0.0.0/8)",
+    );
+    expect(message("d '2001:db8::/129'", cidr)).toBe(
+      "argument at position 1 must be a valid CIDR: an IPv6 address with a range from /0 to /128 (e.g. 2001:db8::/32)",
+    );
+  });
+
   test("uses the format name the rule wrote, aliases included", () => {
     expect(message("d 'x'", { type: "string", format: "PlainDate" })).toContain(
       "must be a valid PlainDate:",
     );
     expect(message("d 'x'", { type: "string", format: "CIDR" })).toContain(
-      "must be a valid CIDR: an IPv4 or IPv6 address with an optional range",
+      "must be a valid CIDR: an IPv4 or IPv6 address (e.g.",
     );
   });
 

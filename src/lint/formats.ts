@@ -86,18 +86,55 @@ const isJson = (value: unknown): boolean => {
   }
 };
 
-interface FormatSpec {
-  validate: (value: unknown) => boolean;
+interface FormatDetails {
   /** What a valid value is, completing "must be a valid <format>: ...". */
   description: string;
   example: string;
+}
+
+interface FormatSpec extends FormatDetails {
+  validate: (value: unknown) => boolean;
+  /** Tailors the details to the value that failed (e.g. one written with a range). */
+  detailsFor?: (value: unknown) => FormatDetails;
 }
 
 const spec = (
   validate: (value: unknown) => boolean,
   description: string,
   example: string,
-): FormatSpec => ({ validate, description, example });
+  detailsFor?: FormatSpec["detailsFor"],
+): FormatSpec => ({ validate, description, example, detailsFor });
+
+/** Whether the value was written with a CIDR range (`<ip>/<range>`). */
+const hasRange = (value: unknown): boolean =>
+  typeof value === "string" && value.includes("/");
+
+const IPV4_DETAILS: FormatDetails = {
+  description: "an IPv4 address",
+  example: "192.0.2.1",
+};
+const IPV4_RANGE_DETAILS: FormatDetails = {
+  description: "an IPv4 address with a range from /0 to /32",
+  example: "10.0.0.0/8",
+};
+const IPV6_DETAILS: FormatDetails = {
+  description: "an IPv6 address",
+  example: "2001:db8::1",
+};
+const IPV6_RANGE_DETAILS: FormatDetails = {
+  description: "an IPv6 address with a range from /0 to /128",
+  example: "2001:db8::/32",
+};
+const CIDR_DETAILS: FormatDetails = {
+  description: "an IPv4 or IPv6 address",
+  example: "192.0.2.1 or 2001:db8::1",
+};
+
+/** An IP format's details: the range is mentioned only if the value used one. */
+const ipDetails =
+  (plain: FormatDetails, withRange: FormatDetails): FormatSpec["detailsFor"] =>
+  (value) =>
+    hasRange(value) ? withRange : plain;
 
 const json = spec(isJson, "text that parses as JSON", '{"a":1}');
 const duration = spec(isDuration, "an ISO 8601 duration", "P1Y2M3DT4H5M6S");
@@ -153,18 +190,27 @@ const formats: Record<string, FormatSpec> = {
   url: spec(isUrl, "an absolute URL", "https://example.com/path"),
   ipv4: spec(
     isIpv4,
-    "an IPv4 address with an optional /0-32 range",
-    "192.0.2.1 or 10.0.0.0/8",
+    IPV4_DETAILS.description,
+    IPV4_DETAILS.example,
+    ipDetails(IPV4_DETAILS, IPV4_RANGE_DETAILS),
   ),
   ipv6: spec(
     isIpv6,
-    "an IPv6 address with an optional /0-128 range",
-    "2001:db8::1 or 2001:db8::/32",
+    IPV6_DETAILS.description,
+    IPV6_DETAILS.example,
+    ipDetails(IPV6_DETAILS, IPV6_RANGE_DETAILS),
   ),
   CIDR: spec(
     isCidr,
-    "an IPv4 or IPv6 address with an optional range (/0-32 for IPv4, /0-128 for IPv6)",
-    "10.0.0.0/8 or 2001:db8::/32",
+    CIDR_DETAILS.description,
+    CIDR_DETAILS.example,
+    // With a range the family is known from the value, so name its own limit.
+    (value) =>
+      hasRange(value)
+        ? String(value).includes(":")
+          ? IPV6_RANGE_DETAILS
+          : IPV4_RANGE_DETAILS
+        : CIDR_DETAILS,
   ),
   hostname: spec(isHostname, "an RFC 1123 hostname", "api.example.com"),
   port: spec(isPort, "an integer port from 0 to 65535", "8080"),
@@ -215,7 +261,8 @@ export const matchesFormat = (value: unknown, format: string): boolean =>
  * The default issue message for a value that fails `format`, or `undefined`
  * when `value` actually satisfies it. It names the format, says what a valid
  * value looks like and gives an example — never the offending value itself,
- * which may be a secret.
+ * which may be a secret. The IP formats mention a range only when the value
+ * was written with one.
  */
 export const formatMismatchMessage = (
   argIndex: number,
@@ -227,5 +274,6 @@ export const formatMismatchMessage = (
   if (!found) {
     return `argument at position ${argIndex} has an unknown format "${format}"`;
   }
-  return `argument at position ${argIndex} must be a valid ${format}: ${found.description} (e.g. ${found.example})`;
+  const { description, example } = found.detailsFor?.(value) ?? found;
+  return `argument at position ${argIndex} must be a valid ${format}: ${description} (e.g. ${example})`;
 };

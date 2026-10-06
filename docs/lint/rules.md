@@ -344,11 +344,20 @@ When a value fails its `format`, the default issue message says so and
 explains the format, for example:
 
 ```
-argument at position 1 must be a valid ipv4: an IPv4 address with an optional /0-32 range (e.g. 192.0.2.1 or 10.0.0.0/8)
+argument at position 1 must be a valid ipv4: an IPv4 address (e.g. 192.0.2.1)
 ```
 
 It names the format as the rule wrote it (aliases included), says what a valid
-value looks like and gives an example. It never repeats the offending value,
+value looks like and gives an example. The IP formats (`ipv4`, `ipv6`, `CIDR`)
+only mention a range when the value was written with one (`<ip>/<range>`), and
+then say which limit applies:
+
+```
+argument at position 1 must be a valid ipv4: an IPv4 address with a range from /0 to /32 (e.g. 10.0.0.0/8)
+```
+
+`CIDR` picks the family from the value (`:` means IPv6), so `10.0.0.0/33`
+reports `/0` to `/32` and `2001:db8::/129` reports `/0` to `/128`. It never repeats the offending value,
 which may be a secret. If the argument's `type` is wrong the usual
 `must be of type T` message is used, and a rule's own `message` always wins.
 An unknown `format` reports `has an unknown format "<name>"`.
