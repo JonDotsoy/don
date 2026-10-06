@@ -67,5 +67,8 @@
   },
   "engines": {
     "bun": ">=1.0.0"
+  },
+  "dependencies": {
+    "temporal-polyfill": "^1.0.5"
   }
 }

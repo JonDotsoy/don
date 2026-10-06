@@ -44,9 +44,93 @@ export interface BaseArgumentConstraint {
   ) => Iterable<LintIssue>;
 }
 
+/**
+ * `format` values for a `"string"` argument, inspired by the Temporal API.
+ * The string is parsed with `temporal-polyfill`'s `Temporal.<Type>.from(value)`
+ * (rejecting out-of-range fields), so the accepted syntax is exactly what
+ * Temporal accepts. Each format also has a PascalCase alias.
+ *
+ * - `"duration"`: an ISO 8601 duration (`"P1Y2M3DT4H5M6.5S"`, `"PT30M"`).
+ * - `"plain-date"` / `"PlainDate"`: `YYYY-MM-DD`.
+ * - `"plain-time"` / `"PlainTime"`: `HH:mm[:ss[.fffffffff]]`.
+ * - `"plain-date-time"` / `"PlainDateTime"`: `YYYY-MM-DDTHH:mm[:ss[.f]]`, no
+ *   `Z` or offset.
+ * - `"instant"` / `"Instant"`: a date-time with a required `Z` or offset.
+ * - `"plain-year-month"` / `"PlainYearMonth"`: `YYYY-MM`.
+ * - `"plain-month-day"` / `"PlainMonthDay"`: `MM-DD` or `--MM-DD`.
+ * - `"zoned-date-time"` / `"ZonedDateTime"`: a date-time with an optional
+ *   offset and a required IANA time zone (or offset) in brackets, e.g.
+ *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
+ * - `"json"`: text `JSON.parse` accepts (any JSON value, e.g. `'{"a":1}'`).
+ * - `"url"`: an absolute URL `URL.canParse()` accepts (`https://example.com/a`).
+ * - `"ipv4"`: an IPv4 address, optionally with a CIDR range of 0-32
+ *   (`192.0.2.1`, `10.0.0.0/8`).
+ * - `"ipv6"`: an IPv6 address, optionally with a CIDR range of 0-128
+ *   (`2001:db8::1`, `2001:db8::/32`).
+ * - `"CIDR"`: either of the above, each with its own optional range.
+ * - `"hostname"`: an RFC 1123 hostname (`api.example.com`).
+ * - `"uuid"`: a canonical UUID (`123e4567-e89b-42d3-a456-426614174000`).
+ * - `"email"`: an RFC 5322 `addr-spec` (`user@example.com`).
+ * - `"regexp"`: a valid JavaScript regular expression source.
+ * - `"semver"`: a Semantic Versioning 2.0.0 version (`1.2.3-rc.1+build.5`).
+ */
+export type StringFormat =
+  | "json"
+  | "url"
+  | "ipv4"
+  | "CIDR"
+  | "ipv6"
+  | "hostname"
+  | "uuid"
+  | "email"
+  | "regexp"
+  | "semver"
+  | "duration"
+  | "plain-date"
+  | "PlainDate"
+  | "plain-time"
+  | "PlainTime"
+  | "plain-date-time"
+  | "PlainDateTime"
+  | "instant"
+  | "Instant"
+  | "plain-year-month"
+  | "PlainYearMonth"
+  | "plain-month-day"
+  | "PlainMonthDay"
+  | "zoned-date-time"
+  | "ZonedDateTime";
+
+/**
+ * `format` values for a `"number"` argument: a Unix epoch as an integer count
+ * of seconds or milliseconds since 1970-01-01T00:00:00Z, within the range
+ * `Temporal.Instant.fromEpochMilliseconds()` accepts. `"port"` is an integer
+ * TCP/UDP port from 0 to 65535.
+ */
+export type NumberFormat =
+  | "port"
+  | "epoch-seconds"
+  | "EpochSeconds"
+  | "unix"
+  | "epoch-milliseconds"
+  | "EpochMilliseconds";
+
+/**
+ * `format` values for a `"bigint"` argument: a Unix epoch in nanoseconds
+ * (`Temporal.Instant.fromEpochNanoseconds()`).
+ */
+export type BigintFormat = "epoch-nanoseconds" | "EpochNanoseconds";
+
+/**
+ * `format` values for a `"heredoc"` argument; they apply to its `content`.
+ * `"json"`: the content must be valid JSON (`JSON.parse`).
+ */
+export type HeredocFormat = "json";
+
 /** A constraint on a `"string"` argument. */
 export interface StringArgumentConstraint extends BaseArgumentConstraint {
   type: "string";
+  format?: StringFormat;
   pattern?: string;
   flags?: string;
 }
@@ -54,6 +138,7 @@ export interface StringArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint on a `"number"` argument. */
 export interface NumberArgumentConstraint extends BaseArgumentConstraint {
   type: "number";
+  format?: NumberFormat;
   gte?: number;
   gt?: number;
   lte?: number;
@@ -63,6 +148,7 @@ export interface NumberArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint on a `"bigint"` argument. */
 export interface BigintArgumentConstraint extends BaseArgumentConstraint {
   type: "bigint";
+  format?: BigintFormat;
   gte?: bigint;
   gt?: bigint;
   lte?: bigint;
@@ -82,6 +168,7 @@ export interface NullArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint on a `"heredoc"` argument; `pattern`/`flags` apply to its `content`. */
 export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
   type: "heredoc";
+  format?: HeredocFormat;
   pattern?: string;
   flags?: string;
 }
@@ -89,6 +176,8 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
 export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
   type?: undefined;
+  /** Without a `type`, any `format` applies to whichever argument it matches. */
+  format?: StringFormat | NumberFormat | BigintFormat | HeredocFormat;
 }
 
 /** A single, self-contained validation for one directive argument. */

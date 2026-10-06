@@ -64,6 +64,7 @@ const KNOWN_PROPERTY_NAMES = new Set([
   "enum",
   "pattern",
   "flags",
+  "format",
   "gte",
   "gt",
   "lte",

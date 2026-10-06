@@ -1212,4 +1212,93 @@ server "eu-west-1" {
     );
     expect(otherRegionIssues).toHaveLength(0);
   });
+
+  describe("Temporal-inspired types", () => {
+    const rule = {
+      "/t/duration": { "[1]": { type: "string", format: "duration" } },
+      "/t/date": { "[1]": { type: "string", format: "plain-date" } },
+      "/t/time": { "[1]": { type: "string", format: "plain-time" } },
+      "/t/dt": { "[1]": { type: "string", format: "plain-date-time" } },
+      "/t/dateAlias": { "[1]": { type: "string", format: "PlainDate" } },
+      "/t/timeAlias": { "[1]": { type: "string", format: "PlainTime" } },
+      "/t/dtAlias": { "[1]": { type: "string", format: "PlainDateTime" } },
+    } satisfies LintRuleDocument;
+
+    test("accepts valid values at the root and inside a block", () => {
+      const doc = `t {
+  duration "P1Y2M3DT4H5M6.5S"
+  date "2024-02-29"
+  time "10:30:15.123"
+  dt "2024-02-29T10:30"
+  dateAlias "2024-01-01"
+  timeAlias "23:59"
+  dtAlias "2024-01-01T00:00:00"
+}`;
+      expect(lintSchema(doc, rule)).toHaveLength(0);
+      expect(lintSchema(`name "x"\n${doc}`, rule)).toHaveLength(0);
+    });
+
+    test("rejects invalid values", () => {
+      const doc = `t {
+  duration "P"
+  date "2023-02-29"
+  time "24:00"
+  dt "2024-02-29T10:30Z"
+  dateAlias 5
+  timeAlias "25:00"
+  dtAlias "2024-02-30T10:30"
+}`;
+      expect(lintSchema(doc, rule)).toHaveLength(7);
+    });
+
+    test("duration edge cases", () => {
+      const r = { "/d": { "[1]": { type: "string", format: "duration" } } } satisfies LintRuleDocument;
+      for (const ok of ["PT30M", "-P1W", "P1D", "PT0.5S"])
+        expect(lintSchema(`d "${ok}"`, r)).toHaveLength(0);
+      for (const bad of ["P", "PT", "P1DT", "1D", "PT1.5X"])
+        expect(lintSchema(`d "${bad}"`, r)).toHaveLength(1);
+    });
+  });
+
+  describe("Instant, PlainYearMonth, PlainMonthDay and ZonedDateTime", () => {
+    const rule = {
+      "/t/at": { "[1]": { type: "string", format: "instant" } },
+      "/t/month": { "[1]": { type: "string", format: "plain-year-month" } },
+      "/t/birthday": { "[1]": { type: "string", format: "plain-month-day" } },
+      "/t/zoned": { "[1]": { type: "string", format: "zoned-date-time" } },
+      "/t/atAlias": { "[1]": { type: "string", format: "Instant" } },
+      "/t/monthAlias": { "[1]": { type: "string", format: "PlainYearMonth" } },
+      "/t/birthdayAlias": { "[1]": { type: "string", format: "PlainMonthDay" } },
+      "/t/zonedAlias": { "[1]": { type: "string", format: "ZonedDateTime" } },
+    } satisfies LintRuleDocument;
+
+    test("accepts valid values at the root and inside a block", () => {
+      const doc = `t {
+  at "2024-02-29T10:30:00Z"
+  month "2024-02"
+  birthday "02-29"
+  zoned "2024-02-29T10:30:00+01:00[Europe/Madrid]"
+  atAlias "2024-02-29T10:30:00+02:00"
+  monthAlias "1999-12"
+  birthdayAlias "--12-25"
+  zonedAlias "2024-02-29T10:30[UTC]"
+}`;
+      expect(lintSchema(doc, rule)).toHaveLength(0);
+      expect(lintSchema(`name "x"\n${doc}`, rule)).toHaveLength(0);
+    });
+
+    test("rejects invalid values", () => {
+      const doc = `t {
+  at "2024-02-29T10:30:00"
+  month "2024-13"
+  birthday "02-30"
+  zoned "2024-02-29T10:30[Not/AZone]"
+  atAlias 5
+  monthAlias "2024"
+  birthdayAlias "13-01"
+  zonedAlias "2024-02-29T10:30:00+01:00"
+}`;
+      expect(lintSchema(doc, rule)).toHaveLength(8);
+    });
+  });
 });

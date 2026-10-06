@@ -228,7 +228,9 @@ or both, alongside sub-paths.
 `directive.args[0]` internally, but positions always count from `1`).
 
 Each constraint accepts an optional `message` to override the default
-"argument at position N must be of type T" issue message, and an optional
+"argument at position N must be of type T" issue message (when a `format`
+is what fails, the default message names it instead, see
+[`format` values](#format-values)), and an optional
 `severity` (`"error"`, `"warning"`, or `"info"`, default `"error"`) — passed
 straight through to `LintIssue.severity` (see
 [`src/lint.ts`](../../src/lint.ts)). Every other body-level check
@@ -269,6 +271,98 @@ only once the argument's type has already been checked as `string`.
   [§2.8 Heredocs](../specs/v1/spec.md#28-heredocs)); `pattern` applies to its
   `content` string, and `enum` is not meaningful since heredoc content is
   rarely one of a fixed set of literals.
+
+### `format` values
+
+`format` refines a `type` the way JSON Schema's `format` does: the argument
+must satisfy `type` **and** the named format. The formats are inspired by the
+JS Temporal API and are validated with
+[`temporal-polyfill`](https://github.com/fullcalendar/temporal-polyfill)
+(`Temporal.<Type>.from(value)`, rejecting out-of-range fields), so the accepted
+syntax is exactly what Temporal accepts, including the basic ISO formats
+(`20240229`, `103015`, a leading `T` on times). `format` is only valid with the
+`type` it belongs to; an unknown `format` never matches.
+
+With `type: "string"`:
+
+| `format` (alias)                          | Accepts                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `"duration"`                              | ISO 8601 duration: `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`                     |
+| `"plain-date"` (`"PlainDate"`)            | `YYYY-MM-DD`                                                                     |
+| `"plain-time"` (`"PlainTime"`)            | `HH:mm`, `HH:mm:ss`, `HH:mm:ss.fffffffff`                                        |
+| `"plain-date-time"` (`"PlainDateTime"`)   | `YYYY-MM-DDTHH:mm[:ss[.f]]`, no `Z` or offset                                    |
+| `"instant"` (`"Instant"`)                 | date-time with a required `Z` or offset: `2024-02-29T10:30:00Z`                  |
+| `"plain-year-month"` (`"PlainYearMonth"`) | `YYYY-MM`                                                                        |
+| `"plain-month-day"` (`"PlainMonthDay"`)   | `MM-DD` or `--MM-DD` (`02-29` is valid, `02-30` is not)                          |
+| `"zoned-date-time"` (`"ZonedDateTime"`)   | date-time with a required `[IANA zone]`: `2024-02-29T10:30+01:00[Europe/Madrid]` |
+
+With `type: "heredoc"`, `format` applies to the heredoc's `content`:
+
+- `"json"`: the content must be valid JSON (`JSON.parse`). `"json"` is also
+  valid with `type: "string"` (any JSON value as text). DON keeps backslashes
+  in quoted strings verbatim, so write inline JSON in single quotes
+  (`'{"a":1}'`) or, better, in a heredoc.
+
+Also with `type: "string"`, dependency-free formats for common config values:
+
+| `format`     | Accepts                                                                                                                                                                                                                                             |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"url"`      | an absolute URL that `URL.canParse()` accepts (`https://example.com/a`, `file:///x`); a bare host or a relative path is not                                                                                                                         |
+| `"ipv4"`     | dotted quad with octets 0-255 and no leading zeros, optionally followed by a CIDR range `/0`-`/32` (`192.0.2.1`, `10.0.0.0/8`); each octet is checked with `Number(part) <= 255`                                                                    |
+| `"ipv6"`     | any textual IPv6 form (`::1`, `2001:db8::1`, `::ffff:192.0.2.1`), validated by its parts (at most one `::`, 1-4 hex digits per group, exactly 8 groups or fewer with `::`), optionally followed by a CIDR range `/0`-`/128`; no brackets or zone id |
+| `"CIDR"`     | either of the above, each with its own optional range (`10.0.0.0/8`, `2001:db8::/32`); the range is never required, so a bare address is also valid                                                                                                 |
+| `"hostname"` | RFC 1123: labels of 1-63 letters/digits/hyphens (no leading or trailing hyphen), at most 253 characters, optional trailing dot; the last label can't be all digits (so `1.2.3.4` is not a hostname)                                                 |
+| `"uuid"`     | canonical 8-4-4-4-12 UUID, any case: versions 1-8 with the RFC variant, plus the nil and max UUIDs                                                                                                                                                  |
+| `"email"`    | RFC 5322 `addr-spec`: dot-atom or quoted-string local part (max 64), and a hostname or address-literal domain (`[192.0.2.1]`, `[IPv6:::1]`), max 254 overall. No comments, folding whitespace, obsolete syntax or non-ASCII                         |
+| `"regexp"`   | a string that compiles with `new RegExp(value)`                                                                                                                                                                                                     |
+| `"semver"`   | Semantic Versioning 2.0.0 (`1.2.3-rc.1+build.5`); a leading `v` is not accepted                                                                                                                                                                     |
+
+With `type: "number"`, `"port"` accepts an integer from 0 to 65535.
+`gte`/`gt`/`lte`/`lt` still apply, e.g. `{ "type": "number", "format": "port", "gte": 1024 }`
+forbids privileged ports.
+
+With `type: "number"` (an integer Unix epoch, within the range
+`Temporal.Instant.fromEpochMilliseconds()` accepts; `gte`/`gt`/`lte`/`lt` bound
+it in the same unit):
+
+- `"epoch-seconds"` (aliases `"EpochSeconds"`, `"unix"`): e.g. `1709202600`.
+- `"epoch-milliseconds"` (alias `"EpochMilliseconds"`): e.g. `1709202600000`.
+
+With `type: "bigint"`:
+
+- `"epoch-nanoseconds"` (alias `"EpochNanoseconds"`): e.g.
+  `1709202600000000000n` (`Temporal.Instant.fromEpochNanoseconds()`).
+
+```json
+{
+  "/job/day": { "[1]": { "type": "string", "format": "plain-date" } },
+  "/job/createdAt": { "[1]": { "type": "number", "format": "unix" } }
+}
+```
+
+When a value fails its `format`, the default issue message says so and
+explains the format, for example:
+
+```
+argument at position 1 must be a valid ipv4: an IPv4 address (e.g. 192.0.2.1)
+```
+
+It names the format as the rule wrote it (aliases included), says what a valid
+value looks like and gives an example. The IP formats (`ipv4`, `ipv6`, `CIDR`)
+only mention a range when the value was written with one (`<ip>/<range>`), and
+then say which limit applies:
+
+```
+argument at position 1 must be a valid ipv4: an IPv4 address with a range from /0 to /32 (e.g. 10.0.0.0/8)
+```
+
+`CIDR` picks the family from the value (`:` means IPv6), so `10.0.0.0/33`
+reports `/0` to `/32` and `2001:db8::/129` reports `/0` to `/128`. It never repeats the offending value,
+which may be a secret. If the argument's `type` is wrong the usual
+`must be of type T` message is used, and a rule's own `message` always wins.
+An unknown `format` reports `has an unknown format "<name>"`.
+
+In the DSL, `format` is a regular property: `[1] { type "string"; format "plain-date" }`.
 
 ## JSON example: argument at position 1 must be a number
 

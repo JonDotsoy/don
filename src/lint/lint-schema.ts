@@ -5,6 +5,11 @@
 import { DON, Directive, HeredocValue } from "../don.js";
 import { PathExpression } from "../path-expression/path-expression.js";
 import { ROOT_DIRECTIVE_NAME } from "../root-directive-name.js";
+import {
+  formatMismatchMessage,
+  matchesFormat,
+  patternSubject,
+} from "./formats.js";
 import { argumentLoc, directiveLoc, type LintIssue } from "./types.js";
 import type {
   ArgumentConstraint,
@@ -66,13 +71,6 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
   }
 };
 
-/** The string a `pattern` matches against: the value itself, or a heredoc's `content`. */
-const patternSubject = (value: unknown): string | undefined => {
-  if (typeof value === "string") return value;
-  if (value instanceof HeredocValue) return value.content;
-  return undefined;
-};
-
 const isNumeric = (value: unknown): value is number | bigint =>
   typeof value === "number" || typeof value === "bigint";
 
@@ -95,6 +93,10 @@ const matchesConstraint = (
     !constraint.enum.some((literal) => literal === value)
   ) {
     return false;
+  }
+
+  if ("format" in constraint && constraint.format !== undefined) {
+    if (!matchesFormat(value, constraint.format)) return false;
   }
 
   if ("pattern" in constraint && constraint.pattern !== undefined) {
@@ -131,11 +133,27 @@ const matchesConstraint = (
 
 const defaultConstraintMessage = (
   argIndex: number,
+  value: unknown,
   constraint: ArgumentConstraint,
-): string =>
-  constraint.type
+): string => {
+  const typeMatches =
+    constraint.type === undefined || matchesType(value, constraint.type);
+  if (
+    typeMatches &&
+    "format" in constraint &&
+    constraint.format !== undefined
+  ) {
+    const formatMessage = formatMismatchMessage(
+      argIndex,
+      value,
+      constraint.format,
+    );
+    if (formatMessage !== undefined) return formatMessage;
+  }
+  return constraint.type
     ? `argument at position ${argIndex} must be of type ${constraint.type}`
     : `argument at position ${argIndex} does not satisfy the constraint`;
+};
 
 const evaluateArgumentConstraint = (
   directive: Directive,
@@ -147,7 +165,8 @@ const evaluateArgumentConstraint = (
   if (!matchesConstraint(value, constraint)) {
     issues.push({
       message:
-        constraint.message ?? defaultConstraintMessage(argIndex, constraint),
+        constraint.message ??
+        defaultConstraintMessage(argIndex, value, constraint),
       severity: constraint.severity ?? "error",
       loc: argumentLoc(directive, argIndex - 1),
     });

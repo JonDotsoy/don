@@ -1,0 +1,352 @@
+import { describe, test, expect } from "bun:test";
+import { Temporal } from "temporal-polyfill";
+import { lintSchema } from "./lint-schema";
+import type { ArgumentConstraint, LintRuleDocument } from "./schema";
+
+/**
+ * The Temporal-inspired argument types are backed by `temporal-polyfill`: a
+ * value is accepted by the lint type exactly when `Temporal.<Type>.from()`
+ * accepts it (with `overflow: "reject"`).
+ */
+const parsers: Record<string, (value: string) => unknown> = {
+  duration: (v) => Temporal.Duration.from(v),
+  "plain-date": (v) => Temporal.PlainDate.from(v, { overflow: "reject" }),
+  "plain-time": (v) => Temporal.PlainTime.from(v),
+  "plain-date-time": (v) => Temporal.PlainDateTime.from(v),
+  instant: (v) => Temporal.Instant.from(v),
+  "plain-year-month": (v) => Temporal.PlainYearMonth.from(v),
+  "plain-month-day": (v) => Temporal.PlainMonthDay.from(v),
+  "zoned-date-time": (v) => Temporal.ZonedDateTime.from(v),
+};
+
+const samples: Record<string, string[]> = {
+  duration: ["P1Y2M3DT4H5M6.5S", "PT30M", "-P1W", "P1D", "PT0.5S", "P", "PT", "P1DT", "1D", "PT1.5X"],
+  "plain-date": ["2024-02-29", "2023-02-29", "2024-13-01", "2024-1-1", "20240229", "abc", "2024-02-3", "2024-0229"],
+  "plain-time": ["10:30", "10:30:15", "10:30:15.123456789", "23:59", "24:00", "10", "10:60", "T10:30", "1030", "103015", "10:3015", "1"],
+  "plain-date-time": ["2024-02-29T10:30", "2024-02-29T10:30:00", "2024-02-29 10:30", "2024-02-30T10:30", "2024-02-29T10:30Z", "2024-02-29"],
+  instant: ["2024-02-29T10:30:00Z", "2024-02-29T10:30Z", "2024-02-29T10:30:00.123+02:00", "2024-02-29T10:30:00", "2024-02-30T10:30:00Z", "2024-02-29"],
+  "plain-year-month": ["2024-02", "2024-13", "2024-00", "2024-2", "2024"],
+  "plain-month-day": ["02-29", "--02-29", "02-30", "13-01", "2-29", "04-31"],
+  "zoned-date-time": [
+    "2024-02-29T10:30:00+01:00[Europe/Madrid]",
+    "2024-02-29T10:30[Europe/Madrid]",
+    "2024-02-29T10:30:00Z[UTC]",
+    "2024-02-29T10:30[+02:00]",
+    "2024-02-29T10:30[Not/AZone]",
+    "2024-02-29T10:30:00+01:00",
+    "2024-02-30T10:30[UTC]",
+  ],
+};
+
+const numberFormats = new Set([
+  "epoch-seconds",
+  "EpochSeconds",
+  "unix",
+  "epoch-milliseconds",
+  "EpochMilliseconds",
+]);
+const bigintFormats = new Set(["epoch-nanoseconds", "EpochNanoseconds"]);
+
+/** `{ type, format }` where `type` is the one each format belongs to. */
+const constraintFor = (format: string, extra = {}): ArgumentConstraint =>
+  ({
+    type: numberFormats.has(format)
+      ? "number"
+      : bigintFormats.has(format)
+        ? "bigint"
+        : "string",
+    format,
+    ...extra,
+  }) as ArgumentConstraint;
+
+const accepts = (format: string, value: string): boolean =>
+  lintSchema(`d ${JSON.stringify(value)}`, {
+    "/d": { "[1]": constraintFor(format) },
+  }).length === 0;
+
+const polyfillAccepts = (type: string, value: string): boolean => {
+  try {
+    parsers[type]!(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+describe("Temporal types agree with temporal-polyfill", () => {
+  for (const [type, values] of Object.entries(samples)) {
+    test(type, () => {
+      for (const value of values) {
+        expect([value, accepts(type, value)]).toEqual([
+          value,
+          polyfillAccepts(type, value),
+        ]);
+      }
+    });
+  }
+});
+
+/**
+ * Edge cases with explicit expectations (not just "agrees with the
+ * polyfill"), so a behavior change in Temporal or the polyfill is caught.
+ */
+const edgeCases: Record<string, { accept: string[]; reject: string[] }> = {
+  duration: {
+    accept: ["P1Y", "PT0S", "P0D", "-PT5S", "+P1D", "p1d", "pt1h", "PT1,5S", "P1W1D", "P99999999999D"],
+    reject: ["", "P", "PT", "P1DT", "P1D1Y", "PT1S1M", "P 1D", "P1D ", "P-1D", "P1.5D", "P1,5D", "PT0.1234567891S"],
+  },
+  "plain-date": {
+    accept: ["0000-01-01", "9999-12-31", "+010000-01-01", "-000001-01-01", "2000-02-29", "2024-02-29[u-ca=iso8601]", "2024-02-29T10:30"],
+    reject: ["", " 2024-02-29", "2024-02-29 ", "1900-02-29", "2023-02-29", "2024-04-31", "2024-00-10", "2024-01-00", "-000000-01-01", "2024-02-29Z"],
+  },
+  "plain-time": {
+    accept: ["00:00", "23:59:59", "23:59:59.999999999", "12:30:15,5", "T12:30", "t12:30", "103015", "12:30[UTC]"],
+    reject: ["", "0", "12:5", "24:00", "12:60", "12:30:15.", "23:59:59.9999999999", "12:30Z"],
+  },
+  "plain-date-time": {
+    accept: ["2024-02-29T00:00", "2024-02-29T23:59:59.999999999", "2024-02-29t10:30", "2024-02-29 10:30", "2024-02-29", "2024-02-29T10:30[UTC]"],
+    reject: ["", "10:30", "1900-02-29T10:30", "2024-02-29T24:00", "2024-02-29T10:30Z"],
+  },
+  instant: {
+    accept: ["1970-01-01T00:00:00Z", "1970-01-01T00:00Z", "2024-02-29T10:30:00z", "2024-02-29 10:30:00Z", "2024-02-29T10:30:00+00:00", "2024-02-29T10:30:00-23:59", "2024-02-29T10:30:00.123456789Z", "2024-02-29T10:30:00+01:00[Europe/Madrid]", "-271821-04-20T00:00:00Z", "+275760-09-13T00:00:00Z"],
+    reject: ["", "2024-02-29", "10:30Z", "2024-02-29T10:30:00", "2024-02-29T10:30:00+24:00", "2024-02-30T10:30:00Z", "-271821-04-19T23:59:59Z", "+275760-09-13T00:00:01Z"],
+  },
+  "plain-year-month": {
+    accept: ["0000-01", "2024-02", "2024-12", "-000001-01", "+010000-01", "2024-02[u-ca=iso8601]"],
+    reject: ["", "2024", "2024-1", "2024-00", "2024-13", "--02"],
+  },
+  "plain-month-day": {
+    accept: ["02-29", "--02-29", "12-31", "01-01", "02-29[u-ca=iso8601]"],
+    reject: ["", "1-1", "00-10", "01-00", "02-30", "04-31", "13-01"],
+  },
+  "zoned-date-time": {
+    accept: ["2024-02-29T10:30[UTC]", "2024-02-29T10:30Z[UTC]", "2024-02-29T10:30[+01:00]", "2024-02-29T10:30[-23:59]", "2024-02-29T10:30[America/New_York]", "2024-02-29T10:30[Etc/GMT+5]", "2024-03-10T02:30[America/New_York]", "2024-11-03T01:30-04:00[America/New_York]", "2024-11-03T01:30-05:00[America/New_York]"],
+    reject: ["", "2024-02-29T10:30", "2024-02-29T10:30+01:00", "2024-02-29T10:30[]", "2024-02-29T10:30[ UTC]", "2024-02-29T10:30[Not/AZone]", "2024-02-30T10:30[UTC]", "2024-11-03T01:30-06:00[America/New_York]"],
+  },
+};
+
+describe("Temporal types edge cases", () => {
+  for (const [type, { accept, reject }] of Object.entries(edgeCases)) {
+    test(`${type} accepts`, () => {
+      for (const value of accept)
+        expect([value, accepts(type, value)]).toEqual([value, true]);
+    });
+    test(`${type} rejects`, () => {
+      for (const value of reject)
+        expect([value, accepts(type, value)]).toEqual([value, false]);
+    });
+  }
+
+  test("PascalCase aliases behave like their kebab-case types", () => {
+    const aliases: [string, string, string][] = [
+      ["PlainDate", "plain-date", "2024-02-29"],
+      ["PlainTime", "plain-time", "10:30"],
+      ["PlainDateTime", "plain-date-time", "2024-02-29T10:30"],
+      ["Instant", "instant", "2024-02-29T10:30:00Z"],
+      ["PlainYearMonth", "plain-year-month", "2024-02"],
+      ["PlainMonthDay", "plain-month-day", "02-29"],
+      ["ZonedDateTime", "zoned-date-time", "2024-02-29T10:30[UTC]"],
+    ];
+    for (const [alias, type, value] of aliases) {
+      expect(accepts(alias, value)).toBe(true);
+      expect(accepts(alias, "nope")).toBe(accepts(type, "nope"));
+    }
+  });
+
+  test("rejects non-string arguments for every type", () => {
+    const literals = ["123", "123n", "true", "null", "0x10"];
+    for (const type of Object.keys(edgeCases)) {
+      for (const literal of literals) {
+        const issues = lintSchema(`d ${literal}`, {
+          "/d": { "[1]": constraintFor(type) },
+        });
+        expect([type, literal, issues.length]).toEqual([type, literal, 1]);
+      }
+    }
+  });
+
+  test("rejects a heredoc argument", () => {
+    const issues = lintSchema("d <<<EOT\n  2024-02-29\nEOT\n", {
+      "/d": { "[1]": constraintFor("plain-date") },
+    });
+    expect(issues).toHaveLength(1);
+  });
+
+  test("works together with enum/not/or on the same argument", () => {
+    const rule = {
+      "/d": { "[1]": {
+          or: [
+            { type: "string", format: "plain-date" },
+            { type: "string", format: "duration" },
+          ],
+        } },
+      "/n": { "[1]": { not: { type: "string", format: "instant" } } },
+    } satisfies LintRuleDocument;
+    expect(lintSchema('d "2024-02-29"\nd "P1D"\nn "nope"', rule)).toHaveLength(0);
+    expect(lintSchema('d "nope"', rule)).toHaveLength(1);
+    expect(lintSchema('n "2024-02-29T10:30:00Z"', rule)).toHaveLength(1);
+  });
+});
+
+describe("Unix epoch types", () => {
+  const ok = (format: string, literal: string, extra = {}) =>
+    lintSchema(`d ${literal}`, {
+      "/d": { "[1]": constraintFor(format, extra) },
+    }).length === 0;
+
+  test("epoch-seconds accepts integer seconds within Instant's range", () => {
+    for (const v of ["0", "-1", "1709202600", "8640000000000", "-8640000000000"])
+      expect([v, ok("epoch-seconds", v)]).toEqual([v, true]);
+  });
+
+  test("epoch-seconds rejects decimals, out of range, bigint and strings", () => {
+    for (const v of [
+      "1.5",
+      "8640000000001",
+      "-8640000000001",
+      "1709202600n",
+      '"1709202600"',
+      "true",
+      "null",
+    ])
+      expect([v, ok("epoch-seconds", v)]).toEqual([v, false]);
+  });
+
+  test("epoch-milliseconds accepts and rejects at the Instant limits", () => {
+    for (const v of ["0", "-1", "1709202600000", "8640000000000000", "-8640000000000000"])
+      expect([v, ok("epoch-milliseconds", v)]).toEqual([v, true]);
+    for (const v of ["1.5", "8640000000000001", "-8640000000000001", "5n", '"5"'])
+      expect([v, ok("epoch-milliseconds", v)]).toEqual([v, false]);
+  });
+
+  test("epoch-nanoseconds takes a bigint within Instant's range", () => {
+    for (const v of ["0n", "1709202600000000000n", "8640000000000000000000n"])
+      expect([v, ok("epoch-nanoseconds", v)]).toEqual([v, true]);
+    for (const v of ["8640000000000000000001n", "5", "1.5", '"5"'])
+      expect([v, ok("epoch-nanoseconds", v)]).toEqual([v, false]);
+  });
+
+  test("aliases behave like their canonical types", () => {
+    expect(ok("unix", "1709202600")).toBe(true);
+    expect(ok("unix", "1.5")).toBe(false);
+    expect(ok("EpochSeconds", "0")).toBe(true);
+    expect(ok("EpochMilliseconds", "0")).toBe(true);
+    expect(ok("EpochNanoseconds", "0n")).toBe(true);
+    expect(ok("EpochNanoseconds", "0")).toBe(false);
+  });
+
+  test("gte/lte bound the value in the type's own unit", () => {
+    const since2024 = { gte: 1704067200 };
+    expect(ok("epoch-seconds", "1709202600", since2024)).toBe(true);
+    expect(ok("epoch-seconds", "1000", since2024)).toBe(false);
+    expect(ok("epoch-nanoseconds", "10n", { gt: 5n, lt: 20n })).toBe(true);
+    expect(ok("epoch-nanoseconds", "30n", { gt: 5n, lt: 20n })).toBe(false);
+  });
+
+  test("works inside a block next to other directives", () => {
+    const rule = {
+      "/job/createdAt": { "[1]": { type: "number", format: "unix" } },
+      "/job/expiresAt": { "[1]": { type: "number", format: "epoch-milliseconds" } },
+      "/job/tick": { "[1]": { type: "bigint", format: "epoch-nanoseconds" } },
+    } satisfies LintRuleDocument;
+    const doc = (a: string, b: string, c: string) =>
+      `name "x"\njob {\n  createdAt ${a}\n  expiresAt ${b}\n  tick ${c}\n}`;
+    expect(lintSchema(doc("1709202600", "1709202600000", "5n"), rule)).toHaveLength(0);
+    expect(lintSchema(doc("1.5", "1709202600000", "5"), rule)).toHaveLength(2);
+  });
+});
+
+describe("format attribute", () => {
+  const run = (doc: string, constraint: object) =>
+    lintSchema(doc, {
+      "/d": { "[1]": constraint as ArgumentConstraint },
+    });
+
+  test("only applies together with the type it belongs to", () => {
+    expect(run('d "2024-02-29"', { type: "string", format: "plain-date" })).toHaveLength(0);
+    expect(run('d "2024-02-29"', { type: "number", format: "plain-date" })).toHaveLength(1);
+    expect(run("d 5", { type: "string", format: "epoch-seconds" })).toHaveLength(1);
+    expect(run("d 5", { type: "bigint", format: "epoch-seconds" })).toHaveLength(1);
+  });
+
+  test("works without a type", () => {
+    expect(run('d "2024-02-29"', { format: "plain-date" })).toHaveLength(0);
+    expect(run("d 1709202600", { format: "unix" })).toHaveLength(0);
+    expect(run("d 5n", { format: "epoch-nanoseconds" })).toHaveLength(0);
+    expect(run('d "nope"', { format: "plain-date" })).toHaveLength(1);
+  });
+
+  test("an unknown format never matches", () => {
+    expect(run('d "2024-02-29"', { type: "string", format: "nope" })).toHaveLength(1);
+    expect(run('d "x"', { type: "string", format: "toString" })).toHaveLength(1);
+  });
+
+  test("combines with pattern, enum, or and not", () => {
+    const date = { type: "string", format: "plain-date" };
+    expect(run('d "2024-02-29"', { ...date, pattern: "^2024" })).toHaveLength(0);
+    expect(run('d "2023-02-28"', { ...date, pattern: "^2024" })).toHaveLength(1);
+    expect(run('d "2024-02-29"', { ...date, enum: ["2024-02-29"] })).toHaveLength(0);
+    expect(run('d "2024-03-01"', { ...date, enum: ["2024-02-29"] })).toHaveLength(1);
+    expect(run('d "2024-02-29"', { not: date })).toHaveLength(1);
+  });
+});
+
+describe("json format", () => {
+  // DON keeps backslashes verbatim, so JSON text goes in single quotes.
+  const single = (text: string) => `'${text}'`;
+  const run = (doc: string, constraint: object) =>
+    lintSchema(doc, { "/d": { "[1]": constraint as ArgumentConstraint } });
+
+  test("string accepts any valid JSON text", () => {
+    for (const json of [
+      '{"a":1}',
+      "[1,2,3]",
+      '"text"',
+      "123",
+      "true",
+      "null",
+      '{"a":{"b":[{"c":null}]}}',
+      " [] ",
+    ]) {
+      const doc = `d ${single(json)}`;
+      expect([json, run(doc, { type: "string", format: "json" }).length]).toEqual([json, 0]);
+    }
+  });
+
+  test("string rejects invalid JSON text", () => {
+    for (const json of ["", "  ", "{a:1}", "{'a':1}", "[1,]", '{"a":1,}', "undefined", "NaN", '{"a":1} x', "01"]) {
+      const doc = `d ${single(json)}`;
+      expect([json, run(doc, { type: "string", format: "json" }).length]).toEqual([json, 1]);
+    }
+  });
+
+  test("rejects non-string, non-heredoc arguments", () => {
+    // (`null` is decoded by DON as the string "null", which is valid JSON.)
+    for (const literal of ["123", "123n", "true"]) {
+      expect(run(`d ${literal}`, { format: "json" })).toHaveLength(1);
+    }
+  });
+
+  test("heredoc validates its content", () => {
+    const valid = 'd <<<JSON\n  {"a": [1, 2]}\nJSON\n';
+    const invalid = "d <<<JSON\n  {a: 1}\nJSON\n";
+    expect(run(valid, { type: "heredoc", format: "json" })).toHaveLength(0);
+    expect(run(invalid, { type: "heredoc", format: "json" })).toHaveLength(1);
+    expect(run(valid, { format: "json" })).toHaveLength(0);
+  });
+
+  test("a heredoc JSON can be combined with pattern", () => {
+    const doc = 'd <<<JSON\n  {"name": "x"}\nJSON\n';
+    expect(run(doc, { type: "heredoc", format: "json", pattern: '"name"' })).toHaveLength(0);
+    expect(run(doc, { type: "heredoc", format: "json", pattern: '"id"' })).toHaveLength(1);
+  });
+
+  test("works inside a block next to other directives", () => {
+    const rule = {
+      "/job/payload": { "[1]": { type: "string", format: "json" } },
+    } satisfies LintRuleDocument;
+    const doc = (payload: string) => `name "x"\njob { payload '${payload}' }`;
+    expect(lintSchema(doc('{"a":1}'), rule)).toHaveLength(0);
+    expect(lintSchema(doc("{a}"), rule)).toHaveLength(1);
+  });
+});
