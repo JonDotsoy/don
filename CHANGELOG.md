@@ -20,9 +20,11 @@ documentation.
   aliases such as `"PlainDate"`). With `type: "number"`: `"epoch-seconds"`
   (alias `"unix"`) and `"epoch-milliseconds"`. With `type: "bigint"`:
   `"epoch-nanoseconds"`. With `type: "string"` or `type: "heredoc"` (checked
-  against its content): `"json"`. With `type: "string"`: `"url"`, `"ipv4"` (alias `"CIDR"`; optional `/0`-`/32` range),
-  `"ipv6"`, `"hostname"` (RFC 1123), `"uuid"`, `"email"` (RFC 5322),
-  `"regexp"` and `"semver"`. With `type: "number"`: `"port"`.
+  against its content): `"json"`. With `type: "string"`: `"url"`, `"ipv4"` (optional `/0`-`/32` range),
+  `"ipv6"` (optional `/0`-`/128` range), `"CIDR"` (either, optional range), `"hostname"` (RFC 1123), `"uuid"`, `"email"` (RFC 5322),
+  `"regexp"` and `"semver"`. With `type: "number"`: `"port"`. When a `format`
+  fails, the default issue message names the format and describes it with an
+  example.
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
 - `Directive` — represents a parsed directive with `name`, `args`
   (`number | string | boolean`), and nested `children: Directive[]`.

@@ -16,29 +16,42 @@ export const isUrl = (value: unknown): boolean => {
 // Four dot-separated decimal groups of 1-3 digits, without leading zeros.
 const IPV4_SHAPE_RE = /^(?:0|[1-9]\d{0,2})(?:\.(?:0|[1-9]\d{0,2})){3}$/;
 
-// A CIDR prefix length: 0-32 without leading zeros (checked with Number below).
-const IPV4_PREFIX_RE = /^(?:0|[1-9]\d?)$/;
+// A CIDR prefix length: decimal without leading zeros (bounded with Number).
+const PREFIX_RE = /^(?:0|[1-9]\d{0,2})$/;
 
 /**
- * Dotted-quad IPv4, optionally followed by a CIDR range (`<ip>/<range>`).
- * The shape is checked with a regular expression, then the address is split
- * on `.` and every part, converted with `Number(part)`, must fit in one byte
- * (0-255). When a `/<range>` is present it must be an integer from 0 to 32.
+ * Splits an optional CIDR range off `text` (`<address>/<range>`): returns the
+ * address, or `undefined` when there is more than one `/` or the range is not
+ * an integer from 0 to `max`.
+ */
+const splitRange = (text: string, max: number): string | undefined => {
+  const [address, prefix, ...rest] = text.split("/");
+  if (rest.length > 0 || address === undefined) return undefined;
+  if (prefix === undefined) return address;
+  return PREFIX_RE.test(prefix) && Number(prefix) <= max ? address : undefined;
+};
+
+/**
+ * A dotted-quad IPv4 address with no range. The shape is checked with a
+ * regular expression, then the value is split on `.` and every part,
+ * converted with `Number(part)`, must fit in one byte (0-255).
+ */
+const isIpv4Address = (text: string): boolean =>
+  IPV4_SHAPE_RE.test(text) &&
+  text.split(".").every((part) => Number(part) <= 255);
+
+/**
+ * An IPv4 address, optionally followed by a CIDR range (`<ip>/<range>`, with
+ * the range from 0 to 32).
  */
 export const isIpv4 = (value: unknown): boolean => {
   const text = asString(value);
-  if (text === undefined) return false;
-  const [address, prefix, ...rest] = text.split("/");
-  if (rest.length > 0 || address === undefined) return false;
-  if (!IPV4_SHAPE_RE.test(address)) return false;
-  if (!address.split(".").every((part) => Number(part) <= 255)) return false;
-  if (prefix === undefined) return true;
-  return IPV4_PREFIX_RE.test(prefix) && Number(prefix) <= 32;
+  const address = text === undefined ? undefined : splitRange(text, 32);
+  return address !== undefined && isIpv4Address(address);
 };
 
-/** A dotted quad with no CIDR range: the IPv4 tail of an IPv6 address. */
-const isDottedQuad = (text: string): boolean =>
-  !text.includes("/") && isIpv4(text);
+/** A dotted quad: the IPv4 tail of an IPv6 address. */
+const isDottedQuad = isIpv4Address;
 
 const IPV6_GROUP_RE = /^[0-9a-fA-F]{1,4}$/;
 
@@ -69,15 +82,14 @@ const countIpv6Groups = (
 };
 
 /**
- * IPv6 in any textual form (`::1`, `2001:db8::1`, `::ffff:1.2.3.4`), without
- * brackets, a zone id or a range. It is validated by its parts: at most one
- * `::`; each remaining part is 1-4 hex digits (the last one may be an IPv4
- * dotted quad worth two groups); and the address has exactly 8 groups, or
- * fewer than 8 when a `::` stands for the missing zero groups.
+ * An IPv6 address in any textual form (`::1`, `2001:db8::1`,
+ * `::ffff:1.2.3.4`), without brackets, a zone id or a range. It is validated
+ * by its parts: at most one `::`; each remaining part is 1-4 hex digits (the
+ * last one may be an IPv4 dotted quad worth two groups); and the address has
+ * exactly 8 groups, or fewer than 8 when a `::` stands for the missing zero
+ * groups.
  */
-export const isIpv6 = (value: unknown): boolean => {
-  const text = asString(value);
-  if (text === undefined) return false;
+const isIpv6Address = (text: string): boolean => {
   const gap = text.indexOf("::");
   if (gap === -1) return countIpv6Groups(text, true) === 8;
   if (text.lastIndexOf("::") !== gap) return false;
@@ -85,6 +97,23 @@ export const isIpv6 = (value: unknown): boolean => {
   const tail = countIpv6Groups(text.slice(gap + 2), true);
   return head !== undefined && tail !== undefined && head + tail <= 7;
 };
+
+/**
+ * An IPv6 address, optionally followed by a CIDR range (`<ip>/<range>`, with
+ * the range from 0 to 128).
+ */
+export const isIpv6 = (value: unknown): boolean => {
+  const text = asString(value);
+  const address = text === undefined ? undefined : splitRange(text, 128);
+  return address !== undefined && isIpv6Address(address);
+};
+
+/**
+ * CIDR notation for either family: an IPv4 or IPv6 address with an optional
+ * range (0-32 for IPv4, 0-128 for IPv6). The range is never required.
+ */
+export const isCidr = (value: unknown): boolean =>
+  isIpv4(value) || isIpv6(value);
 
 const HOST_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
 
@@ -150,8 +179,8 @@ export const isEmail = (value: unknown): boolean => {
   if (domain.startsWith("[") && domain.endsWith("]")) {
     const literal = domain.slice(1, -1);
     return literal.startsWith("IPv6:")
-      ? isIpv6(literal.slice("IPv6:".length))
-      : isIpv4(literal);
+      ? isIpv6Address(literal.slice("IPv6:".length))
+      : isIpv4Address(literal);
   }
   return isHostname(domain) && !domain.endsWith(".");
 };

@@ -2,21 +2,14 @@
  * Runtime evaluator for the object/JSON-format `LintRuleDocument` design
  * described in `docs/lint/rules.md` (types: `./schema.ts`).
  */
-import { Temporal } from "temporal-polyfill";
 import { DON, Directive, HeredocValue } from "../don.js";
 import { PathExpression } from "../path-expression/path-expression.js";
 import { ROOT_DIRECTIVE_NAME } from "../root-directive-name.js";
 import {
-  isEmail,
-  isHostname,
-  isIpv4,
-  isIpv6,
-  isPort,
-  isRegexp,
-  isSemver,
-  isUrl,
-  isUuid,
-} from "./string-formats.js";
+  formatMismatchMessage,
+  matchesFormat,
+  patternSubject,
+} from "./formats.js";
 import { argumentLoc, directiveLoc, type LintIssue } from "./types.js";
 import type {
   ArgumentConstraint,
@@ -57,107 +50,6 @@ const isSubPathOnlyEntry = (entry: RuleBody): boolean => {
   return keys.length > 0 && keys.every((key) => key.startsWith("/"));
 };
 
-/**
- * Runs a `Temporal.<Type>.from()` parse over a string argument and reports
- * whether it succeeds. Only strings are checked: `from()` also accepts
- * property bags, which a DON argument can never be.
- */
-const parsesAs =
-  (parse: (value: string) => unknown) =>
-  (value: unknown): boolean => {
-    if (typeof value !== "string") return false;
-    try {
-      parse(value);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-const reject = { overflow: "reject" } as const;
-
-const isDuration = parsesAs((v) => Temporal.Duration.from(v));
-const isPlainDate = parsesAs((v) => Temporal.PlainDate.from(v, reject));
-const isPlainTime = parsesAs((v) => Temporal.PlainTime.from(v, reject));
-const isPlainDateTime = parsesAs((v) => Temporal.PlainDateTime.from(v, reject));
-const isInstant = parsesAs((v) => Temporal.Instant.from(v));
-const isPlainYearMonth = parsesAs((v) =>
-  Temporal.PlainYearMonth.from(v, reject),
-);
-const isPlainMonthDay = parsesAs((v) => Temporal.PlainMonthDay.from(v, reject));
-const isZonedDateTime = parsesAs((v) => Temporal.ZonedDateTime.from(v, reject));
-
-const tryInstant = (create: () => unknown): boolean => {
-  try {
-    create();
-    return true;
-  } catch {
-    return false;
-  }
-};
-const isEpochSeconds = (value: unknown): boolean =>
-  typeof value === "number" &&
-  Number.isInteger(value) &&
-  tryInstant(() => Temporal.Instant.fromEpochMilliseconds(value * 1000));
-const isEpochMilliseconds = (value: unknown): boolean =>
-  typeof value === "number" &&
-  Number.isInteger(value) &&
-  tryInstant(() => Temporal.Instant.fromEpochMilliseconds(value));
-const isEpochNanoseconds = (value: unknown): boolean =>
-  typeof value === "bigint" &&
-  tryInstant(() => Temporal.Instant.fromEpochNanoseconds(value));
-
-const isJson = (value: unknown): boolean => {
-  const text = patternSubject(value);
-  if (text === undefined) return false;
-  try {
-    JSON.parse(text);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const formatValidators: Record<string, (value: unknown) => boolean> = {
-  json: isJson,
-  url: isUrl,
-  ipv4: isIpv4,
-  CIDR: isIpv4,
-  ipv6: isIpv6,
-  hostname: isHostname,
-  port: isPort,
-  uuid: isUuid,
-  email: isEmail,
-  regexp: isRegexp,
-  semver: isSemver,
-  duration: isDuration,
-  "plain-date": isPlainDate,
-  PlainDate: isPlainDate,
-  "plain-time": isPlainTime,
-  PlainTime: isPlainTime,
-  "plain-date-time": isPlainDateTime,
-  PlainDateTime: isPlainDateTime,
-  instant: isInstant,
-  Instant: isInstant,
-  "plain-year-month": isPlainYearMonth,
-  PlainYearMonth: isPlainYearMonth,
-  "plain-month-day": isPlainMonthDay,
-  PlainMonthDay: isPlainMonthDay,
-  "zoned-date-time": isZonedDateTime,
-  ZonedDateTime: isZonedDateTime,
-  "epoch-seconds": isEpochSeconds,
-  EpochSeconds: isEpochSeconds,
-  unix: isEpochSeconds,
-  "epoch-milliseconds": isEpochMilliseconds,
-  EpochMilliseconds: isEpochMilliseconds,
-  "epoch-nanoseconds": isEpochNanoseconds,
-  EpochNanoseconds: isEpochNanoseconds,
-};
-
-/** An unknown `format` never matches, so a typo surfaces as an issue. */
-const matchesFormat = (value: unknown, format: string): boolean =>
-  Object.hasOwn(formatValidators, format) && formatValidators[format]!(value);
-
 const matchesType = (value: unknown, type: ArgumentType): boolean => {
   switch (type) {
     case "string":
@@ -177,13 +69,6 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
     case "heredoc":
       return value instanceof HeredocValue;
   }
-};
-
-/** The string a `pattern` matches against: the value itself, or a heredoc's `content`. */
-const patternSubject = (value: unknown): string | undefined => {
-  if (typeof value === "string") return value;
-  if (value instanceof HeredocValue) return value.content;
-  return undefined;
 };
 
 const isNumeric = (value: unknown): value is number | bigint =>
@@ -248,11 +133,27 @@ const matchesConstraint = (
 
 const defaultConstraintMessage = (
   argIndex: number,
+  value: unknown,
   constraint: ArgumentConstraint,
-): string =>
-  constraint.type
+): string => {
+  const typeMatches =
+    constraint.type === undefined || matchesType(value, constraint.type);
+  if (
+    typeMatches &&
+    "format" in constraint &&
+    constraint.format !== undefined
+  ) {
+    const formatMessage = formatMismatchMessage(
+      argIndex,
+      value,
+      constraint.format,
+    );
+    if (formatMessage !== undefined) return formatMessage;
+  }
+  return constraint.type
     ? `argument at position ${argIndex} must be of type ${constraint.type}`
     : `argument at position ${argIndex} does not satisfy the constraint`;
+};
 
 const evaluateArgumentConstraint = (
   directive: Directive,
@@ -264,7 +165,8 @@ const evaluateArgumentConstraint = (
   if (!matchesConstraint(value, constraint)) {
     issues.push({
       message:
-        constraint.message ?? defaultConstraintMessage(argIndex, constraint),
+        constraint.message ??
+        defaultConstraintMessage(argIndex, value, constraint),
       severity: constraint.severity ?? "error",
       loc: argumentLoc(directive, argIndex - 1),
     });

@@ -54,6 +54,12 @@ const cases: Record<string, { accept: string[]; reject: string[] }> = {
       "1:2:3:4:5:6:1.2.3.4",
       "1:2:3:4:5::1.2.3.4",
       "64:ff9b::192.0.2.33",
+      "::1/128",
+      "2001:db8::/32",
+      "::/0",
+      "fe80::1/64",
+      "::ffff:1.2.3.4/96",
+      "1:2:3:4:5:6:7:8/128",
     ],
     reject: [
       "",
@@ -72,7 +78,6 @@ const cases: Record<string, { accept: string[]; reject: string[] }> = {
       "1:2:3:4:5:6:7:",
       "[::1]",
       "::1%eth0",
-      "::1/128",
       "g::1",
       " ::1",
       "::1 ",
@@ -85,8 +90,52 @@ const cases: Record<string, { accept: string[]; reject: string[] }> = {
       "::1.2.3.04",
       "::1.2.3",
       "::1.2.3.4.5",
-      "::1.2.3.4/24",
       "::0x1.2.3.4",
+      "::1/129",
+      "::1/999",
+      "::1/",
+      "::1/-1",
+      "::1/064",
+      "::1/1.5",
+      "::1/a",
+      "::1/64/8",
+      "/64",
+      "::1 /64",
+      "1.2.3.4/24 ",
+    ],
+  },
+  CIDR: {
+    accept: [
+      "10.0.0.0/8",
+      "192.168.1.0/24",
+      "1.2.3.4/32",
+      "0.0.0.0/0",
+      "1.2.3.4",
+      "2001:db8::/32",
+      "::/0",
+      "::1/128",
+      "fe80::/10",
+      "2001:db8::1",
+      "::ffff:1.2.3.4/96",
+    ],
+    reject: [
+      "",
+      "1.2.3.4/33",
+      "::1/129",
+      "2001:db8::/129",
+      "1.2.3.4/64",
+      "256.0.0.1/24",
+      "1.2.3/24",
+      "10.0.0.0/",
+      "::1/",
+      "/24",
+      "/64",
+      "10.0.0.0/8/8",
+      "2001:db8:::/32",
+      "10.0.0.0/08",
+      "fe80::/010",
+      "example.com/24",
+      "10.0.0.0 /8",
     ],
   },
   hostname: {
@@ -172,14 +221,6 @@ describe("string formats", () => {
     });
   }
 
-  test("CIDR is an alias of ipv4", () => {
-    const { accept, reject } = cases.ipv4!;
-    for (const value of accept)
-      expect([value, check("CIDR", quote(value))]).toEqual([value, true]);
-    for (const value of reject)
-      expect([value, check("CIDR", quote(value))]).toEqual([value, false]);
-  });
-
   test("a quoted number is a string, not a port", () => {
     expect(check("semver", "'1.2.3'")).toBe(true);
   });
@@ -248,5 +289,89 @@ server {
     expect(lintSchema("d 8080", { "/d": { "[1]": { format: "port" } } })).toHaveLength(0);
     expect(lintSchema("d 99999", { "/d": { "[1]": { format: "port" } } })).toHaveLength(1);
     expect(lintSchema("d '::1'", { "/d": { "[1]": { format: "ipv6" } } })).toHaveLength(0);
+  });
+});
+
+describe("default message for a failing format", () => {
+  const message = (doc: string, constraint: object): string | undefined =>
+    lintSchema(doc, {
+      "/d": { "[1]": constraint as ArgumentConstraint },
+    })[0]?.message;
+
+  test("names the format, what a valid value is and an example", () => {
+    expect(message("d '256.0.0.1'", { type: "string", format: "ipv4" })).toBe(
+      "argument at position 1 must be a valid ipv4: an IPv4 address with an optional /0-32 range (e.g. 192.0.2.1 or 10.0.0.0/8)",
+    );
+    expect(message("d 70000", { type: "number", format: "port" })).toBe(
+      "argument at position 1 must be a valid port: an integer port from 0 to 65535 (e.g. 8080)",
+    );
+    expect(message("d 'nope'", { type: "string", format: "plain-date" })).toBe(
+      "argument at position 1 must be a valid plain-date: an ISO 8601 calendar date (YYYY-MM-DD) (e.g. 2024-02-29)",
+    );
+  });
+
+  test("uses the format name the rule wrote, aliases included", () => {
+    expect(message("d 'x'", { type: "string", format: "PlainDate" })).toContain(
+      "must be a valid PlainDate:",
+    );
+    expect(message("d 'x'", { type: "string", format: "CIDR" })).toContain(
+      "must be a valid CIDR: an IPv4 or IPv6 address with an optional range",
+    );
+  });
+
+  test("every known format has a description and an example", () => {
+    const formats = [
+      "json", "url", "ipv4", "ipv6", "CIDR", "hostname", "port", "uuid",
+      "email", "regexp", "semver", "duration", "plain-date", "PlainDate",
+      "plain-time", "PlainTime", "plain-date-time", "PlainDateTime",
+      "instant", "Instant", "plain-year-month", "PlainYearMonth",
+      "plain-month-day", "PlainMonthDay", "zoned-date-time", "ZonedDateTime",
+      "epoch-seconds", "EpochSeconds", "unix", "epoch-milliseconds",
+      "EpochMilliseconds", "epoch-nanoseconds", "EpochNanoseconds",
+    ];
+    for (const format of formats) {
+      const text = message("d '('", { format });
+      expect([format, text]).toEqual([
+        format,
+        expect.stringMatching(
+          new RegExp(`^argument at position 1 must be a valid ${format}: .+ \\(e\\.g\\. .+\\)$`),
+        ),
+      ]);
+    }
+  });
+
+  test("falls back to the type message when the type itself is wrong", () => {
+    expect(message("d 5", { type: "string", format: "ipv4" })).toBe(
+      "argument at position 1 must be of type string",
+    );
+  });
+
+  test("works without a type", () => {
+    expect(message("d 'nope'", { format: "uuid" })).toContain(
+      "must be a valid uuid: a canonical UUID",
+    );
+  });
+
+  test("never echoes the offending value", () => {
+    const text = message("d 'secret-token-123'", { type: "string", format: "email" });
+    expect(text).not.toContain("secret-token-123");
+  });
+
+  test("a rule's own message still wins", () => {
+    expect(
+      message("d 'x'", { type: "string", format: "ipv4", message: "bad ip" }),
+    ).toBe("bad ip");
+  });
+
+  test("an unknown format is reported as such", () => {
+    expect(message("d 'x'", { type: "string", format: "nope" })).toBe(
+      'argument at position 1 has an unknown format "nope"',
+    );
+  });
+
+  test("a failing pattern is not blamed on the format", () => {
+    expect(
+      message("d '2024-02-29'", { type: "string", format: "plain-date", pattern: "^1999" }),
+    ).toBe("argument at position 1 must be of type string");
   });
 });
