@@ -13,14 +13,13 @@ documentation.
 
 ### Added
 
-- `LintRuleDocument` Temporal-inspired argument types (validated with `temporal-polyfill`) `"duration"`
-  (`Temporal.Duration.from()`-compatible ISO 8601 duration), `"plain-date"`,
-  `"plain-time"`, `"plain-date-time"`, `"instant"`, `"plain-year-month"`,
-  `"plain-month-day"` and `"zoned-date-time"` (PascalCase aliases such as
-  `"PlainDate"` and `"ZonedDateTime"`).
-- `LintRuleDocument` Unix epoch argument types `"epoch-seconds"` (alias
-  `"unix"`), `"epoch-milliseconds"` (`number`) and `"epoch-nanoseconds"`
-  (`bigint`), with `gte`/`gt`/`lte`/`lt` range checks.
+- `LintRuleDocument` `format` attribute (also accepted by the lint rules DSL),
+  validated with `temporal-polyfill`. With `type: "string"`: `"duration"`,
+  `"plain-date"`, `"plain-time"`, `"plain-date-time"`, `"instant"`,
+  `"plain-year-month"`, `"plain-month-day"` and `"zoned-date-time"` (PascalCase
+  aliases such as `"PlainDate"`). With `type: "number"`: `"epoch-seconds"`
+  (alias `"unix"`) and `"epoch-milliseconds"`. With `type: "bigint"`:
+  `"epoch-nanoseconds"`.
 - `DON.parse(text)` — parses a DON document into an array of `Directive` nodes.
 - `Directive` — represents a parsed directive with `name`, `args`
   (`number | string | boolean`), and nested `children: Directive[]`.

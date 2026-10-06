@@ -16,29 +16,7 @@ export type ArgumentType =
   | "bigint"
   | "boolean"
   | "null"
-  | "heredoc"
-  | "duration"
-  | "plain-date"
-  | "PlainDate"
-  | "plain-time"
-  | "PlainTime"
-  | "plain-date-time"
-  | "PlainDateTime"
-  | "instant"
-  | "Instant"
-  | "plain-year-month"
-  | "PlainYearMonth"
-  | "plain-month-day"
-  | "PlainMonthDay"
-  | "zoned-date-time"
-  | "ZonedDateTime"
-  | "epoch-seconds"
-  | "EpochSeconds"
-  | "unix"
-  | "epoch-milliseconds"
-  | "EpochMilliseconds"
-  | "epoch-nanoseconds"
-  | "EpochNanoseconds";
+  | "heredoc";
 
 /** A literal value an argument's `enum` constraint may compare against. */
 export type ArgumentLiteral = string | number | boolean | null;
@@ -66,9 +44,63 @@ export interface BaseArgumentConstraint {
   ) => Iterable<LintIssue>;
 }
 
+/**
+ * `format` values for a `"string"` argument, inspired by the Temporal API.
+ * The string is parsed with `temporal-polyfill`'s `Temporal.<Type>.from(value)`
+ * (rejecting out-of-range fields), so the accepted syntax is exactly what
+ * Temporal accepts. Each format also has a PascalCase alias.
+ *
+ * - `"duration"`: an ISO 8601 duration (`"P1Y2M3DT4H5M6.5S"`, `"PT30M"`).
+ * - `"plain-date"` / `"PlainDate"`: `YYYY-MM-DD`.
+ * - `"plain-time"` / `"PlainTime"`: `HH:mm[:ss[.fffffffff]]`.
+ * - `"plain-date-time"` / `"PlainDateTime"`: `YYYY-MM-DDTHH:mm[:ss[.f]]`, no
+ *   `Z` or offset.
+ * - `"instant"` / `"Instant"`: a date-time with a required `Z` or offset.
+ * - `"plain-year-month"` / `"PlainYearMonth"`: `YYYY-MM`.
+ * - `"plain-month-day"` / `"PlainMonthDay"`: `MM-DD` or `--MM-DD`.
+ * - `"zoned-date-time"` / `"ZonedDateTime"`: a date-time with an optional
+ *   offset and a required IANA time zone (or offset) in brackets, e.g.
+ *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
+ */
+export type StringFormat =
+  | "duration"
+  | "plain-date"
+  | "PlainDate"
+  | "plain-time"
+  | "PlainTime"
+  | "plain-date-time"
+  | "PlainDateTime"
+  | "instant"
+  | "Instant"
+  | "plain-year-month"
+  | "PlainYearMonth"
+  | "plain-month-day"
+  | "PlainMonthDay"
+  | "zoned-date-time"
+  | "ZonedDateTime";
+
+/**
+ * `format` values for a `"number"` argument: a Unix epoch as an integer count
+ * of seconds or milliseconds since 1970-01-01T00:00:00Z, within the range
+ * `Temporal.Instant.fromEpochMilliseconds()` accepts.
+ */
+export type NumberFormat =
+  | "epoch-seconds"
+  | "EpochSeconds"
+  | "unix"
+  | "epoch-milliseconds"
+  | "EpochMilliseconds";
+
+/**
+ * `format` values for a `"bigint"` argument: a Unix epoch in nanoseconds
+ * (`Temporal.Instant.fromEpochNanoseconds()`).
+ */
+export type BigintFormat = "epoch-nanoseconds" | "EpochNanoseconds";
+
 /** A constraint on a `"string"` argument. */
 export interface StringArgumentConstraint extends BaseArgumentConstraint {
   type: "string";
+  format?: StringFormat;
   pattern?: string;
   flags?: string;
 }
@@ -76,6 +108,7 @@ export interface StringArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint on a `"number"` argument. */
 export interface NumberArgumentConstraint extends BaseArgumentConstraint {
   type: "number";
+  format?: NumberFormat;
   gte?: number;
   gt?: number;
   lte?: number;
@@ -85,6 +118,7 @@ export interface NumberArgumentConstraint extends BaseArgumentConstraint {
 /** A constraint on a `"bigint"` argument. */
 export interface BigintArgumentConstraint extends BaseArgumentConstraint {
   type: "bigint";
+  format?: BigintFormat;
   gte?: bigint;
   gt?: bigint;
   lte?: bigint;
@@ -108,78 +142,6 @@ export interface HeredocArgumentConstraint extends BaseArgumentConstraint {
   flags?: string;
 }
 
-/**
- * Constraints inspired by the Temporal API. They are string-based and are
- * checked by parsing the argument with `temporal-polyfill`'s
- * `Temporal.<Type>.from(value)`.
- *
- * - `"duration"`: an ISO 8601 duration accepted by `Temporal.Duration.from()`
- *   (e.g. `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`).
- * - `"plain-date"` / `"PlainDate"`: `YYYY-MM-DD`, like `Temporal.PlainDate`.
- * - `"plain-time"` / `"PlainTime"`: `HH:mm[:ss[.fffffffff]]`, like
- *   `Temporal.PlainTime`.
- * - `"plain-date-time"` / `"PlainDateTime"`: `YYYY-MM-DDTHH:mm[:ss[.f]]` with
- *   no `Z` or offset, like `Temporal.PlainDateTime`.
- * - `"instant"` / `"Instant"`: a date-time with a required `Z` or numeric
- *   offset, like `Temporal.Instant` (`2024-02-29T10:30:00Z`).
- * - `"plain-year-month"` / `"PlainYearMonth"`: `YYYY-MM`.
- * - `"plain-month-day"` / `"PlainMonthDay"`: `MM-DD` or `--MM-DD` (`02-29` is
- *   valid, `02-30` is not).
- * - `"zoned-date-time"` / `"ZonedDateTime"`: a date-time with an optional
- *   offset and a required IANA time zone (or offset) in brackets, e.g.
- *   `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
- */
-export interface TemporalArgumentConstraint extends BaseArgumentConstraint {
-  type:
-    | "duration"
-    | "plain-date"
-    | "PlainDate"
-    | "plain-time"
-    | "PlainTime"
-    | "plain-date-time"
-    | "PlainDateTime"
-    | "instant"
-    | "Instant"
-    | "plain-year-month"
-    | "PlainYearMonth"
-    | "plain-month-day"
-    | "PlainMonthDay"
-    | "zoned-date-time"
-    | "ZonedDateTime";
-}
-
-/**
- * A constraint on a Unix epoch `number` argument holding an integer count of
- * seconds (`"epoch-seconds"`, alias `"unix"`) or milliseconds
- * (`"epoch-milliseconds"`) since 1970-01-01T00:00:00Z. The value must be an
- * instant `Temporal.Instant.fromEpochMilliseconds()` accepts; `gte`/`gt`/
- * `lte`/`lt` bound it in the same unit.
- */
-export interface EpochNumberArgumentConstraint extends BaseArgumentConstraint {
-  type:
-    | "epoch-seconds"
-    | "EpochSeconds"
-    | "unix"
-    | "epoch-milliseconds"
-    | "EpochMilliseconds";
-  gte?: number;
-  gt?: number;
-  lte?: number;
-  lt?: number;
-}
-
-/**
- * A constraint on a Unix epoch `bigint` argument holding nanoseconds since
- * 1970-01-01T00:00:00Z (`Temporal.Instant.fromEpochNanoseconds()`).
- */
-export interface EpochNanosecondsArgumentConstraint extends BaseArgumentConstraint {
-  type: "epoch-nanoseconds" | "EpochNanoseconds";
-  gte?: bigint;
-  gt?: bigint;
-  lte?: bigint;
-  lt?: bigint;
-}
-
 /** A constraint that doesn't narrow by `type` at all — just `enum`/`or`/`and`/`not`/etc. */
 export interface UntypedArgumentConstraint extends BaseArgumentConstraint {
   type?: undefined;
@@ -193,9 +155,6 @@ export type ArgumentConstraint =
   | BooleanArgumentConstraint
   | NullArgumentConstraint
   | HeredocArgumentConstraint
-  | TemporalArgumentConstraint
-  | EpochNumberArgumentConstraint
-  | EpochNanosecondsArgumentConstraint
   | UntypedArgumentConstraint;
 
 /** Key selecting a child directive by a path relative to its parent, e.g. `"/route"`. */

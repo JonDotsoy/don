@@ -257,7 +257,7 @@ only once the argument's type has already been checked as `string`.
 
 `type` covers every argument kind DON v1 produces (see
 [`docs/specs/v1/spec.md`](../specs/v1/spec.md)): `"string"`, `"number"`, `"bigint"`,
-`"boolean"`, `"null"`, and `"heredoc"`, plus the Temporal-inspired string types described below.
+`"boolean"`, `"null"`, and `"heredoc"`.
 
 - `"number"` and `"bigint"` are distinct types (mirroring JS `typeof`, and
   DON's own `123` vs. `123n` literals) — both accept `gte`/`gt`/`lte`/`lt`
@@ -269,40 +269,51 @@ only once the argument's type has already been checked as `string`.
   [§2.8 Heredocs](../specs/v1/spec.md#28-heredocs)); `pattern` applies to its
   `content` string, and `enum` is not meaningful since heredoc content is
   rarely one of a fixed set of literals.
-- Inspired by the JS Temporal API, all string-based:
-  - `"duration"`: an ISO 8601 duration that `Temporal.Duration.from()` accepts,
-    e.g. `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`. At least one component is
-    required.
-  - `"plain-date"` (alias `"PlainDate"`): `YYYY-MM-DD`.
-  - `"plain-time"` (alias `"PlainTime"`): `HH:mm`, `HH:mm:ss` or
-    `HH:mm:ss.fffffffff`.
-  - `"plain-date-time"` (alias `"PlainDateTime"`): `YYYY-MM-DDTHH:mm[:ss[.f]]`
-    with no `Z` or offset.
-  - `"instant"` (alias `"Instant"`): a date-time with a required `Z` or numeric
-    offset, e.g. `2024-02-29T10:30:00Z`.
-  - `"plain-year-month"` (alias `"PlainYearMonth"`): `YYYY-MM`.
-  - `"plain-month-day"` (alias `"PlainMonthDay"`): `MM-DD` or `--MM-DD`;
-    `02-29` is valid, `02-30` is not.
-  - `"zoned-date-time"` (alias `"ZonedDateTime"`): a date-time with an optional
-    offset and a required IANA time zone (or offset) in brackets, e.g.
-    `2024-02-29T10:30:00+01:00[Europe/Madrid]`.
 
-- Unix epoch types, which take a number rather than a string (validated with
-  `Temporal.Instant.fromEpochMilliseconds()` / `fromEpochNanoseconds()`, so
-  values outside Temporal's range are rejected). `gte`/`gt`/`lte`/`lt` bound
-  the value in the type's own unit:
-  - `"epoch-seconds"` (aliases `"EpochSeconds"`, `"unix"`): an integer
-    `number`, e.g. `1709202600`.
-  - `"epoch-milliseconds"` (alias `"EpochMilliseconds"`): an integer `number`,
-    e.g. `1709202600000`.
-  - `"epoch-nanoseconds"` (alias `"EpochNanoseconds"`): a `bigint`, e.g.
-    `1709202600000000000n`.
+### `format` values
 
-  Values are validated by parsing them with
-  [`temporal-polyfill`](https://github.com/fullcalendar/temporal-polyfill)
-  (`Temporal.<Type>.from(value)`, rejecting out-of-range fields), so the
-  accepted syntax is exactly what Temporal accepts, including the basic ISO
-  formats (`20240229`, `103015`, a leading `T` on times).
+`format` refines a `type` the way JSON Schema's `format` does: the argument
+must satisfy `type` **and** the named format. The formats are inspired by the
+JS Temporal API and are validated with
+[`temporal-polyfill`](https://github.com/fullcalendar/temporal-polyfill)
+(`Temporal.<Type>.from(value)`, rejecting out-of-range fields), so the accepted
+syntax is exactly what Temporal accepts, including the basic ISO formats
+(`20240229`, `103015`, a leading `T` on times). `format` is only valid with the
+`type` it belongs to; an unknown `format` never matches.
+
+With `type: "string"`:
+
+| `format` (alias)                          | Accepts                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `"duration"`                              | ISO 8601 duration: `"P1Y2M3DT4H5M6.5S"`, `"PT30M"`, `"-P1W"`                     |
+| `"plain-date"` (`"PlainDate"`)            | `YYYY-MM-DD`                                                                     |
+| `"plain-time"` (`"PlainTime"`)            | `HH:mm`, `HH:mm:ss`, `HH:mm:ss.fffffffff`                                        |
+| `"plain-date-time"` (`"PlainDateTime"`)   | `YYYY-MM-DDTHH:mm[:ss[.f]]`, no `Z` or offset                                    |
+| `"instant"` (`"Instant"`)                 | date-time with a required `Z` or offset: `2024-02-29T10:30:00Z`                  |
+| `"plain-year-month"` (`"PlainYearMonth"`) | `YYYY-MM`                                                                        |
+| `"plain-month-day"` (`"PlainMonthDay"`)   | `MM-DD` or `--MM-DD` (`02-29` is valid, `02-30` is not)                          |
+| `"zoned-date-time"` (`"ZonedDateTime"`)   | date-time with a required `[IANA zone]`: `2024-02-29T10:30+01:00[Europe/Madrid]` |
+
+With `type: "number"` (an integer Unix epoch, within the range
+`Temporal.Instant.fromEpochMilliseconds()` accepts; `gte`/`gt`/`lte`/`lt` bound
+it in the same unit):
+
+- `"epoch-seconds"` (aliases `"EpochSeconds"`, `"unix"`): e.g. `1709202600`.
+- `"epoch-milliseconds"` (alias `"EpochMilliseconds"`): e.g. `1709202600000`.
+
+With `type: "bigint"`:
+
+- `"epoch-nanoseconds"` (alias `"EpochNanoseconds"`): e.g.
+  `1709202600000000000n` (`Temporal.Instant.fromEpochNanoseconds()`).
+
+```json
+{
+  "/job/day": { "[1]": { "type": "string", "format": "plain-date" } },
+  "/job/createdAt": { "[1]": { "type": "number", "format": "unix" } }
+}
+```
+
+In the DSL, `format` is a regular property: `[1] { type "string"; format "plain-date" }`.
 
 ## JSON example: argument at position 1 must be a number
 

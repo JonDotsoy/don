@@ -305,4 +305,21 @@ server {
     );
     expect(invalid).toHaveLength(1);
   });
+
+  test("argument selector with a type and a format", () => {
+    const source = `
+/job/at {
+  [1] {
+    type "string"
+    format "plain-date"
+  }
+}
+`;
+    const rule = parseLintRulesDonly(source);
+    expect(rule).toEqual({
+      "/job/at": { "[1]": { type: "string", format: "plain-date" } },
+    } satisfies LintRuleDocument);
+    expect(lintSchema('job { at "2024-02-29" }', rule)).toHaveLength(0);
+    expect(lintSchema('job { at "2024-02-30" }', rule)).toHaveLength(1);
+  });
 });

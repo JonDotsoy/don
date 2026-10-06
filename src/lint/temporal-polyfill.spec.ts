@@ -1,11 +1,7 @@
 import { describe, test, expect } from "bun:test";
 import { Temporal } from "temporal-polyfill";
 import { lintSchema } from "./lint-schema";
-import type {
-  ArgumentConstraint,
-  ArgumentType,
-  LintRuleDocument,
-} from "./schema";
+import type { ArgumentConstraint, LintRuleDocument } from "./schema";
 
 /**
  * The Temporal-inspired argument types are backed by `temporal-polyfill`: a
@@ -42,8 +38,31 @@ const samples: Record<string, string[]> = {
   ],
 };
 
-const accepts = (type: ArgumentType, value: string): boolean =>
-  lintSchema(`d ${JSON.stringify(value)}`, { "/d": { "[1]": { type } as ArgumentConstraint } }).length === 0;
+const numberFormats = new Set([
+  "epoch-seconds",
+  "EpochSeconds",
+  "unix",
+  "epoch-milliseconds",
+  "EpochMilliseconds",
+]);
+const bigintFormats = new Set(["epoch-nanoseconds", "EpochNanoseconds"]);
+
+/** `{ type, format }` where `type` is the one each format belongs to. */
+const constraintFor = (format: string, extra = {}): ArgumentConstraint =>
+  ({
+    type: numberFormats.has(format)
+      ? "number"
+      : bigintFormats.has(format)
+        ? "bigint"
+        : "string",
+    format,
+    ...extra,
+  }) as ArgumentConstraint;
+
+const accepts = (format: string, value: string): boolean =>
+  lintSchema(`d ${JSON.stringify(value)}`, {
+    "/d": { "[1]": constraintFor(format) },
+  }).length === 0;
 
 const polyfillAccepts = (type: string, value: string): boolean => {
   try {
@@ -58,7 +77,7 @@ describe("Temporal types agree with temporal-polyfill", () => {
   for (const [type, values] of Object.entries(samples)) {
     test(type, () => {
       for (const value of values) {
-        expect([value, accepts(type as ArgumentType, value)]).toEqual([
+        expect([value, accepts(type, value)]).toEqual([
           value,
           polyfillAccepts(type, value),
         ]);
@@ -110,16 +129,16 @@ describe("Temporal types edge cases", () => {
   for (const [type, { accept, reject }] of Object.entries(edgeCases)) {
     test(`${type} accepts`, () => {
       for (const value of accept)
-        expect([value, accepts(type as ArgumentType, value)]).toEqual([value, true]);
+        expect([value, accepts(type, value)]).toEqual([value, true]);
     });
     test(`${type} rejects`, () => {
       for (const value of reject)
-        expect([value, accepts(type as ArgumentType, value)]).toEqual([value, false]);
+        expect([value, accepts(type, value)]).toEqual([value, false]);
     });
   }
 
   test("PascalCase aliases behave like their kebab-case types", () => {
-    const aliases: [ArgumentType, ArgumentType, string][] = [
+    const aliases: [string, string, string][] = [
       ["PlainDate", "plain-date", "2024-02-29"],
       ["PlainTime", "plain-time", "10:30"],
       ["PlainDateTime", "plain-date-time", "2024-02-29T10:30"],
@@ -139,7 +158,7 @@ describe("Temporal types edge cases", () => {
     for (const type of Object.keys(edgeCases)) {
       for (const literal of literals) {
         const issues = lintSchema(`d ${literal}`, {
-          "/d": { "[1]": { type: type as ArgumentType } as ArgumentConstraint },
+          "/d": { "[1]": constraintFor(type) },
         });
         expect([type, literal, issues.length]).toEqual([type, literal, 1]);
       }
@@ -148,15 +167,20 @@ describe("Temporal types edge cases", () => {
 
   test("rejects a heredoc argument", () => {
     const issues = lintSchema("d <<<EOT\n  2024-02-29\nEOT\n", {
-      "/d": { "[1]": { type: "plain-date" } },
+      "/d": { "[1]": constraintFor("plain-date") },
     });
     expect(issues).toHaveLength(1);
   });
 
   test("works together with enum/not/or on the same argument", () => {
     const rule = {
-      "/d": { "[1]": { or: [{ type: "plain-date" }, { type: "duration" }] } },
-      "/n": { "[1]": { not: { type: "instant" } } },
+      "/d": { "[1]": {
+          or: [
+            { type: "string", format: "plain-date" },
+            { type: "string", format: "duration" },
+          ],
+        } },
+      "/n": { "[1]": { not: { type: "string", format: "instant" } } },
     } satisfies LintRuleDocument;
     expect(lintSchema('d "2024-02-29"\nd "P1D"\nn "nope"', rule)).toHaveLength(0);
     expect(lintSchema('d "nope"', rule)).toHaveLength(1);
@@ -165,9 +189,10 @@ describe("Temporal types edge cases", () => {
 });
 
 describe("Unix epoch types", () => {
-  const ok = (type: ArgumentType, literal: string, extra = {}) =>
-    lintSchema(`d ${literal}`, { "/d": { "[1]": { type, ...extra } as ArgumentConstraint } }).length ===
-    0;
+  const ok = (format: string, literal: string, extra = {}) =>
+    lintSchema(`d ${literal}`, {
+      "/d": { "[1]": constraintFor(format, extra) },
+    }).length === 0;
 
   test("epoch-seconds accepts integer seconds within Instant's range", () => {
     for (const v of ["0", "-1", "1709202600", "8640000000000", "-8640000000000"])
@@ -220,13 +245,48 @@ describe("Unix epoch types", () => {
 
   test("works inside a block next to other directives", () => {
     const rule = {
-      "/job/createdAt": { "[1]": { type: "unix" } },
-      "/job/expiresAt": { "[1]": { type: "epoch-milliseconds" } },
-      "/job/tick": { "[1]": { type: "epoch-nanoseconds" } },
+      "/job/createdAt": { "[1]": { type: "number", format: "unix" } },
+      "/job/expiresAt": { "[1]": { type: "number", format: "epoch-milliseconds" } },
+      "/job/tick": { "[1]": { type: "bigint", format: "epoch-nanoseconds" } },
     } satisfies LintRuleDocument;
     const doc = (a: string, b: string, c: string) =>
       `name "x"\njob {\n  createdAt ${a}\n  expiresAt ${b}\n  tick ${c}\n}`;
     expect(lintSchema(doc("1709202600", "1709202600000", "5n"), rule)).toHaveLength(0);
     expect(lintSchema(doc("1.5", "1709202600000", "5"), rule)).toHaveLength(2);
+  });
+});
+
+describe("format attribute", () => {
+  const run = (doc: string, constraint: object) =>
+    lintSchema(doc, {
+      "/d": { "[1]": constraint as ArgumentConstraint },
+    });
+
+  test("only applies together with the type it belongs to", () => {
+    expect(run('d "2024-02-29"', { type: "string", format: "plain-date" })).toHaveLength(0);
+    expect(run('d "2024-02-29"', { type: "number", format: "plain-date" })).toHaveLength(1);
+    expect(run("d 5", { type: "string", format: "epoch-seconds" })).toHaveLength(1);
+    expect(run("d 5", { type: "bigint", format: "epoch-seconds" })).toHaveLength(1);
+  });
+
+  test("works without a type", () => {
+    expect(run('d "2024-02-29"', { format: "plain-date" })).toHaveLength(0);
+    expect(run("d 1709202600", { format: "unix" })).toHaveLength(0);
+    expect(run("d 5n", { format: "epoch-nanoseconds" })).toHaveLength(0);
+    expect(run('d "nope"', { format: "plain-date" })).toHaveLength(1);
+  });
+
+  test("an unknown format never matches", () => {
+    expect(run('d "2024-02-29"', { type: "string", format: "nope" })).toHaveLength(1);
+    expect(run('d "x"', { type: "string", format: "toString" })).toHaveLength(1);
+  });
+
+  test("combines with pattern, enum, or and not", () => {
+    const date = { type: "string", format: "plain-date" };
+    expect(run('d "2024-02-29"', { ...date, pattern: "^2024" })).toHaveLength(0);
+    expect(run('d "2023-02-28"', { ...date, pattern: "^2024" })).toHaveLength(1);
+    expect(run('d "2024-02-29"', { ...date, enum: ["2024-02-29"] })).toHaveLength(0);
+    expect(run('d "2024-03-01"', { ...date, enum: ["2024-02-29"] })).toHaveLength(1);
+    expect(run('d "2024-02-29"', { not: date })).toHaveLength(1);
   });
 });

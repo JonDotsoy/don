@@ -1215,13 +1215,13 @@ server "eu-west-1" {
 
   describe("Temporal-inspired types", () => {
     const rule = {
-      "/t/duration": { "[1]": { type: "duration" } },
-      "/t/date": { "[1]": { type: "plain-date" } },
-      "/t/time": { "[1]": { type: "plain-time" } },
-      "/t/dt": { "[1]": { type: "plain-date-time" } },
-      "/t/dateAlias": { "[1]": { type: "PlainDate" } },
-      "/t/timeAlias": { "[1]": { type: "PlainTime" } },
-      "/t/dtAlias": { "[1]": { type: "PlainDateTime" } },
+      "/t/duration": { "[1]": { type: "string", format: "duration" } },
+      "/t/date": { "[1]": { type: "string", format: "plain-date" } },
+      "/t/time": { "[1]": { type: "string", format: "plain-time" } },
+      "/t/dt": { "[1]": { type: "string", format: "plain-date-time" } },
+      "/t/dateAlias": { "[1]": { type: "string", format: "PlainDate" } },
+      "/t/timeAlias": { "[1]": { type: "string", format: "PlainTime" } },
+      "/t/dtAlias": { "[1]": { type: "string", format: "PlainDateTime" } },
     } satisfies LintRuleDocument;
 
     test("accepts valid values at the root and inside a block", () => {
@@ -1252,7 +1252,7 @@ server "eu-west-1" {
     });
 
     test("duration edge cases", () => {
-      const r = { "/d": { "[1]": { type: "duration" } } } satisfies LintRuleDocument;
+      const r = { "/d": { "[1]": { type: "string", format: "duration" } } } satisfies LintRuleDocument;
       for (const ok of ["PT30M", "-P1W", "P1D", "PT0.5S"])
         expect(lintSchema(`d "${ok}"`, r)).toHaveLength(0);
       for (const bad of ["P", "PT", "P1DT", "1D", "PT1.5X"])
@@ -1262,14 +1262,14 @@ server "eu-west-1" {
 
   describe("Instant, PlainYearMonth, PlainMonthDay and ZonedDateTime", () => {
     const rule = {
-      "/t/at": { "[1]": { type: "instant" } },
-      "/t/month": { "[1]": { type: "plain-year-month" } },
-      "/t/birthday": { "[1]": { type: "plain-month-day" } },
-      "/t/zoned": { "[1]": { type: "zoned-date-time" } },
-      "/t/atAlias": { "[1]": { type: "Instant" } },
-      "/t/monthAlias": { "[1]": { type: "PlainYearMonth" } },
-      "/t/birthdayAlias": { "[1]": { type: "PlainMonthDay" } },
-      "/t/zonedAlias": { "[1]": { type: "ZonedDateTime" } },
+      "/t/at": { "[1]": { type: "string", format: "instant" } },
+      "/t/month": { "[1]": { type: "string", format: "plain-year-month" } },
+      "/t/birthday": { "[1]": { type: "string", format: "plain-month-day" } },
+      "/t/zoned": { "[1]": { type: "string", format: "zoned-date-time" } },
+      "/t/atAlias": { "[1]": { type: "string", format: "Instant" } },
+      "/t/monthAlias": { "[1]": { type: "string", format: "PlainYearMonth" } },
+      "/t/birthdayAlias": { "[1]": { type: "string", format: "PlainMonthDay" } },
+      "/t/zonedAlias": { "[1]": { type: "string", format: "ZonedDateTime" } },
     } satisfies LintRuleDocument;
 
     test("accepts valid values at the root and inside a block", () => {

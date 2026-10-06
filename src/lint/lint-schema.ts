@@ -96,6 +96,35 @@ const isEpochNanoseconds = (value: unknown): boolean =>
   typeof value === "bigint" &&
   tryInstant(() => Temporal.Instant.fromEpochNanoseconds(value));
 
+const formatValidators: Record<string, (value: unknown) => boolean> = {
+  duration: isDuration,
+  "plain-date": isPlainDate,
+  PlainDate: isPlainDate,
+  "plain-time": isPlainTime,
+  PlainTime: isPlainTime,
+  "plain-date-time": isPlainDateTime,
+  PlainDateTime: isPlainDateTime,
+  instant: isInstant,
+  Instant: isInstant,
+  "plain-year-month": isPlainYearMonth,
+  PlainYearMonth: isPlainYearMonth,
+  "plain-month-day": isPlainMonthDay,
+  PlainMonthDay: isPlainMonthDay,
+  "zoned-date-time": isZonedDateTime,
+  ZonedDateTime: isZonedDateTime,
+  "epoch-seconds": isEpochSeconds,
+  EpochSeconds: isEpochSeconds,
+  unix: isEpochSeconds,
+  "epoch-milliseconds": isEpochMilliseconds,
+  EpochMilliseconds: isEpochMilliseconds,
+  "epoch-nanoseconds": isEpochNanoseconds,
+  EpochNanoseconds: isEpochNanoseconds,
+};
+
+/** An unknown `format` never matches, so a typo surfaces as an issue. */
+const matchesFormat = (value: unknown, format: string): boolean =>
+  Object.hasOwn(formatValidators, format) && formatValidators[format]!(value);
+
 const matchesType = (value: unknown, type: ArgumentType): boolean => {
   switch (type) {
     case "string":
@@ -114,39 +143,6 @@ const matchesType = (value: unknown, type: ArgumentType): boolean => {
       return value === null || value === "null";
     case "heredoc":
       return value instanceof HeredocValue;
-    case "duration":
-      return isDuration(value);
-    case "plain-date":
-    case "PlainDate":
-      return isPlainDate(value);
-    case "plain-time":
-    case "PlainTime":
-      return isPlainTime(value);
-    case "plain-date-time":
-    case "PlainDateTime":
-      return isPlainDateTime(value);
-    case "instant":
-    case "Instant":
-      return isInstant(value);
-    case "plain-year-month":
-    case "PlainYearMonth":
-      return isPlainYearMonth(value);
-    case "plain-month-day":
-    case "PlainMonthDay":
-      return isPlainMonthDay(value);
-    case "zoned-date-time":
-    case "ZonedDateTime":
-      return isZonedDateTime(value);
-    case "epoch-seconds":
-    case "EpochSeconds":
-    case "unix":
-      return isEpochSeconds(value);
-    case "epoch-milliseconds":
-    case "EpochMilliseconds":
-      return isEpochMilliseconds(value);
-    case "epoch-nanoseconds":
-    case "EpochNanoseconds":
-      return isEpochNanoseconds(value);
   }
 };
 
@@ -179,6 +175,10 @@ const matchesConstraint = (
     !constraint.enum.some((literal) => literal === value)
   ) {
     return false;
+  }
+
+  if ("format" in constraint && constraint.format !== undefined) {
+    if (!matchesFormat(value, constraint.format)) return false;
   }
 
   if ("pattern" in constraint && constraint.pattern !== undefined) {
